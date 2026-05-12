@@ -1,4 +1,4 @@
-target_sources(taller_common
+target_sources(argentum_grupo13_common
     PRIVATE
     # .cpp files
     foo.cpp

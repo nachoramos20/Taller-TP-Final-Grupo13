@@ -1,4 +1,4 @@
-target_sources(taller_server
+target_sources(argentum_grupo13_server
     PRIVATE
     # .cpp files
     main.cpp
