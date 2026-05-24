@@ -1,7 +1,9 @@
 target_sources(argentum_grupo13_client
     PRIVATE
-    # .cpp files
     main.cpp
-    PUBLIC
-    # .h files
-    )
+)
+
+target_include_directories(argentum_grupo13_client
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
