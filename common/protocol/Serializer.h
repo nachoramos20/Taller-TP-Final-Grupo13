@@ -4,6 +4,7 @@
 #include <string>
 #include "../socket.h"
 #include "protocol.h"
+#include "dtos.h"
 
 class Serializer {
 public:
@@ -65,6 +66,57 @@ public:
         send_uint8(static_cast<uint8_t>(MsgType::LOGOUT));
     }
 
+    void send_login_ok(uint16_t entity_id) {
+        send_uint8(static_cast<uint8_t>(MsgType::LOGIN_OK));
+        send_uint16(entity_id);
+    }
+
+    void send_login_error(const std::string& msg) {
+        send_uint8(static_cast<uint8_t>(MsgType::LOGIN_ERROR));
+        send_str8(msg);
+    }
+
+    void send_snapshot(const SnapshotDTO& snap) {
+        send_uint8(static_cast<uint8_t>(MsgType::SNAPSHOT));
+        send_uint32(snap.tick);
+        send_uint16(snap.self_entity_id);
+        send_uint16(snap.hp);
+        send_uint16(snap.max_hp);
+        send_uint16(snap.mp);
+        send_uint16(snap.max_mp);
+        send_uint32(snap.exp);
+        send_uint8(snap.level);
+        send_uint32(snap.gold);
+        send_uint8(snap.is_ghost);
+        send_uint8(snap.meditating);
+
+        send_uint8(static_cast<uint8_t>(SnapshotDTO::INVENTORY_SIZE));
+        for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++)
+            send_uint8(snap.inventory[i]);
+        send_uint8(snap.equipped_wpn);
+        send_uint8(snap.equipped_arm);
+        send_uint8(snap.equipped_helm);
+        send_uint8(snap.equipped_shld);
+
+        send_uint8(static_cast<uint8_t>(snap.entities.size()));
+        for (const auto& e : snap.entities) {
+            send_uint16(e.entity_id);
+            send_uint8(e.entity_type);
+            send_uint16(e.pos_x);
+            send_uint16(e.pos_y);
+            send_uint8(e.direction);
+            send_uint8(e.sprite_id);
+            send_uint8(e.is_ghost);
+            send_uint8(e.hp_pct);
+        }
+
+        send_uint8(static_cast<uint8_t>(snap.messages.size()));
+        for (const auto& m : snap.messages) {
+            send_uint8(m.msg_type);
+            send_str8(m.text);
+        }
+    }
+
 private:
     void send_uint8(uint8_t value) {
         _socket.sendall(&value, 1);
@@ -76,6 +128,16 @@ private:
             static_cast<uint8_t>(value & 0xFF)
         };
         _socket.sendall(buf, 2);
+    }
+
+    void send_uint32(uint32_t value) {
+        uint8_t buf[4] = {
+            static_cast<uint8_t>(value >> 24),
+            static_cast<uint8_t>(value >> 16),
+            static_cast<uint8_t>(value >> 8),
+            static_cast<uint8_t>(value & 0xFF)
+        };
+        _socket.sendall(buf, 4);
     }
 
     void send_str8(const std::string& s) {
