@@ -27,18 +27,18 @@ class ServerReceiverThread : public Thread {
 public:
     ServerReceiverThread(uint16_t client_id,
                          Socket& socket,
-                         Queue<ServerCommand>& command_queue,
+                         Queue<std::shared_ptr<ServerCommand>>& command_queue,
                          std::atomic<bool>& client_alive);
 
     void run() override;
     void stop() override;
 
 private:
-    ServerCommand deserialize_command(MsgType type);
+    std::shared_ptr<ServerCommand> deserialize_command(MsgType type);
 
     uint16_t              _client_id;
     Deserializer          _deserializer;
     Serializer            _serializer;
-    Queue<ServerCommand>& _command_queue;
+    Queue<std::shared_ptr<ServerCommand>>& _command_queue;
     std::atomic<bool>&    _client_alive;
 };

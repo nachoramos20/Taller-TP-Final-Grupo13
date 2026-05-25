@@ -3,64 +3,61 @@
 #include <iostream>
 
 Acceptor::Acceptor(const std::string& port,
-                   Queue<ServerCommand>& command_queue,
+                   Queue<std::shared_ptr<ServerCommand>>& command_queue,
                    QueueMonitor& queue_monitor)
-    : _socket(port.c_str()),
-      _command_queue(command_queue),
-      _queue_monitor(queue_monitor),
-      _running(false),
-      _next_id(1) {}
+    : socket(port.c_str()),
+      command_queue(command_queue),
+      queue_monitor(queue_monitor),
+      running(false),
+      next_id(1) {}
 
 void Acceptor::run() {
-    _running = true;
+    running = true;
 
-    while (_running) {
+    while (running) {
         try {
-            Socket peer = _socket.accept();
+            Socket peer = socket.accept();
 
-            ClientHandler* handler = new ClientHandler(
-                _next_id, std::move(peer), _command_queue);
+            this->next_id++;
+            std::unique_ptr<ClientHandler> handler =
+                std::make_unique<ClientHandler>(next_id, std::move(peer), command_queue);
 
-            _queue_monitor.add(_next_id, &handler->snapshot_queue());
-            _next_id++;
+            queue_monitor.add(next_id, &handler->snapshot_queue());
+            next_id++;
 
             handler->start();
-            _handlers.push_back(handler);
+            client_handlers.push_back(std::move(handler));
 
             reap_dead_clients();
 
         } catch (const std::exception& e) {
-            if (_running)
+            if (running)
                 std::cerr << "Acceptor error: " << e.what() << "\n";
         }
     }
 
-    for (ClientHandler* h : _handlers) {
-        h->stop();
-        h->join();
-        delete h;
-    }
-    _handlers.clear();
 }
 
 void Acceptor::stop() {
-    _running = false;
+    if (!this->running)
+        return;
+    this->running = false;
     Thread::stop();
-    _socket.shutdown(SHUT_RDWR);
+    this->socket.shutdown(SHUT_RDWR);
+    this->socket.close();
+
+    for (std::unique_ptr<ClientHandler>& handler : this->client_handlers) {
+        handler->stop();
+    }
+    this->client_handlers.clear();
 }
 
 void Acceptor::reap_dead_clients() {
-    auto it = _handlers.begin();
-    while (it != _handlers.end()) {
-        ClientHandler* h = *it;
-        if (!h->is_alive()) {
-            _queue_monitor.remove(h->client_id());
-            h->stop();
-            h->join();
-            delete h;
-            it = _handlers.erase(it);
-        } else {
-            ++it;
+    this->client_handlers.remove_if([](const std::unique_ptr<ClientHandler>& handler) {
+        if (!handler->is_alive()) {
+            handler->stop();
+            return true;
         }
-    }
+        return false;
+    });
 }

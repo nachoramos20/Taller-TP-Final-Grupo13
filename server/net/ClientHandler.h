@@ -13,7 +13,7 @@ class ClientHandler {
 public:
     ClientHandler(uint16_t client_id,
                   Socket&& socket,
-                  Queue<ServerCommand>& command_queue);
+                  Queue<std::shared_ptr<ServerCommand>>& command_queue);
 
     void start();
     void stop();

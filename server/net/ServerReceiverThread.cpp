@@ -3,7 +3,7 @@
 
 ServerReceiverThread::ServerReceiverThread(uint16_t client_id,
                                            Socket& socket,
-                                           Queue<ServerCommand>& command_queue,
+                                           Queue<std::shared_ptr<ServerCommand>>& command_queue,
                                            std::atomic<bool>& client_alive)
     : _client_id(client_id),
       _deserializer(socket),
@@ -18,14 +18,14 @@ void ServerReceiverThread::run() {
 
             if (type == MsgType::LOGIN || type == MsgType::REGISTER) {
                 // Deserializar el comando
-                ServerCommand cmd = deserialize_command(type);
-                cmd.client_id = _client_id;
+                auto cmd = deserialize_command(type);
+                cmd->client_id = _client_id;
                 // Responder LOGIN_OK antes de encolar
                 _serializer.send_login_ok(_client_id);
                 _command_queue.push(cmd);
             } else {
-                ServerCommand cmd = deserialize_command(type);
-                cmd.client_id = _client_id;
+                auto cmd = deserialize_command(type);
+                cmd->client_id = _client_id;
                 _command_queue.push(cmd);
             }
         }
@@ -42,32 +42,32 @@ void ServerReceiverThread::stop() {
     Thread::stop();
 }
 
-ServerCommand ServerReceiverThread::deserialize_command(MsgType type) {
-    ServerCommand cmd;
-    cmd.type = type;
+std::shared_ptr<ServerCommand> ServerReceiverThread::deserialize_command(MsgType type) {
+    auto cmd = std::make_shared<ServerCommand>();
+    cmd->type = type;
 
     switch (type) {
         case MsgType::LOGIN:
-            cmd.text = _deserializer.recv_str8();
+            cmd->text = _deserializer.recv_str8();
             break;
         case MsgType::REGISTER:
-            cmd.text = _deserializer.recv_str8();
-            cmd.race = _deserializer.recv_uint8();
-            cmd.cls  = _deserializer.recv_uint8();
+            cmd->text = _deserializer.recv_str8();
+            cmd->race = _deserializer.recv_uint8();
+            cmd->cls  = _deserializer.recv_uint8();
             break;
         case MsgType::MOVE:
-            cmd.pos_x = _deserializer.recv_uint16();
-            cmd.pos_y = _deserializer.recv_uint16();
+            cmd->pos_x = _deserializer.recv_uint16();
+            cmd->pos_y = _deserializer.recv_uint16();
             break;
         case MsgType::ATTACK:
-            cmd.target_id = _deserializer.recv_uint16();
+            cmd->target_id = _deserializer.recv_uint16();
             break;
         case MsgType::CHAT_COMMAND:
-            cmd.text = _deserializer.recv_str8();
+            cmd->text = _deserializer.recv_str8();
             break;
         case MsgType::EQUIP_ITEM:
         case MsgType::DROP_ITEM:
-            cmd.slot = _deserializer.recv_uint8();
+            cmd->slot = _deserializer.recv_uint8();
             break;
         case MsgType::PICK_ITEM:
         case MsgType::LOGOUT:

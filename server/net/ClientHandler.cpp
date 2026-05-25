@@ -3,7 +3,7 @@
 
 ClientHandler::ClientHandler(uint16_t client_id,
                              Socket&& socket,
-                             Queue<ServerCommand>& command_queue)
+                             Queue<std::shared_ptr<ServerCommand>>& command_queue)
     : _client_id(client_id),
       _socket(std::move(socket)),
       _alive(true),

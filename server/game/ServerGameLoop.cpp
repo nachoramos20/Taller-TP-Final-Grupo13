@@ -1,6 +1,6 @@
 #include "ServerGameLoop.h"
 
-ServerGameLoop::ServerGameLoop(Queue<ServerCommand>& command_queue,
+ServerGameLoop::ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_queue,
                                QueueMonitor& queue_monitor)
     : _command_queue(command_queue),
       _queue_monitor(queue_monitor),
@@ -11,9 +11,9 @@ void ServerGameLoop::run() {
     auto next_tick = clock::now();
 
     while (should_keep_running()) {
-        ServerCommand cmd;
+        std::shared_ptr<ServerCommand> cmd;
         while (_command_queue.try_pop(cmd)) {
-            process_command(cmd);
+            process_command(*cmd);
         }
 
         broadcast_snapshots();

@@ -14,7 +14,7 @@
 class Acceptor : public Thread {
 public:
     Acceptor(const std::string& port,
-             Queue<ServerCommand>& command_queue,
+             Queue<std::shared_ptr<ServerCommand>>& command_queue,
              QueueMonitor& queue_monitor);
 
     void run() override;
@@ -23,10 +23,10 @@ public:
 private:
     void reap_dead_clients();
 
-    Socket                    _socket;
-    Queue<ServerCommand>&     _command_queue;
-    QueueMonitor&             _queue_monitor;
-    std::list<ClientHandler*> _handlers;
-    std::atomic<bool>         _running;
-    uint16_t                  _next_id;
+    Socket                    socket;
+    Queue<std::shared_ptr<ServerCommand>>&     command_queue;
+    QueueMonitor&             queue_monitor;
+    std::list<std::unique_ptr<ClientHandler>> client_handlers;
+    std::atomic<bool>         running;
+    uint16_t                  next_id;
 };

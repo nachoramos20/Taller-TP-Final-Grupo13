@@ -14,8 +14,8 @@ int main(int argc, char* argv[]) {
     try {
         std::string port = argv[1];
 
-        Queue<ServerCommand> command_queue;
-        QueueMonitor         queue_monitor;
+        Queue<std::shared_ptr<ServerCommand>> command_queue;
+        QueueMonitor queue_monitor;
 
         Acceptor       acceptor(port, command_queue, queue_monitor);
         ServerGameLoop game_loop(command_queue, queue_monitor);
