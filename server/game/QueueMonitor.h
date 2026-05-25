@@ -5,35 +5,14 @@
 
 #include <mutex>
 #include <vector>
-#include <algorithm>
 #include <cstdint>
 
 class QueueMonitor {
 public:
-    void add(uint16_t client_id, Queue<SnapshotDTO>* queue) {
-        std::lock_guard<std::mutex> lock(_mtx);
-        _queues.push_back({client_id, queue});
-    }
-
-    void remove(uint16_t client_id) {
-        std::lock_guard<std::mutex> lock(_mtx);
-        _queues.erase(
-            std::remove_if(_queues.begin(), _queues.end(),
-                [client_id](const Entry& e) {
-                    return e.client_id == client_id;
-                }),
-            _queues.end()
-        );
-    }
-
-    void broadcast(const SnapshotDTO& snapshot) {
-        std::lock_guard<std::mutex> lock(_mtx);
-        for (auto& entry : _queues) {
-            try {
-                entry.queue->push(snapshot);
-            } catch (const ClosedQueue&) {}
-        }
-    }
+    void add(uint16_t client_id, Queue<SnapshotDTO>* queue);
+    void remove(uint16_t client_id);
+    void broadcast(const SnapshotDTO& snapshot);
+    void send_to(uint16_t client_id, const SnapshotDTO& snapshot);
 
 private:
     struct Entry {

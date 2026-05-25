@@ -2,10 +2,19 @@
 #include <algorithm>
 
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
-    : _window(window),
-      _renderer(renderer),
+    : _window(window), _renderer(renderer),
       _camera(window.GetWidth(), window.GetHeight()),
-      _running(false) {}
+      _running(false),
+      _command_queue(nullptr), _snapshot_queue(nullptr) {}
+
+GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
+                   Queue<Command>* command_queue,
+                   Queue<SnapshotDTO>* snapshot_queue)
+    : _window(window), _renderer(renderer),
+      _camera(window.GetWidth(), window.GetHeight()),
+      _running(false),
+      _command_queue(command_queue),
+      _snapshot_queue(snapshot_queue) {}
 
 void GameLoop::run() {
     _running = true;
@@ -63,15 +72,47 @@ void GameLoop::handle_input() {
         int new_y = _player.tile_y + dy;
         if (new_x >= 0 && new_x < MAP_SIZE &&
             new_y >= 0 && new_y < MAP_SIZE) {
-            _player.move_to(new_x, new_y, dir);
-            // TODO: encolar comando MOVE cuando haya servidor
+
+            if (_command_queue) {
+                // Con servidor: encolar MOVE y esperar confirmación
+                _command_queue->push(Command::move(
+                    static_cast<uint16_t>(new_x),
+                    static_cast<uint16_t>(new_y)
+                ));
+            } else {
+                // Sin servidor: mover localmente
+                _player.move_to(new_x, new_y, dir);
+            }
         }
     }
 }
 
 void GameLoop::update(float dt) {
+    // Consumir snapshots del servidor
+    if (_snapshot_queue) {
+        SnapshotDTO snap;
+        while (_snapshot_queue->try_pop(snap)) {
+            apply_snapshot(snap);
+        }
+    }
+
     _player.update(dt);
     _camera.follow(_player);
+}
+
+void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
+    // Buscar la entidad propia en el snapshot y actualizar posición
+    for (const auto& e : snap.entities) {
+        if (e.entity_id == snap.self_entity_id) {
+            // Solo mover si la posición cambió
+            if (e.pos_x != static_cast<uint16_t>(_player.tile_x) ||
+                e.pos_y != static_cast<uint16_t>(_player.tile_y)) {
+                Direction dir = static_cast<Direction>(e.direction);
+                _player.move_to(e.pos_x, e.pos_y, dir);
+            }
+            break;
+        }
+    }
 }
 
 void GameLoop::render() {

@@ -7,6 +7,7 @@ ServerReceiverThread::ServerReceiverThread(uint16_t client_id,
                                            std::atomic<bool>& client_alive)
     : _client_id(client_id),
       _deserializer(socket),
+      _serializer(socket),
       _command_queue(command_queue),
       _client_alive(client_alive) {}
 
@@ -15,26 +16,30 @@ void ServerReceiverThread::run() {
         while (should_keep_running()) {
             MsgType type = _deserializer.recv_opcode();
 
-            ServerCommand cmd = deserialize_command(type);
-            cmd.client_id = _client_id;
-            _command_queue.push(cmd);
+            if (type == MsgType::LOGIN || type == MsgType::REGISTER) {
+                // Deserializar el comando
+                ServerCommand cmd = deserialize_command(type);
+                cmd.client_id = _client_id;
+                // Responder LOGIN_OK antes de encolar
+                _serializer.send_login_ok(_client_id);
+                _command_queue.push(cmd);
+            } else {
+                ServerCommand cmd = deserialize_command(type);
+                cmd.client_id = _client_id;
+                _command_queue.push(cmd);
+            }
         }
     } catch (const ClosedQueue&) {
-        // Cola cerrada: shutdown normal
     } catch (const std::exception& e) {
-        // Socket cerrado o error de red: el cliente se desconectó
-        std::cerr << "Cliente " << _client_id << " desconectado: "
-                  << e.what() << "\n";
+        std::cerr << "Cliente " << _client_id
+                  << " desconectado: " << e.what() << "\n";
     }
 
-    // Marcar al cliente como muerto para que el Acceptor lo reapee.
     _client_alive = false;
 }
 
 void ServerReceiverThread::stop() {
     Thread::stop();
-    // El socket se cierra desde ClientHandler::stop(),
-    // lo que rompe el recv() y hace salir del loop
 }
 
 ServerCommand ServerReceiverThread::deserialize_command(MsgType type) {
@@ -66,7 +71,6 @@ ServerCommand ServerReceiverThread::deserialize_command(MsgType type) {
             break;
         case MsgType::PICK_ITEM:
         case MsgType::LOGOUT:
-            // Sin payload
             break;
         default:
             break;
