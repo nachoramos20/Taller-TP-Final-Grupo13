@@ -1,8 +1,9 @@
 #include <iostream>
 #include <string>
 #include "net/Acceptor.h"
+#include "game/ServerGameLoop.h"
+#include "game/QueueMonitor.h"
 #include "../common/queue.h"
-#include "net/ServerReceiverThread.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -12,12 +13,17 @@ int main(int argc, char* argv[]) {
 
     try {
         std::string port = argv[1];
+
         Queue<ServerCommand> command_queue;
-        Acceptor acceptor(port, command_queue);
+        QueueMonitor         queue_monitor;
+
+        Acceptor       acceptor(port, command_queue, queue_monitor);
+        ServerGameLoop game_loop(command_queue, queue_monitor);
 
         std::cout << "Servidor escuchando en puerto " << port << "\n";
         std::cout << "Presioná 'q' + Enter para cerrar\n";
 
+        game_loop.start();
         acceptor.start();
 
         char c;
@@ -26,6 +32,8 @@ int main(int argc, char* argv[]) {
         std::cout << "Cerrando servidor...\n";
         acceptor.stop();
         acceptor.join();
+        game_loop.stop();
+        game_loop.join();
 
     } catch (const std::exception& e) {
         std::cerr << "Error fatal: " << e.what() << "\n";
