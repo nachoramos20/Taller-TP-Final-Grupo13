@@ -68,7 +68,6 @@ public:
         return s;
     }
 
-private:
     uint8_t recv_uint8() {
         uint8_t val;
         _socket.recvall(&val, 1);
@@ -97,5 +96,6 @@ private:
         return s;
     }
 
+private:
     Socket& _socket;
 };

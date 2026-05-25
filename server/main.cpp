@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include "net/Acceptor.h"
+#include "../common/queue.h"
+#include "net/ServerReceiverThread.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -10,7 +12,8 @@ int main(int argc, char* argv[]) {
 
     try {
         std::string port = argv[1];
-        Acceptor acceptor(port);
+        Queue<ServerCommand> command_queue;
+        Acceptor acceptor(port, command_queue);
 
         std::cout << "Servidor escuchando en puerto " << port << "\n";
         std::cout << "Presioná 'q' + Enter para cerrar\n";

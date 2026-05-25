@@ -3,6 +3,7 @@ target_sources(argentum_grupo13_server
     main.cpp
     net/Acceptor.cpp
     net/ClientHandler.cpp
+    net/ServerReceiverThread.cpp
 )
 
 target_include_directories(argentum_grupo13_server

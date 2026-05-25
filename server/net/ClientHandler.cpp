@@ -2,15 +2,16 @@
 #include <sys/socket.h>
 
 void ClientHandler::start() {
-    // TODO: arrancar ReceiverThread y SenderThread
+    _receiver.start();
 }
 
 void ClientHandler::stop() {
     _alive = false;
     _socket.shutdown(SHUT_RDWR);
     _snapshot_queue.close();
+    _receiver.stop();
 }
 
 void ClientHandler::join() {
-    // TODO: join de ReceiverThread y SenderThread
+    _receiver.join();
 }

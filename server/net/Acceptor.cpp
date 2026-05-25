@@ -2,8 +2,11 @@
 #include <sys/socket.h>
 #include <iostream>
 
-Acceptor::Acceptor(const std::string& port)
-    : _socket(port.c_str()), _running(false) {}
+Acceptor::Acceptor(const std::string& port, Queue<ServerCommand>& command_queue)
+    : _socket(port.c_str()),
+      _command_queue(command_queue),
+      _running(false),
+      _next_id(1) {}
 
 void Acceptor::run() {
     _running = true;
@@ -12,7 +15,8 @@ void Acceptor::run() {
         try {
             Socket peer = _socket.accept();
 
-            ClientHandler* handler = new ClientHandler(std::move(peer));
+            ClientHandler* handler = new ClientHandler(
+                _next_id++, std::move(peer), _command_queue);
             handler->start();
             _handlers.push_back(handler);
 
