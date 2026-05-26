@@ -15,9 +15,10 @@ public:
     static constexpr int BODY_W       = 27;
     static constexpr int BODY_H       = 48;
     static constexpr int HEAD_W       = 27;
-    static constexpr int HEAD_H       = 17;
-    static constexpr int HEAD_OVERLAP = 4;
+    static constexpr int HEAD_DST_H = 21;
+    static constexpr int HEAD_OVERLAP = 10;
     static constexpr int TICKS_PER_FRAME = 8;
+   
 
     AnimationSystem();
 

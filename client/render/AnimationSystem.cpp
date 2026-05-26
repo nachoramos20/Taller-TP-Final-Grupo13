@@ -15,7 +15,7 @@ AnimationSystem::AnimationSystem() {
 void AnimationSystem::load() {
     int row_y[4]  = {0, 48, 96, 144};
 
-    // Precalcular rects del cuerpo
+    // Cuerpo
     for (int dir = 0; dir < 4; dir++) {
         _body_anims[dir].frames.clear();
         for (int f = 0; f < _frame_counts[dir]; f++) {
@@ -24,9 +24,13 @@ void AnimationSystem::load() {
         }
     }
 
-    // Precalcular rects de la cabeza (una fila, 4 direcciones)
+    // Cabeza — primera cabeza de cada fila del 422.png
+    // Sur=0, Norte=1, Este=2, Oeste=3
+    int head_y[4] = {9,  78,  142, 206};
+    int head_h[4] = {21, 16,  15,  18};
+
     for (int dir = 0; dir < 4; dir++) {
-        _head_rects[dir] = SDL2pp::Rect(dir * HEAD_W, 0, HEAD_W, HEAD_H);
+        _head_rects[dir] = SDL2pp::Rect(0, head_y[dir], HEAD_W, head_h[dir]);
     }
 }
 
@@ -58,7 +62,6 @@ void AnimationSystem::render(SDL2pp::Renderer& renderer,
     const SDL2pp::Rect& body_src = _body_anims[dir_idx].frames[frame];
     const SDL2pp::Rect& head_src = _head_rects[dir_idx];
 
-    // Cuerpo: pies alineados al tile
     SDL2pp::Rect body_dst(
         screen_x - BODY_W / 2 + TILE_SIZE / 2,
         screen_y - BODY_H + TILE_SIZE,
@@ -66,12 +69,15 @@ void AnimationSystem::render(SDL2pp::Renderer& renderer,
         BODY_H
     );
 
-    // Cabeza: encima del cuerpo con overlap
+    // Overlap por dirección: sur=10, norte=10, este=8, oeste=12
+    int overlaps[4] = {10, 10, 8, 12};
+    int overlap = overlaps[dir_idx];
+
     SDL2pp::Rect head_dst(
         body_dst.x,
-        body_dst.y - HEAD_H + HEAD_OVERLAP,
-        HEAD_W,
-        HEAD_H
+        body_dst.y - head_src.h + overlap,
+        head_src.w,
+        head_src.h
     );
 
     SDL2pp::Texture& body_tex = assets.get(body_path);
