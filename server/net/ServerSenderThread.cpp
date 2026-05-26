@@ -1,13 +1,17 @@
 #include "ServerSenderThread.h"
 
-ServerSenderThread::ServerSenderThread(Socket& socket, Queue<SnapshotDTO>& queue)
-    : _serializer(socket), _queue(queue) {}
+ServerSenderThread::ServerSenderThread(ServerProtocol& protocol)
+    : server_protocol(protocol), queue() {}
+
+Queue<SnapshotDTO>& ServerSenderThread::get_queue() {
+    return queue;
+}
 
 void ServerSenderThread::run() {
     try {
         while (true) {
-            SnapshotDTO snap = _queue.pop();
-            _serializer.send_snapshot(snap);
+            SnapshotDTO snap = queue.pop();
+            server_protocol.send_snapshot(snap);
         }
     } catch (const ClosedQueue&) {
         // shutdown normal
@@ -17,5 +21,6 @@ void ServerSenderThread::run() {
 }
 
 void ServerSenderThread::stop() {
+    this->queue.close();
     Thread::stop();
 }

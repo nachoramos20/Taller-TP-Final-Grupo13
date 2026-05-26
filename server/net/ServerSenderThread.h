@@ -5,15 +5,18 @@
 #include "../../common/socket.h"
 #include "../../common/protocol/Serializer.h"
 #include "../../common/protocol/dtos.h"
+#include "ServerProtocol.h"
 
 class ServerSenderThread : public Thread {
 public:
-    ServerSenderThread(Socket& socket, Queue<SnapshotDTO>& queue);
+    explicit ServerSenderThread(ServerProtocol& protocol);
+
+    Queue<SnapshotDTO>& get_queue();
 
     void run() override;
     void stop() override;
 
 private:
-    Serializer          _serializer;
-    Queue<SnapshotDTO>& _queue;
+    ServerProtocol&       server_protocol;
+    Queue<SnapshotDTO>   queue;
 };

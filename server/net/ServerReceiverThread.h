@@ -12,24 +12,22 @@
 #include <cstdint>
 #include <string>
 #include <memory>
+#include "ServerProtocol.h"
 
 
 class ServerReceiverThread : public Thread {
 public:
     ServerReceiverThread(uint16_t client_id,
-                         Socket& socket,
                          Queue<std::shared_ptr<ServerCommand>>& command_queue,
-                         std::atomic<bool>& client_alive);
+                         std::atomic<bool>& client_alive, ServerProtocol& server_protocol);
 
     void run() override;
     void stop() override;
 
 private:
-    std::shared_ptr<ServerCommand> deserialize_command(MsgType type);
 
-    uint16_t              _client_id;
-    Deserializer          _deserializer;
-    Serializer            _serializer;
-    Queue<std::shared_ptr<ServerCommand>>& _command_queue;
-    std::atomic<bool>&    _client_alive;
+    uint16_t              client_id;
+    ServerProtocol&        server_protocol;
+    Queue<std::shared_ptr<ServerCommand>>& command_queue;
+    std::atomic<bool>&    client_alive;
 };

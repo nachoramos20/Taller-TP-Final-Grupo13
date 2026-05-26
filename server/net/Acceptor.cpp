@@ -20,10 +20,7 @@ void Acceptor::run() {
 
             this->next_id++;
             std::unique_ptr<ClientHandler> handler =
-                std::make_unique<ClientHandler>(next_id, std::move(peer), command_queue);
-
-            queue_monitor.add(next_id, &handler->snapshot_queue());
-            next_id++;
+                std::make_unique<ClientHandler>(next_id, std::move(peer), command_queue, queue_monitor);
 
             handler->start();
             client_handlers.push_back(std::move(handler));
@@ -56,6 +53,7 @@ void Acceptor::reap_dead_clients() {
     this->client_handlers.remove_if([](const std::unique_ptr<ClientHandler>& handler) {
         if (!handler->is_alive()) {
             handler->stop();
+            handler->join();
             return true;
         }
         return false;

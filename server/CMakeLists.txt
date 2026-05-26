@@ -4,8 +4,12 @@ target_sources(argentum_grupo13_server
     net/Acceptor.cpp
     net/ClientHandler.cpp
     net/ServerReceiverThread.cpp
+    net/ServerProtocol.cpp
     net/ServerSenderThread.cpp
     game/ServerGameLoop.cpp
+    game/Game.cpp
+    game/Commands.cpp
+    game/World.cpp
     game/QueueMonitor.cpp
 )
 
