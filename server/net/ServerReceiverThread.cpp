@@ -29,7 +29,6 @@ void ServerReceiverThread::run() {
 }
 
 void ServerReceiverThread::stop() {
-    if (!this->client_alive)
-        return;
+    client_alive = false;
     Thread::stop();
 }

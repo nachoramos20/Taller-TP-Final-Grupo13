@@ -39,12 +39,15 @@ void Acceptor::stop() {
     if (!this->running)
         return;
     this->running = false;
-    Thread::stop();
+
     this->socket.shutdown(SHUT_RDWR);
     this->socket.close();
+    
+    Thread::stop();
 
     for (std::unique_ptr<ClientHandler>& handler : this->client_handlers) {
         handler->stop();
+        handler->join();
     }
     this->client_handlers.clear();
 }

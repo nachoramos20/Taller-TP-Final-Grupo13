@@ -20,10 +20,12 @@ void ClientHandler::start() {
 }
 
 void ClientHandler::stop() {
-    if (!_alive)
-        return;
     _alive = false;
-    _protocol.shutdown(SHUT_RDWR);
+    try {
+        _protocol.shutdown(SHUT_RDWR);
+    } catch (const std::exception& e) {
+        // ya estaba cerrado
+    }
     _queue_monitor.remove(this->client_id());
     _receiver.stop();
     _sender.stop();
