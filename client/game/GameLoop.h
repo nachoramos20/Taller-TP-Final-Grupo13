@@ -44,7 +44,7 @@ private:
     Queue<SnapshotDTO>*  _snapshot_queue;
     std::atomic<bool>*   _connected;
 
-    // Último snapshot recibido (para renderizar todas las entidades)
     std::vector<EntityDTO> _last_entities;
     uint16_t               _my_entity_id = 0;
+    Uint32                 _last_move_tick = 0;
 };

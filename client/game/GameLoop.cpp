@@ -5,7 +5,9 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
     : _window(window), _renderer(renderer),
       _camera(window.GetWidth(), window.GetHeight()),
       _running(false),
-      _command_queue(nullptr), _snapshot_queue(nullptr) {}
+      _command_queue(nullptr),
+      _snapshot_queue(nullptr),
+      _connected(nullptr) {}
 
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                    Queue<Command>* command_queue,
@@ -54,6 +56,10 @@ void GameLoop::handle_events() {
 void GameLoop::handle_input() {
     if (!_command_queue && _player.is_moving()) return;
 
+    // Limitar a 1 movimiento cada 250ms
+    Uint32 now = SDL_GetTicks();
+    if (_command_queue && (now - _last_move_tick) < 250) return;
+
     const Uint8* keys = SDL_GetKeyboardState(nullptr);
 
     int dx = 0, dy = 0;
@@ -74,15 +80,13 @@ void GameLoop::handle_input() {
         int new_y = _player.tile_y + dy;
         if (new_x >= 0 && new_x < MAP_SIZE &&
             new_y >= 0 && new_y < MAP_SIZE) {
-
             if (_command_queue) {
-                // Con servidor: encolar MOVE y esperar confirmación
+                _last_move_tick = now;
                 _command_queue->push(Command::move(
                     static_cast<uint16_t>(new_x),
                     static_cast<uint16_t>(new_y)
                 ));
             } else {
-                // Sin servidor: mover localmente
                 _player.move_to(new_x, new_y, dir);
             }
         }
@@ -90,12 +94,11 @@ void GameLoop::handle_input() {
 }
 
 void GameLoop::update(float dt) {
-    // Si el servidor se cayó, cerrar la ventana
     if (_connected && !(*_connected)) {
         _running = false;
         return;
     }
-    // Consumir snapshots del servidor
+
     if (_snapshot_queue) {
         SnapshotDTO snap;
         while (_snapshot_queue->try_pop(snap)) {
@@ -148,7 +151,6 @@ void GameLoop::render_map() {
         }
     }
 }
-
 
 void GameLoop::render_entities() {
     for (const auto& e : _last_entities) {
