@@ -1,5 +1,6 @@
 #include "World.h"
 #include <cstdlib>
+#include "../../common/protocol/protocol.h"
 
 World::World(uint16_t width, uint16_t height) : width(width), height(height) {
     for (uint16_t x = 0; x < width; ++x) {
@@ -18,9 +19,18 @@ void World::move_player(PlayerData& player, const std::pair<uint16_t, uint16_t>&
 
     if (occupied_positions[new_pos]) return;
 
+    if (delta_x == 1)
+        player.direction = static_cast<uint8_t>(MoveDirection::EAST);
+    else if (delta_x == -1)
+        player.direction = static_cast<uint8_t>(MoveDirection::WEST);
+    else if (delta_y == 1)
+        player.direction = static_cast<uint8_t>(MoveDirection::SOUTH);
+    else if (delta_y == -1)
+        player.direction = static_cast<uint8_t>(MoveDirection::NORTH);
+
     occupied_positions[std::make_pair(player.pos_x, player.pos_y)] = false;
     occupied_positions[new_pos] = true;
-    
+
     player.pos_x = new_pos.first;
     player.pos_y = new_pos.second;
 }
