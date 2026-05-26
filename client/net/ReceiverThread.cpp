@@ -1,7 +1,9 @@
 #include "ReceiverThread.h"
 
-ReceiverThread::ReceiverThread(Socket& socket, Queue<SnapshotDTO>& queue)
-    : _deserializer(socket), _queue(queue), _my_entity_id(0) {}
+ReceiverThread::ReceiverThread(Socket& socket, Queue<SnapshotDTO>& queue,
+                               std::atomic<bool>& connected)
+    : _deserializer(socket), _queue(queue),
+      _connected(connected), _my_entity_id(0) {}
 
 void ReceiverThread::run() {
     try {
@@ -27,6 +29,9 @@ void ReceiverThread::run() {
     } catch (const ClosedQueue&) {
     } catch (const std::exception&) {
     }
+
+    // Siempre notificar al GameLoop al salir
+    _connected = false;
 }
 
 void ReceiverThread::stop() {

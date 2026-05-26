@@ -30,7 +30,8 @@ int main(int argc, char* argv[]) try {
 
     // Hilos de red
     SenderThread   sender(socket, command_queue);
-    ReceiverThread receiver(socket, snapshot_queue);
+    std::atomic<bool> connected(true);
+    ReceiverThread receiver(socket, snapshot_queue, connected);
 
     sender.start();
     receiver.start();
@@ -54,7 +55,7 @@ int main(int argc, char* argv[]) try {
     );
 
     // GameLoop con colas conectadas al servidor
-    GameLoop game_loop(window, renderer, &command_queue, &snapshot_queue);
+    GameLoop game_loop(window, renderer, &command_queue, &snapshot_queue, &connected);
     game_loop.run();
 
     // Shutdown

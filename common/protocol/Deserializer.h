@@ -70,7 +70,9 @@ public:
 
     uint8_t recv_uint8() {
         uint8_t val;
-        _socket.recvall(&val, 1);
+        int received = _socket.recvall(&val, 1);
+        if (received == 0)
+            throw std::runtime_error("connection closed");
         return val;
     }
 

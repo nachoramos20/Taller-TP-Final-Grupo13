@@ -9,12 +9,14 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
 
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                    Queue<Command>* command_queue,
-                   Queue<SnapshotDTO>* snapshot_queue)
+                   Queue<SnapshotDTO>* snapshot_queue,
+                   std::atomic<bool>* connected)
     : _window(window), _renderer(renderer),
       _camera(window.GetWidth(), window.GetHeight()),
       _running(false),
       _command_queue(command_queue),
-      _snapshot_queue(snapshot_queue) {}
+      _snapshot_queue(snapshot_queue),
+      _connected(connected) {}
 
 void GameLoop::run() {
     _running = true;
@@ -88,6 +90,11 @@ void GameLoop::handle_input() {
 }
 
 void GameLoop::update(float dt) {
+    // Si el servidor se cayó, cerrar la ventana
+    if (_connected && !(*_connected)) {
+        _running = false;
+        return;
+    }
     // Consumir snapshots del servidor
     if (_snapshot_queue) {
         SnapshotDTO snap;

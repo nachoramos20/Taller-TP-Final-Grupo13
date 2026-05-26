@@ -2,6 +2,7 @@
 
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL.h>
+#include <atomic>
 
 #include "../game/PlayerState.h"
 #include "../render/Camera.h"
@@ -13,13 +14,12 @@ static constexpr int MAP_SIZE = 100;
 
 class GameLoop {
 public:
-    // Sin servidor: modo local
     GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer);
 
-    // Con servidor: pasa las colas
     GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
              Queue<Command>* command_queue,
-             Queue<SnapshotDTO>* snapshot_queue);
+             Queue<SnapshotDTO>* snapshot_queue,
+             std::atomic<bool>* connected);
 
     void run();
     void stop();
@@ -41,4 +41,5 @@ private:
 
     Queue<Command>*     _command_queue;
     Queue<SnapshotDTO>* _snapshot_queue;
+    std::atomic<bool>*  _connected;
 };
