@@ -20,6 +20,7 @@ class Game {
         void remove_player(uint16_t client_id);
         void move_player(uint16_t client_id, uint16_t new_x, uint16_t new_y);
         SnapshotDTO build_snapshot(uint16_t client_id, uint32_t tick) const;
+        void revisar_colisiones();
 
 };
 

@@ -23,6 +23,7 @@ class World {
     public:
         World(uint16_t width, uint16_t height);
         void move_player(PlayerData& player, const std::pair<uint16_t, uint16_t>& new_pos);
+        void update_occupied(const std::pair<uint16_t, uint16_t>& pos, bool occupied);
 };
 
 #endif // WORLD_H

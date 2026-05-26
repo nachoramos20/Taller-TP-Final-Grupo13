@@ -82,3 +82,10 @@ SnapshotDTO Game::build_snapshot(uint16_t client_id, uint32_t tick) const {
 
     return snap;
 }
+
+void Game::revisar_colisiones() {
+    for (auto& [id, player] : players_map) {
+        std::pair<uint16_t, uint16_t> pos = {player.pos_x, player.pos_y};
+        world.update_occupied(pos, true);
+    }
+}

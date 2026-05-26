@@ -11,6 +11,7 @@ void ServerGameLoop::run() {
     std::chrono::time_point<clock> next_tick = clock::now();
 
     while (should_keep_running()) {
+        game.revisar_colisiones();
         std::shared_ptr<ServerCommand> command;
         while (command_queue.try_pop(command)) {
             command->execute(game);
