@@ -14,20 +14,7 @@ ServerReceiverThread::ServerReceiverThread(uint16_t client_id,
 void ServerReceiverThread::run() {
     try {
         while (should_keep_running()) {
-            MsgType type = _deserializer.recv_opcode();
-
-            if (type == MsgType::LOGIN || type == MsgType::REGISTER) {
-                // Deserializar el comando
-                auto cmd = deserialize_command(type);
-                cmd->client_id = _client_id;
-                // Responder LOGIN_OK antes de encolar
-                _serializer.send_login_ok(_client_id);
-                _command_queue.push(cmd);
-            } else {
-                auto cmd = deserialize_command(type);
-                cmd->client_id = _client_id;
-                _command_queue.push(cmd);
-            }
+            std::shared_ptr<ServerCommand> cmd;
         }
     } catch (const ClosedQueue&) {
     } catch (const std::exception& e) {

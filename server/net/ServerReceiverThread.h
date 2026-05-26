@@ -6,22 +6,13 @@
 #include "../../common/protocol/Deserializer.h"
 #include "../../common/protocol/Serializer.h"
 #include "../../common/protocol/protocol.h"
+#include "../game/Commands.h"
 
 #include <atomic>
 #include <cstdint>
 #include <string>
+#include <memory>
 
-struct ServerCommand {
-    uint16_t    client_id  = 0;
-    MsgType     type       = MsgType::LOGOUT;
-    uint16_t    pos_x      = 0;
-    uint16_t    pos_y      = 0;
-    uint16_t    target_id  = 0;
-    uint8_t     slot       = 0;
-    uint8_t     race       = 0;
-    uint8_t     cls        = 0;
-    std::string text;
-};
 
 class ServerReceiverThread : public Thread {
 public:

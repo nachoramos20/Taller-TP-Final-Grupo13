@@ -4,7 +4,7 @@
 #include "../../common/queue.h"
 #include "../net/ServerReceiverThread.h"
 #include "QueueMonitor.h"
-#include "World.h"
+#include "Game.h"
 
 #include <chrono>
 #include <thread>
@@ -21,11 +21,10 @@ public:
     void stop() override;
 
 private:
-    void process_command(const ServerCommand& cmd);
     void broadcast_snapshots();
 
-    Queue<std::shared_ptr<ServerCommand>>& _command_queue;
-    QueueMonitor&         _queue_monitor;
-    World                 _world;
-    uint32_t              _tick;
+    Queue<std::shared_ptr<ServerCommand>>& command_queue;
+    QueueMonitor&         queue_monitor;
+    Game                  game;
+    uint32_t              tick;
 };
