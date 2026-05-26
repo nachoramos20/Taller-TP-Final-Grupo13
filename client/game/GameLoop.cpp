@@ -5,9 +5,13 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
     : _window(window), _renderer(renderer),
       _camera(window.GetWidth(), window.GetHeight()),
       _running(false),
-      _command_queue(nullptr),
-      _snapshot_queue(nullptr),
-      _connected(nullptr) {}
+      _command_queue(nullptr), _snapshot_queue(nullptr), _connected(nullptr),
+      _my_entity_id(0), _last_move_tick(0), _current_tick(0),
+      _assets(renderer),
+      _body_path("assets/sprites/1049.png"),
+      _head_path("assets/sprites/422.png") {
+    _anim.load();
+}
 
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                    Queue<Command>* command_queue,
@@ -18,7 +22,13 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
       _running(false),
       _command_queue(command_queue),
       _snapshot_queue(snapshot_queue),
-      _connected(connected) {}
+      _connected(connected),
+      _my_entity_id(0), _last_move_tick(0), _current_tick(0),
+      _assets(renderer),
+      _body_path("assets/sprites/1049.png"),
+      _head_path("assets/sprites/422.png") {
+    _anim.load();
+}
 
 void GameLoop::run() {
     _running = true;
@@ -56,7 +66,6 @@ void GameLoop::handle_events() {
 void GameLoop::handle_input() {
     if (!_command_queue && _player.is_moving()) return;
 
-    // Limitar a 1 movimiento cada 250ms
     Uint32 now = SDL_GetTicks();
     if (_command_queue && (now - _last_move_tick) < 250) return;
 
@@ -101,9 +110,8 @@ void GameLoop::update(float dt) {
 
     if (_snapshot_queue) {
         SnapshotDTO snap;
-        while (_snapshot_queue->try_pop(snap)) {
+        while (_snapshot_queue->try_pop(snap))
             apply_snapshot(snap);
-        }
     }
 
     _player.update(dt);
@@ -113,11 +121,15 @@ void GameLoop::update(float dt) {
 void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
     _last_entities = snap.entities;
     _my_entity_id  = snap.self_entity_id;
+    _current_tick  = snap.tick;
 
     for (const auto& e : snap.entities) {
         if (e.entity_id == snap.self_entity_id) {
-            Direction dir = static_cast<Direction>(e.direction);
-            _player.move_to(e.pos_x, e.pos_y, dir);
+            if (e.pos_x != static_cast<uint16_t>(_player.tile_x) ||
+                e.pos_y != static_cast<uint16_t>(_player.tile_y)) {
+                Direction dir = static_cast<Direction>(e.direction);
+                _player.move_to(e.pos_x, e.pos_y, dir);
+            }
             break;
         }
     }
@@ -154,40 +166,24 @@ void GameLoop::render_map() {
 
 void GameLoop::render_entities() {
     for (const auto& e : _last_entities) {
-        int world_px = e.pos_x * TILE_SIZE;
-        int world_py = e.pos_y * TILE_SIZE;
+        int screen_x, screen_y;
+        Direction dir = static_cast<Direction>(e.direction);
+        bool moving = (e.entity_id == _my_entity_id)
+                      ? _player.is_moving()
+                      : false;
 
-        // Si es el jugador propio, usar posición interpolada
         if (e.entity_id == _my_entity_id) {
-            world_px = static_cast<int>(_player.pixel_x());
-            world_py = static_cast<int>(_player.pixel_y());
-        }
-
-        int sx = _camera.world_to_screen_x(static_cast<float>(world_px));
-        int sy = _camera.world_to_screen_y(static_cast<float>(world_py));
-
-        int offset = (TILE_SIZE - 24) / 2;
-
-        // Propio: rojo, otros: azul
-        if (e.entity_id == _my_entity_id) {
-            _renderer.SetDrawColor(220, 60, 60, 255);
+            screen_x = _camera.world_to_screen_x(_player.pixel_x());
+            screen_y = _camera.world_to_screen_y(_player.pixel_y());
         } else {
-            _renderer.SetDrawColor(60, 60, 220, 255);
+            screen_x = _camera.world_to_screen_x(
+                static_cast<float>(e.pos_x * TILE_SIZE));
+            screen_y = _camera.world_to_screen_y(
+                static_cast<float>(e.pos_y * TILE_SIZE));
         }
-        _renderer.FillRect(SDL2pp::Rect(sx + offset, sy + offset, 24, 24));
 
-        // Indicador de dirección
-        int cx = sx + TILE_SIZE / 2;
-        int cy = sy + TILE_SIZE / 2;
-        int dx = 0, dy = 0;
-        switch (static_cast<Direction>(e.direction)) {
-            case Direction::NORTH: dy = -10; break;
-            case Direction::SOUTH: dy = +10; break;
-            case Direction::EAST:  dx = +10; break;
-            case Direction::WEST:  dx = -10; break;
-            default: break;
-        }
-        _renderer.SetDrawColor(255, 255, 255, 255);
-        _renderer.DrawLine(cx, cy, cx + dx, cy + dy);
+        _anim.render(_renderer, _assets, _body_path, _head_path,
+                     dir, screen_x, screen_y,
+                     _current_tick, moving);
     }
 }
