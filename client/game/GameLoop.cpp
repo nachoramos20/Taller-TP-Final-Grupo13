@@ -52,7 +52,7 @@ void GameLoop::handle_events() {
 }
 
 void GameLoop::handle_input() {
-    if (_player.is_moving()) return;
+    if (!_command_queue && _player.is_moving()) return;
 
     const Uint8* keys = SDL_GetKeyboardState(nullptr);
 
@@ -108,15 +108,13 @@ void GameLoop::update(float dt) {
 }
 
 void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
-    // Buscar la entidad propia en el snapshot y actualizar posición
+    _last_entities = snap.entities;
+    _my_entity_id  = snap.self_entity_id;
+
     for (const auto& e : snap.entities) {
         if (e.entity_id == snap.self_entity_id) {
-            // Solo mover si la posición cambió
-            if (e.pos_x != static_cast<uint16_t>(_player.tile_x) ||
-                e.pos_y != static_cast<uint16_t>(_player.tile_y)) {
-                Direction dir = static_cast<Direction>(e.direction);
-                _player.move_to(e.pos_x, e.pos_y, dir);
-            }
+            Direction dir = static_cast<Direction>(e.direction);
+            _player.move_to(e.pos_x, e.pos_y, dir);
             break;
         }
     }
@@ -126,7 +124,7 @@ void GameLoop::render() {
     _renderer.SetDrawColor(30, 30, 30, 255);
     _renderer.Clear();
     render_map();
-    render_player();
+    render_entities();
     _renderer.Present();
 }
 
@@ -151,24 +149,43 @@ void GameLoop::render_map() {
     }
 }
 
-void GameLoop::render_player() {
-    int sx = _camera.world_to_screen_x(_player.pixel_x());
-    int sy = _camera.world_to_screen_y(_player.pixel_y());
 
-    int offset = (TILE_SIZE - 24) / 2;
-    _renderer.SetDrawColor(220, 60, 60, 255);
-    _renderer.FillRect(SDL2pp::Rect(sx + offset, sy + offset, 24, 24));
+void GameLoop::render_entities() {
+    for (const auto& e : _last_entities) {
+        int world_px = e.pos_x * TILE_SIZE;
+        int world_py = e.pos_y * TILE_SIZE;
 
-    int cx = sx + TILE_SIZE / 2;
-    int cy = sy + TILE_SIZE / 2;
-    int dx = 0, dy = 0;
-    switch (_player.direction) {
-        case Direction::NORTH: dy = -10; break;
-        case Direction::SOUTH: dy = +10; break;
-        case Direction::EAST:  dx = +10; break;
-        case Direction::WEST:  dx = -10; break;
-        default: break;
+        // Si es el jugador propio, usar posición interpolada
+        if (e.entity_id == _my_entity_id) {
+            world_px = static_cast<int>(_player.pixel_x());
+            world_py = static_cast<int>(_player.pixel_y());
+        }
+
+        int sx = _camera.world_to_screen_x(static_cast<float>(world_px));
+        int sy = _camera.world_to_screen_y(static_cast<float>(world_py));
+
+        int offset = (TILE_SIZE - 24) / 2;
+
+        // Propio: rojo, otros: azul
+        if (e.entity_id == _my_entity_id) {
+            _renderer.SetDrawColor(220, 60, 60, 255);
+        } else {
+            _renderer.SetDrawColor(60, 60, 220, 255);
+        }
+        _renderer.FillRect(SDL2pp::Rect(sx + offset, sy + offset, 24, 24));
+
+        // Indicador de dirección
+        int cx = sx + TILE_SIZE / 2;
+        int cy = sy + TILE_SIZE / 2;
+        int dx = 0, dy = 0;
+        switch (static_cast<Direction>(e.direction)) {
+            case Direction::NORTH: dy = -10; break;
+            case Direction::SOUTH: dy = +10; break;
+            case Direction::EAST:  dx = +10; break;
+            case Direction::WEST:  dx = -10; break;
+            default: break;
+        }
+        _renderer.SetDrawColor(255, 255, 255, 255);
+        _renderer.DrawLine(cx, cy, cx + dx, cy + dy);
     }
-    _renderer.SetDrawColor(255, 255, 255, 255);
-    _renderer.DrawLine(cx, cy, cx + dx, cy + dy);
 }

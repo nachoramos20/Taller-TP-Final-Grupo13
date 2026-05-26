@@ -3,6 +3,7 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL.h>
 #include <atomic>
+#include <vector>
 
 #include "../game/PlayerState.h"
 #include "../render/Camera.h"
@@ -31,7 +32,7 @@ private:
     void apply_snapshot(const SnapshotDTO& snap);
     void render();
     void render_map();
-    void render_player();
+    void render_entities();
 
     SDL2pp::Window&     _window;
     SDL2pp::Renderer&   _renderer;
@@ -39,7 +40,11 @@ private:
     PlayerState         _player;
     bool                _running;
 
-    Queue<Command>*     _command_queue;
-    Queue<SnapshotDTO>* _snapshot_queue;
-    std::atomic<bool>*  _connected;
+    Queue<Command>*      _command_queue;
+    Queue<SnapshotDTO>*  _snapshot_queue;
+    std::atomic<bool>*   _connected;
+
+    // Último snapshot recibido (para renderizar todas las entidades)
+    std::vector<EntityDTO> _last_entities;
+    uint16_t               _my_entity_id = 0;
 };
