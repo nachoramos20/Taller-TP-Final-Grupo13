@@ -3,6 +3,8 @@ target_sources(argentum_grupo13_client
     main.cpp
     game/GameLoop.cpp
     render/Camera.cpp
+    render/AssetManager.cpp
+    render/AnimationSystem.cpp
     net/SenderThread.cpp
     net/ReceiverThread.cpp
 )

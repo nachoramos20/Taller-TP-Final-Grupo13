@@ -123,11 +123,14 @@ if(ARGENTUM_CLIENT)
 
     set_project_warnings(argentum_grupo13_client ${ARGENTUM_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
-    # add libSDL2pp's headers
-    target_include_directories(argentum_grupo13_client PRIVATE ${libSDL2pp_SOURCE_DIR})
+    # add libSDL2pp's headers and SDL2_image headers
+    target_include_directories(argentum_grupo13_client PRIVATE
+        ${libSDL2pp_SOURCE_DIR}
+        ${sdl2_image_SOURCE_DIR}/include
+    )
 
     # Link the argentum_grupo13_common lib target
-    target_link_libraries(argentum_grupo13_client argentum_grupo13_common SDL2pp::SDL2pp)
+    target_link_libraries(argentum_grupo13_client argentum_grupo13_common SDL2pp::SDL2pp SDL2_image::SDL2_image)
 endif()
 
 if(ARGENTUM_SERVER)

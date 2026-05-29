@@ -7,6 +7,8 @@
 
 #include "../game/PlayerState.h"
 #include "../render/Camera.h"
+#include "../render/AssetManager.h"
+#include "../render/AnimationSystem.h"
 #include "../../common/queue.h"
 #include "../../common/protocol/dtos.h"
 #include "../net/Command.h"
@@ -45,6 +47,12 @@ private:
     std::atomic<bool>*   _connected;
 
     std::vector<EntityDTO> _last_entities;
-    uint16_t               _my_entity_id = 0;
-    Uint32                 _last_move_tick = 0;
+    uint16_t               _my_entity_id;
+    Uint32                 _last_move_tick;
+    uint32_t               _current_tick;
+
+    AssetManager           _assets;
+    AnimationSystem        _anim;
+    std::string            _body_path;
+    std::string            _head_path;
 };
