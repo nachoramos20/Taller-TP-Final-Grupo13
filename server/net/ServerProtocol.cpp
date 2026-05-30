@@ -99,6 +99,7 @@ void ServerProtocol::send_snapshot(const SnapshotDTO& snap) {
                 const EntityDTO& e = *it;
                 send_uint16(e.entity_id);
                 send_uint8(e.entity_type);
+                send_str8(e.username);
                 send_uint16(e.pos_x);
                 send_uint16(e.pos_y);
                 send_uint8(e.direction);

@@ -73,6 +73,7 @@ std::shared_ptr<std::vector<EntityDTO>> Game::get_entities() const {
         EntityDTO entity{};
         entity.entity_id   = player.entity_id;
         entity.entity_type = 0;
+        entity.username    = player.username;
         entity.pos_x       = player.pos_x;
         entity.pos_y       = player.pos_y;
         entity.direction   = player.direction;
