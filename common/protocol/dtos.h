@@ -7,6 +7,7 @@
 struct EntityDTO {
     uint16_t entity_id;
     uint8_t  entity_type;
+    std::string username;
     uint16_t pos_x;
     uint16_t pos_y;
     uint8_t  direction;

@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <utility>
 #include <vector>
+#include <stdexcept>
 #include "../../common/protocol/protocol.h"
 
 ServerProtocol::ServerProtocol(Socket&& socket)
@@ -23,8 +24,6 @@ std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_i
     }
 
     switch (static_cast<MsgType>(codigo_inicio)) {
-        case MsgType::LOGIN:
-            return this->receive_login_command(client_id);
         case MsgType::MOVE:
             return this->receive_move_command(client_id);
         default:
@@ -35,15 +34,28 @@ std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_i
 
 }
 
-std::shared_ptr<LoginCommand> ServerProtocol::receive_login_command(uint16_t client_id) {
-    uint8_t username_len;
-    socket.recvall(&username_len, sizeof(username_len));
-    std::vector<char> username_buf(username_len);
-    socket.recvall(username_buf.data(), username_len);
-
-
-    return std::make_shared<LoginCommand>(client_id, std::string(username_buf.data(), username_len));
+void ServerProtocol::send_login_ok(uint16_t entity_id) {
+    send_uint8(static_cast<uint8_t>(MsgType::LOGIN_OK));
+    send_uint16(entity_id);
 }
+
+void ServerProtocol::send_mapa(const MapaDTO& mapa) {
+    send_uint8(static_cast<uint8_t>(MsgType::MAPA));
+
+    if (mapa.width == 0 && mapa.height == 0 && mapa.tiles.empty()) {
+        return;
+    }
+
+    send_uint16(mapa.width);
+    send_uint16(mapa.height);
+    send_uint16(static_cast<uint16_t>(mapa.tiles.size()));
+    for (const TileDTO& tile : mapa.tiles) {
+        send_uint16(tile.floor_id);
+        send_uint16(tile.object_id);
+        send_uint16(tile.object_superior_id);
+    }
+}
+
 
 std::shared_ptr<MoveCommand> ServerProtocol::receive_move_command(uint16_t client_id) {
     uint16_t pos_x_network;
@@ -135,5 +147,24 @@ void ServerProtocol::send_str8(const std::string& s) {
 
 void ServerProtocol::shutdown(int how) {
     this->socket.shutdown(how);
+}
+
+std::string ServerProtocol::handshake() {
+    uint8_t handshake_code;
+    int bytes_recibidos = this->socket.recvall(&handshake_code, sizeof(handshake_code));
+    if (bytes_recibidos == 0) {
+        throw std::runtime_error("Handshake failed: connection closed by peer");
+    }
+    if (handshake_code != static_cast<uint8_t>(MsgType::LOGIN)) {
+        throw std::runtime_error("Handshake failed: invalid handshake code");
+    }
+
+    uint8_t username_len;
+    socket.recvall(&username_len, sizeof(username_len));
+    std::vector<char> username_buf(username_len);
+    socket.recvall(username_buf.data(), username_len);
+    std::string username(username_buf.data(), username_len);
+
+    return username;
 }
 

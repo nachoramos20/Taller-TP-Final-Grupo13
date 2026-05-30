@@ -7,9 +7,13 @@ void MoveCommand::execute(Game &game) {
     game.move_player(client_id, new_x, new_y);
 }
 
-LoginCommand::LoginCommand(uint16_t client_id, const std::string& username)
-    : client_id(client_id), username(username) {}
+LoginCommand::LoginCommand(PlayerData player_data)
+    : player_data(player_data) {}
 
 void LoginCommand::execute(Game &game) {
-    game.add_player(this->client_id, this->username);
+    game.add_player(player_data);
+}
+
+const std::string& LoginCommand::get_username() const {
+    return player_data.username;
 }

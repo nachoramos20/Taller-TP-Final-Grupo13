@@ -17,7 +17,7 @@ class Game {
     public:
         Game();
         const std::unordered_map<uint16_t, PlayerData>& get_players() const;
-        void add_player(uint16_t client_id, const std::string& username);
+        void add_player(const PlayerData& player_data);
         void remove_player(uint16_t client_id);
         void move_player(uint16_t client_id, uint16_t new_x, uint16_t new_y);
         SnapshotDTO build_snapshot(uint16_t client_id,

@@ -9,23 +9,9 @@ const std::unordered_map<uint16_t, PlayerData>& Game::get_players() const {
     return players_map;
 }
 
-void Game::add_player(uint16_t client_id, const std::string& username) {
-    PlayerData pd{};
-    pd.entity_id = client_id;
-    pd.username = username;
-    pd.pos_x = 50;
-    pd.pos_y = 50;
-    pd.direction = 0;
-    pd.hp = pd.max_hp = 100;
-    pd.mp = pd.max_mp = 100;
-    pd.exp = 0;
-    pd.level = 1;
-    pd.gold = 0;
-    pd.is_ghost = false;
-
-    players_map.emplace(client_id, std::move(pd));
+void Game::add_player(const PlayerData& player_data) {
+    players_map.emplace(player_data.entity_id, std::move(player_data));
 }
-
 void Game::remove_player(uint16_t client_id) {
     players_map.erase(client_id);
 }
@@ -82,7 +68,7 @@ void Game::revisar_colisiones() {
 }
 
 std::shared_ptr<std::vector<EntityDTO>> Game::get_entities() const {
-    auto entities = std::make_shared<std::vector<EntityDTO>>();
+    std::shared_ptr<std::vector<EntityDTO>> entities = std::make_shared<std::vector<EntityDTO>>();
     for (const auto& [id, player] : this->players_map) {
         EntityDTO entity{};
         entity.entity_id   = player.entity_id;

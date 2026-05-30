@@ -9,6 +9,7 @@ target_sources(argentum_grupo13_server
     game/ServerGameLoop.cpp
     game/Game.cpp
     game/Commands.cpp
+    game/PersistenceMonitor.cpp
     game/World.cpp
     game/QueueMonitor.cpp
 )
