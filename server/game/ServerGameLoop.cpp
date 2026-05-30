@@ -1,5 +1,11 @@
 #include "ServerGameLoop.h"
 
+#include "PlayerData.h"
+
+#include <memory>
+#include <unordered_map>
+#include <vector>
+
 ServerGameLoop::ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_queue,
                                QueueMonitor& queue_monitor)
     : command_queue(command_queue),
@@ -32,8 +38,14 @@ void ServerGameLoop::stop() {
 
 
 void ServerGameLoop::broadcast_snapshots() {
-    for (const auto& [client_id, player] : game.get_players()) {
-        SnapshotDTO snap = game.build_snapshot(client_id, tick);
+    std::shared_ptr<std::vector<EntityDTO>> entities = game.get_entities();
+    const std::unordered_map<uint16_t, PlayerData>& players = game.get_players();
+
+    for (std::unordered_map<uint16_t, PlayerData>::const_iterator it = players.begin();
+         it != players.end();
+         ++it) {
+        const uint16_t client_id = it->first;
+        SnapshotDTO snap = game.build_snapshot(client_id, tick, entities);
         queue_monitor.send_to(client_id, snap);
     }
 }

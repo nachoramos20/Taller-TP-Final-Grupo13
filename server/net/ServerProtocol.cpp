@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 #include <utility>
+#include <vector>
 #include "../../common/protocol/protocol.h"
 
 ServerProtocol::ServerProtocol(Socket&& socket)
@@ -77,22 +78,38 @@ void ServerProtocol::send_snapshot(const SnapshotDTO& snap) {
         send_uint8(snap.equipped_helm);
         send_uint8(snap.equipped_shld);
 
-        send_uint8(static_cast<uint8_t>(snap.entities.size()));
-        for (const auto& e : snap.entities) {
-            send_uint16(e.entity_id);
-            send_uint8(e.entity_type);
-            send_uint16(e.pos_x);
-            send_uint16(e.pos_y);
-            send_uint8(e.direction);
-            send_uint8(e.sprite_id);
-            send_uint8(e.is_ghost);
-            send_uint8(e.hp_pct);
+        if (snap.entities) {
+            const std::vector<EntityDTO>& entities = *snap.entities;
+            send_uint8(static_cast<uint8_t>(entities.size()));
+            for (std::vector<EntityDTO>::const_iterator it = entities.begin();
+                 it != entities.end();
+                 ++it) {
+                const EntityDTO& e = *it;
+                send_uint16(e.entity_id);
+                send_uint8(e.entity_type);
+                send_uint16(e.pos_x);
+                send_uint16(e.pos_y);
+                send_uint8(e.direction);
+                send_uint8(e.sprite_id);
+                send_uint8(e.is_ghost);
+                send_uint8(e.hp_pct);
+            }
+        } else {
+            send_uint8(0);
         }
 
-        send_uint8(static_cast<uint8_t>(snap.messages.size()));
-        for (const auto& m : snap.messages) {
-            send_uint8(m.msg_type);
-            send_str8(m.text);
+        if (snap.messages) {
+            const std::vector<ChatMessageDTO>& messages = *snap.messages;
+            send_uint8(static_cast<uint8_t>(messages.size()));
+            for (std::vector<ChatMessageDTO>::const_iterator it = messages.begin();
+                 it != messages.end();
+                 ++it) {
+                const ChatMessageDTO& m = *it;
+                send_uint8(m.msg_type);
+                send_str8(m.text);
+            }
+        } else {
+            send_uint8(0);
         }
     }
 

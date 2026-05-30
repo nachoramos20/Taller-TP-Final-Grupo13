@@ -40,6 +40,6 @@ struct SnapshotDTO {
     uint8_t equipped_helm;
     uint8_t equipped_shld;
 
-    std::vector<EntityDTO>      entities;
-    std::vector<ChatMessageDTO> messages;
+    std::shared_ptr<std::vector<EntityDTO>>      entities;
+    std::shared_ptr<std::vector<ChatMessageDTO>> messages;
 };

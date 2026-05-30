@@ -20,6 +20,7 @@ enum class MsgType : uint8_t {
     LOGIN_OK     = 0x10,
     LOGIN_ERROR  = 0x11,
     SNAPSHOT     = 0xFF,
+    MAPA         = 0xFE,
 };
 
 enum class MoveDirection : uint8_t {

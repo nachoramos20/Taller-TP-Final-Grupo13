@@ -1,4 +1,6 @@
 #include "Game.h"
+
+#include <memory>
 #include <utility>
 
 Game::Game() : world(100, 100) {}
@@ -36,7 +38,9 @@ void Game::move_player(uint16_t client_id, uint16_t new_x, uint16_t new_y) {
     world.move_player(player, std::make_pair(new_x, new_y));
 }
 
-SnapshotDTO Game::build_snapshot(uint16_t client_id, uint32_t tick) const {
+SnapshotDTO Game::build_snapshot(uint16_t client_id,
+                                 uint32_t tick,
+                                 const std::shared_ptr<std::vector<EntityDTO>>& entities) const {
     SnapshotDTO snap{};
     snap.tick = tick;
 
@@ -65,20 +69,7 @@ SnapshotDTO Game::build_snapshot(uint16_t client_id, uint32_t tick) const {
     snap.equipped_helm = 0;
     snap.equipped_shld = 0;
 
-    snap.entities.reserve(players_map.size());
-    for (const auto& [id, p] : players_map) {
-        EntityDTO entity;
-        entity.entity_id   = p.entity_id;
-        entity.entity_type = 0;
-        entity.pos_x       = p.pos_x;
-        entity.pos_y       = p.pos_y;
-        entity.direction   = p.direction;
-        entity.sprite_id   = 0;
-        entity.is_ghost    = p.is_ghost ? 1 : 0;
-        entity.hp_pct      = static_cast<uint8_t>(
-            p.max_hp > 0 ? (p.hp * 100) / p.max_hp : 0);
-        snap.entities.push_back(std::move(entity));
-    }
+    snap.entities = entities;
 
     return snap;
 }
@@ -88,4 +79,22 @@ void Game::revisar_colisiones() {
         std::pair<uint16_t, uint16_t> pos = {player.pos_x, player.pos_y};
         world.update_occupied(pos, true);
     }
+}
+
+std::shared_ptr<std::vector<EntityDTO>> Game::get_entities() const {
+    auto entities = std::make_shared<std::vector<EntityDTO>>();
+    for (const auto& [id, player] : this->players_map) {
+        EntityDTO entity{};
+        entity.entity_id   = player.entity_id;
+        entity.entity_type = 0;
+        entity.pos_x       = player.pos_x;
+        entity.pos_y       = player.pos_y;
+        entity.direction   = player.direction;
+        entity.sprite_id   = 0;
+        entity.is_ghost    = player.is_ghost ? 1 : 0;
+        entity.hp_pct      = static_cast<uint8_t>(
+            player.max_hp > 0 ? (player.hp * 100) / player.max_hp : 0);
+        entities->push_back(entity);
+    }
+    return entities;
 }
