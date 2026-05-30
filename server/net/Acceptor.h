@@ -5,7 +5,9 @@
 #include "../../common/queue.h"
 #include "../game/QueueMonitor.h"
 #include "../game/PersistenceMonitor.h"
+#include "../game/MapaBuilder.h"
 #include "ClientHandler.h"
+
 
 #include <list>
 #include <string>
@@ -32,4 +34,5 @@ private:
     std::list<std::unique_ptr<ClientHandler>> client_handlers;
     std::atomic<bool>         running;
     uint16_t                  next_id;
+    MapaBuilder               mapa_builder;
 };

@@ -17,7 +17,8 @@ public:
                   Socket&& socket,
                   Queue<std::shared_ptr<ServerCommand>>& command_queue,
                   QueueMonitor& queue_monitor,
-                  PersistenceMonitor& persistence_monitor);
+                  PersistenceMonitor& persistence_monitor,
+                  MapaDTO& mapa);
 
     void start();
     void stop();

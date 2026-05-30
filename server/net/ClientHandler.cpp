@@ -5,12 +5,13 @@ ClientHandler::ClientHandler(uint16_t client_id,
                                                          Socket&& socket,
                                                          Queue<std::shared_ptr<ServerCommand>>& command_queue,
                                                          QueueMonitor& queue_monitor,
-                                                         PersistenceMonitor& persistence_monitor)
+                                                         PersistenceMonitor& persistence_monitor,
+                                                         MapaDTO& mapa)
         : _client_id(client_id),
             _protocol(std::move(socket)),
             _alive(true),
             _sender(_protocol),
-            _receiver(_client_id, command_queue, queue_monitor, _sender.get_queue(), _alive, _protocol, persistence_monitor),
+            _receiver(_client_id, command_queue, queue_monitor, _sender.get_queue(), _alive, _protocol, persistence_monitor, mapa),
             _queue_monitor(queue_monitor),
             _persistence_monitor(persistence_monitor) {}
 

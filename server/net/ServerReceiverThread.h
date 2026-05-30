@@ -26,7 +26,8 @@ public:
                          Queue<SnapshotDTO>& sender_queue,
                          std::atomic<bool>& client_alive,
                          ServerProtocol& server_protocol,
-                         PersistenceMonitor& persistence_monitor);
+                         PersistenceMonitor& persistence_monitor,
+                         MapaDTO& mapa);
 
     void run() override;
     void stop() override;
@@ -40,4 +41,5 @@ private:
     Queue<SnapshotDTO>&   sender_queue;
     std::atomic<bool>&    client_alive;
     PersistenceMonitor&   persistence_monitor;
+    MapaDTO&               mapa;
 };
