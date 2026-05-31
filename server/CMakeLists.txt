@@ -9,8 +9,10 @@ target_sources(argentum_grupo13_server
     game/ServerGameLoop.cpp
     game/Game.cpp
     game/Commands.cpp
+    game/PersistenceMonitor.cpp
     game/World.cpp
     game/QueueMonitor.cpp
+    game/MapaBuilder.cpp
 )
 
 target_include_directories(argentum_grupo13_server

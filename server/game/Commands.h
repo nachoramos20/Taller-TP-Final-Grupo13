@@ -23,10 +23,11 @@ private:
 class LoginCommand : public ServerCommand {
 public:
     LoginCommand(uint16_t client_id, const std::string& username);
+    LoginCommand(PlayerData player_data);
     void execute(Game &game) override;
+    const std::string& get_username() const;
 private:    
-    uint16_t client_id;
-    std::string username;
+    PlayerData player_data;
 };
 
 

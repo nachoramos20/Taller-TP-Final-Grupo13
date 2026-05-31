@@ -4,6 +4,7 @@
 #include "../../common/queue.h"
 #include "../../common/protocol/dtos.h"
 #include "../game/QueueMonitor.h"
+#include "../game/PersistenceMonitor.h"
 #include "ServerReceiverThread.h"
 #include "ServerSenderThread.h"
 
@@ -15,7 +16,9 @@ public:
     ClientHandler(uint16_t client_id,
                   Socket&& socket,
                   Queue<std::shared_ptr<ServerCommand>>& command_queue,
-                  QueueMonitor& queue_monitor);
+                  QueueMonitor& queue_monitor,
+                  PersistenceMonitor& persistence_monitor,
+                  MapaDTO& mapa);
 
     void start();
     void stop();
@@ -33,7 +36,8 @@ private:
     uint16_t             _client_id;
     ServerProtocol       _protocol;
     std::atomic<bool>    _alive;
-    ServerReceiverThread _receiver;
     ServerSenderThread   _sender;
-    QueueMonitor&          _queue_monitor;
+    ServerReceiverThread _receiver;
+    QueueMonitor&        _queue_monitor;
+    PersistenceMonitor&  _persistence_monitor;
 };

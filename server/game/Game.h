@@ -2,6 +2,7 @@
 #define GAME_H
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include "../../common/protocol/dtos.h"
@@ -16,10 +17,13 @@ class Game {
     public:
         Game();
         const std::unordered_map<uint16_t, PlayerData>& get_players() const;
-        void add_player(uint16_t client_id, const std::string& username);
+        void add_player(const PlayerData& player_data);
         void remove_player(uint16_t client_id);
         void move_player(uint16_t client_id, uint16_t new_x, uint16_t new_y);
-        SnapshotDTO build_snapshot(uint16_t client_id, uint32_t tick) const;
+        SnapshotDTO build_snapshot(uint16_t client_id,
+                       uint32_t tick,
+                       const std::shared_ptr<std::vector<EntityDTO>>& entities) const;
+        std::shared_ptr<std::vector<EntityDTO>> get_entities() const;
         void revisar_colisiones();
 
 };

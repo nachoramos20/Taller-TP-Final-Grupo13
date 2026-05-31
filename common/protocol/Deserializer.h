@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <memory>
 #include "../socket.h"
 #include "protocol.h"
 #include "dtos.h"
@@ -46,8 +47,9 @@ public:
         s.equipped_shld = recv_uint8();
 
         uint8_t entity_count = recv_uint8();
-        s.entities.resize(entity_count);
-        for (auto& e : s.entities) {
+        s.entities = std::make_shared<std::vector<EntityDTO>>();
+        s.entities->resize(entity_count);
+        for (auto& e : *s.entities) {
             e.entity_id   = recv_uint16();
             e.entity_type = recv_uint8();
             e.pos_x       = recv_uint16();
@@ -59,8 +61,9 @@ public:
         }
 
         uint8_t msg_count = recv_uint8();
-        s.messages.resize(msg_count);
-        for (auto& m : s.messages) {
+        s.messages = std::make_shared<std::vector<ChatMessageDTO>>();
+        s.messages->resize(msg_count);
+        for (auto& m : *s.messages) {
             m.msg_type = recv_uint8();
             m.text     = recv_str8();
         }

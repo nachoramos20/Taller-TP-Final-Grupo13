@@ -98,8 +98,8 @@ public:
         send_uint8(snap.equipped_helm);
         send_uint8(snap.equipped_shld);
 
-        send_uint8(static_cast<uint8_t>(snap.entities.size()));
-        for (const auto& e : snap.entities) {
+        send_uint8(static_cast<uint8_t>(snap.entities->size()));
+        for (const auto& e : *snap.entities) {
             send_uint16(e.entity_id);
             send_uint8(e.entity_type);
             send_uint16(e.pos_x);
@@ -110,8 +110,8 @@ public:
             send_uint8(e.hp_pct);
         }
 
-        send_uint8(static_cast<uint8_t>(snap.messages.size()));
-        for (const auto& m : snap.messages) {
+        send_uint8(static_cast<uint8_t>(snap.messages->size()));
+        for (const auto& m : *snap.messages) {
             send_uint8(m.msg_type);
             send_str8(m.text);
         }

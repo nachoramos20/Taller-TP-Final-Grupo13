@@ -7,6 +7,7 @@
 struct EntityDTO {
     uint16_t entity_id;
     uint8_t  entity_type;
+    std::string username;
     uint16_t pos_x;
     uint16_t pos_y;
     uint8_t  direction;
@@ -40,6 +41,6 @@ struct SnapshotDTO {
     uint8_t equipped_helm;
     uint8_t equipped_shld;
 
-    std::vector<EntityDTO>      entities;
-    std::vector<ChatMessageDTO> messages;
+    std::shared_ptr<std::vector<EntityDTO>>      entities;
+    std::shared_ptr<std::vector<ChatMessageDTO>> messages;
 };

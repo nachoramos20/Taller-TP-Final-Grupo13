@@ -3,6 +3,7 @@
 #include "net/Acceptor.h"
 #include "game/ServerGameLoop.h"
 #include "game/QueueMonitor.h"
+#include "game/PersistenceMonitor.h"
 #include "../common/queue.h"
 
 int main(int argc, char* argv[]) {
@@ -16,8 +17,9 @@ int main(int argc, char* argv[]) {
 
         Queue<std::shared_ptr<ServerCommand>> command_queue;
         QueueMonitor queue_monitor;
+        PersistenceMonitor persistence_monitor;
 
-        Acceptor       acceptor(port, command_queue, queue_monitor);
+        Acceptor       acceptor(port, command_queue, queue_monitor, persistence_monitor);
         ServerGameLoop game_loop(command_queue, queue_monitor);
 
         std::cout << "Servidor escuchando en puerto " << port << "\n";

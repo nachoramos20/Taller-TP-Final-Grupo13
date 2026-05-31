@@ -4,15 +4,20 @@
 
 Acceptor::Acceptor(const std::string& port,
                    Queue<std::shared_ptr<ServerCommand>>& command_queue,
-                   QueueMonitor& queue_monitor)
+                                     QueueMonitor& queue_monitor,
+                                     PersistenceMonitor& persistence_monitor)
     : socket(port.c_str()),
       command_queue(command_queue),
       queue_monitor(queue_monitor),
+            persistence_monitor(persistence_monitor),
       running(false),
-      next_id(1) {}
+      next_id(1)
+      {}
 
 void Acceptor::run() {
     running = true;
+
+    MapaDTO mapa = this->mapa_builder.build_mapa_inicial();
 
     while (running) {
         try {
@@ -20,7 +25,7 @@ void Acceptor::run() {
 
             this->next_id++;
             std::unique_ptr<ClientHandler> handler =
-                std::make_unique<ClientHandler>(next_id, std::move(peer), command_queue, queue_monitor);
+                std::make_unique<ClientHandler>(next_id, std::move(peer), command_queue, queue_monitor, persistence_monitor, mapa);
 
             handler->start();
             client_handlers.push_back(std::move(handler));

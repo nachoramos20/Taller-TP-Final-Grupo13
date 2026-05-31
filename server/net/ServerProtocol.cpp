@@ -2,6 +2,8 @@
 
 #include <arpa/inet.h>
 #include <utility>
+#include <vector>
+#include <stdexcept>
 #include "../../common/protocol/protocol.h"
 
 ServerProtocol::ServerProtocol(Socket&& socket)
@@ -22,8 +24,6 @@ std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_i
     }
 
     switch (static_cast<MsgType>(codigo_inicio)) {
-        case MsgType::LOGIN:
-            return this->receive_login_command(client_id);
         case MsgType::MOVE:
             return this->receive_move_command(client_id);
         default:
@@ -34,15 +34,33 @@ std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_i
 
 }
 
-std::shared_ptr<LoginCommand> ServerProtocol::receive_login_command(uint16_t client_id) {
-    uint8_t username_len;
-    socket.recvall(&username_len, sizeof(username_len));
-    std::vector<char> username_buf(username_len);
-    socket.recvall(username_buf.data(), username_len);
-
-
-    return std::make_shared<LoginCommand>(client_id, std::string(username_buf.data(), username_len));
+void ServerProtocol::send_login_ok(uint16_t entity_id) {
+    send_uint8(static_cast<uint8_t>(MsgType::LOGIN_OK));
+    send_uint16(entity_id);
 }
+
+void ServerProtocol::send_login_error(const std::string& msg) {
+    send_uint8(static_cast<uint8_t>(MsgType::LOGIN_ERROR));
+    send_str8(msg);
+}
+
+void ServerProtocol::send_mapa(const MapaDTO& mapa) {
+    send_uint8(static_cast<uint8_t>(MsgType::MAPA));
+
+    if (mapa.width == 0 && mapa.height == 0 && mapa.tiles.empty()) {
+        return;
+    }
+
+    send_uint16(mapa.width);
+    send_uint16(mapa.height);
+    send_uint16(static_cast<uint16_t>(mapa.tiles.size()));
+    for (const TileDTO& tile : mapa.tiles) {
+        send_uint16(tile.floor_id);
+        send_uint16(tile.object_id);
+        send_uint16(tile.object_superior_id);
+    }
+}
+
 
 std::shared_ptr<MoveCommand> ServerProtocol::receive_move_command(uint16_t client_id) {
     uint16_t pos_x_network;
@@ -77,22 +95,39 @@ void ServerProtocol::send_snapshot(const SnapshotDTO& snap) {
         send_uint8(snap.equipped_helm);
         send_uint8(snap.equipped_shld);
 
-        send_uint8(static_cast<uint8_t>(snap.entities.size()));
-        for (const auto& e : snap.entities) {
-            send_uint16(e.entity_id);
-            send_uint8(e.entity_type);
-            send_uint16(e.pos_x);
-            send_uint16(e.pos_y);
-            send_uint8(e.direction);
-            send_uint8(e.sprite_id);
-            send_uint8(e.is_ghost);
-            send_uint8(e.hp_pct);
+        if (snap.entities) {
+            const std::vector<EntityDTO>& entities = *snap.entities;
+            send_uint8(static_cast<uint8_t>(entities.size()));
+            for (std::vector<EntityDTO>::const_iterator it = entities.begin();
+                 it != entities.end();
+                 ++it) {
+                const EntityDTO& e = *it;
+                send_uint16(e.entity_id);
+                send_uint8(e.entity_type);
+                send_str8(e.username);
+                send_uint16(e.pos_x);
+                send_uint16(e.pos_y);
+                send_uint8(e.direction);
+                send_uint8(e.sprite_id);
+                send_uint8(e.is_ghost);
+                send_uint8(e.hp_pct);
+            }
+        } else {
+            send_uint8(0);
         }
 
-        send_uint8(static_cast<uint8_t>(snap.messages.size()));
-        for (const auto& m : snap.messages) {
-            send_uint8(m.msg_type);
-            send_str8(m.text);
+        if (snap.messages) {
+            const std::vector<ChatMessageDTO>& messages = *snap.messages;
+            send_uint8(static_cast<uint8_t>(messages.size()));
+            for (std::vector<ChatMessageDTO>::const_iterator it = messages.begin();
+                 it != messages.end();
+                 ++it) {
+                const ChatMessageDTO& m = *it;
+                send_uint8(m.msg_type);
+                send_str8(m.text);
+            }
+        } else {
+            send_uint8(0);
         }
     }
 
@@ -118,5 +153,36 @@ void ServerProtocol::send_str8(const std::string& s) {
 
 void ServerProtocol::shutdown(int how) {
     this->socket.shutdown(how);
+}
+
+
+MsgType ServerProtocol::handshake(std::string& out_username, uint8_t& out_race, uint8_t& out_cls) {
+    uint8_t handshake_code;
+    int bytes_recibidos = this->socket.recvall(&handshake_code, sizeof(handshake_code));
+    if (bytes_recibidos == 0) {
+        throw std::runtime_error("Handshake failed: connection closed by peer");
+    }
+
+    uint8_t username_len;
+    switch (static_cast<MsgType>(handshake_code)) {
+        case MsgType::LOGIN: {
+            socket.recvall(&username_len, sizeof(username_len));
+            std::vector<char> username_buf(username_len);
+            socket.recvall(username_buf.data(), username_len);
+            out_username.assign(username_buf.data(), username_len);
+            return MsgType::LOGIN;
+        }
+        case MsgType::REGISTER: {
+            socket.recvall(&username_len, sizeof(username_len));
+            std::vector<char> username_buf(username_len);
+            socket.recvall(username_buf.data(), username_len);
+            out_username.assign(username_buf.data(), username_len);
+            socket.recvall(&out_race, sizeof(out_race));
+            socket.recvall(&out_cls, sizeof(out_cls));
+            return MsgType::REGISTER;
+        }
+        default:
+            throw std::runtime_error("Handshake failed: invalid handshake code");
+    }
 }
 
