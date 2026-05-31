@@ -20,20 +20,20 @@ PlayerData PersistenceMonitor::make_initial_player(const std::string& username, 
     return data;
 }
 
-bool PersistenceMonitor::login(const std::string& username, PlayerData& out_data, uint16_t entity_id) {
+bool PersistenceMonitor::login(const std::string& username, PlayerData& player_data, uint16_t entity_id) {
     std::lock_guard<std::mutex> lock(mtx);
 
     auto it = mock_db.find(username);
     if (it != mock_db.end()) {
-        out_data = it->second;
-        out_data.entity_id = entity_id;
+        player_data = it->second;
+        player_data.entity_id = entity_id;
         return true;
     }
 
     return false;
 }
 
-bool PersistenceMonitor::register_user(const std::string& username, uint8_t race, uint8_t cls, PlayerData& out_data, uint16_t entity_id) {
+bool PersistenceMonitor::register_user(const std::string& username, uint8_t race, uint8_t cls, PlayerData& player_data, uint16_t entity_id) {
     std::lock_guard<std::mutex> lock(mtx);
 
     auto it = mock_db.find(username);
@@ -44,7 +44,7 @@ bool PersistenceMonitor::register_user(const std::string& username, uint8_t race
     PlayerData new_player = make_initial_player(username, race, cls);
     new_player.entity_id = entity_id;
     mock_db[username] = new_player;
-    out_data = new_player;
+    player_data = new_player;
     return true;
 }
 

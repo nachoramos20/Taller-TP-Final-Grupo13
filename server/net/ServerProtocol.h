@@ -15,7 +15,9 @@ public:
     explicit ServerProtocol(Socket&& socket);
 
     std::shared_ptr<ServerCommand> receive_command(uint16_t client_id);
-    MsgType handshake(std::string& out_username, uint8_t& out_race, uint8_t& out_cls);
+    MsgType receive_handshake();
+    void handshake_login(std::string& username);
+    void handshake_register(std::string& username, uint8_t& race, uint8_t& cls);
     void send_login_ok(uint16_t entity_id);
     void send_login_error(const std::string& msg);
     void send_mapa(const MapaDTO& mapa);
