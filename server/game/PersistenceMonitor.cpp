@@ -1,9 +1,11 @@
 #include "PersistenceMonitor.h"
 
-PlayerData PersistenceMonitor::make_initial_player(const std::string& username) {
+PlayerData PersistenceMonitor::make_initial_player(const std::string& username, uint8_t race, uint8_t cls) {
     PlayerData data{};
     data.username = username;
     data.entity_id = 0;
+    data.race = race;
+    data.cls = cls;
     data.pos_x = 50;
     data.pos_y = 50;
     data.direction = 0;
@@ -18,7 +20,7 @@ PlayerData PersistenceMonitor::make_initial_player(const std::string& username) 
     return data;
 }
 
-bool PersistenceMonitor::login_or_register(const std::string& username, PlayerData& out_data, uint16_t entity_id) {
+bool PersistenceMonitor::login(const std::string& username, PlayerData& out_data, uint16_t entity_id) {
     std::lock_guard<std::mutex> lock(mtx);
 
     auto it = mock_db.find(username);
@@ -28,7 +30,18 @@ bool PersistenceMonitor::login_or_register(const std::string& username, PlayerDa
         return true;
     }
 
-    PlayerData new_player = make_initial_player(username);
+    return false;
+}
+
+bool PersistenceMonitor::register_user(const std::string& username, uint8_t race, uint8_t cls, PlayerData& out_data, uint16_t entity_id) {
+    std::lock_guard<std::mutex> lock(mtx);
+
+    auto it = mock_db.find(username);
+    if (it != mock_db.end()) {
+        return false;
+    }
+
+    PlayerData new_player = make_initial_player(username, race, cls);
     new_player.entity_id = entity_id;
     mock_db[username] = new_player;
     out_data = new_player;

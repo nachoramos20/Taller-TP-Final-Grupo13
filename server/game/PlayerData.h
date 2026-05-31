@@ -7,6 +7,8 @@
 struct PlayerData {
     std::string username;
     uint16_t entity_id;
+    uint8_t  race;
+    uint8_t  cls;
     uint16_t pos_x;
     uint16_t pos_y;
     uint8_t  direction;

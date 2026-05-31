@@ -42,4 +42,5 @@ private:
     std::atomic<bool>&    client_alive;
     PersistenceMonitor&   persistence_monitor;
     MapaDTO&               mapa;
+    void handshake_client();
 };

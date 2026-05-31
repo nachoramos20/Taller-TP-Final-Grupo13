@@ -39,6 +39,11 @@ void ServerProtocol::send_login_ok(uint16_t entity_id) {
     send_uint16(entity_id);
 }
 
+void ServerProtocol::send_login_error(const std::string& msg) {
+    send_uint8(static_cast<uint8_t>(MsgType::LOGIN_ERROR));
+    send_str8(msg);
+}
+
 void ServerProtocol::send_mapa(const MapaDTO& mapa) {
     send_uint8(static_cast<uint8_t>(MsgType::MAPA));
 
@@ -150,22 +155,34 @@ void ServerProtocol::shutdown(int how) {
     this->socket.shutdown(how);
 }
 
-std::string ServerProtocol::handshake() {
+
+MsgType ServerProtocol::handshake(std::string& out_username, uint8_t& out_race, uint8_t& out_cls) {
     uint8_t handshake_code;
     int bytes_recibidos = this->socket.recvall(&handshake_code, sizeof(handshake_code));
     if (bytes_recibidos == 0) {
         throw std::runtime_error("Handshake failed: connection closed by peer");
     }
-    if (handshake_code != static_cast<uint8_t>(MsgType::LOGIN)) {
-        throw std::runtime_error("Handshake failed: invalid handshake code");
-    }
 
     uint8_t username_len;
-    socket.recvall(&username_len, sizeof(username_len));
-    std::vector<char> username_buf(username_len);
-    socket.recvall(username_buf.data(), username_len);
-    std::string username(username_buf.data(), username_len);
-
-    return username;
+    switch (static_cast<MsgType>(handshake_code)) {
+        case MsgType::LOGIN: {
+            socket.recvall(&username_len, sizeof(username_len));
+            std::vector<char> username_buf(username_len);
+            socket.recvall(username_buf.data(), username_len);
+            out_username.assign(username_buf.data(), username_len);
+            return MsgType::LOGIN;
+        }
+        case MsgType::REGISTER: {
+            socket.recvall(&username_len, sizeof(username_len));
+            std::vector<char> username_buf(username_len);
+            socket.recvall(username_buf.data(), username_len);
+            out_username.assign(username_buf.data(), username_len);
+            socket.recvall(&out_race, sizeof(out_race));
+            socket.recvall(&out_cls, sizeof(out_cls));
+            return MsgType::REGISTER;
+        }
+        default:
+            throw std::runtime_error("Handshake failed: invalid handshake code");
+    }
 }
 
