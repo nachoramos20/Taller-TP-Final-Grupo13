@@ -77,7 +77,7 @@ std::shared_ptr<std::vector<EntityDTO>> Game::get_entities() const {
         entity.pos_x       = player.pos_x;
         entity.pos_y       = player.pos_y;
         entity.direction   = player.direction;
-        entity.sprite_id   = 0;
+        entity.sprite_id   = static_cast<uint8_t>(player.race + 1);
         entity.is_ghost    = player.is_ghost ? 1 : 0;
         entity.hp_pct      = static_cast<uint8_t>(
             player.max_hp > 0 ? (player.hp * 100) / player.max_hp : 0);

@@ -16,14 +16,15 @@ struct HeadLayout {
     int width;
     int dir_y[4];
     int dir_h[4];
+    int overlaps[4];  // SUR, NORTE, OESTE, ESTE
 
     static HeadLayout for_sprite(uint8_t sprite_id) {
         switch (sprite_id) {
-            case 1: return {42, {12, 76, 140, 204}, {14, 14, 14, 14}};  // humano
-            case 2: return {35, {14, 78, 142, 206}, {15, 15, 15, 15}};  // elfo
-            case 3: return {40, {24, 88, 152, 216}, {14, 14, 14, 14}};  // enano
-            case 4: return {37, {17, 81, 145, 209}, {21, 14, 21, 21}};  // gnomo
-            default: return {42, {12, 76, 140, 204}, {14, 14, 14, 14}};
+            case 1: return {34, {0, 60, 120, 180}, {60, 60, 60, 60}, {38, 40, 38, 38}};  // humano
+            case 2: return {30, {0, 60, 120, 180}, {60, 60, 60, 60}, {34, 38, 38, 42}};  // elfo
+            case 3: return {30, {0, 60, 120, 180}, {60, 60, 60, 60}, {46, 44, 40, 38}};  // enano
+            case 4: return {30, {0, 60, 120, 180}, {60, 60, 60, 60}, {38, 36, 34, 32}};  // gnomo
+            default: return {34, {0, 60, 120, 180}, {60, 60, 60, 60}, {38, 40, 38, 38}};
         }
     }
 };

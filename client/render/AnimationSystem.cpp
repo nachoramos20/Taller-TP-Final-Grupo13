@@ -1,6 +1,8 @@
 #include "AnimationSystem.h"
 
-AnimationSystem::AnimationSystem() : _last_sprite_id(-1) {}
+AnimationSystem::AnimationSystem()
+    : _last_sprite_id(-1),
+      _head_overlaps{38, 40, 38, 38} {}
 
 void AnimationSystem::load() {
     for (int dir = 0; dir < 4; dir++) {
@@ -43,11 +45,12 @@ void AnimationSystem::render(SDL2pp::Renderer& renderer,
     int dir_idx = direction_to_index(dir);
     int frame   = is_moving ? frame_for_tick(tick, dir_idx) : 0;
 
-    // Recalcular head rects si cambió el sprite_id
+    // Recalcular head rects y overlaps si cambió el sprite_id
     if (sprite_id != static_cast<uint8_t>(_last_sprite_id)) {
         HeadLayout hl = HeadLayout::for_sprite(sprite_id);
         for (int d = 0; d < 4; d++) {
-            _head_rects[d] = SDL2pp::Rect(0, hl.dir_y[d], hl.width, hl.dir_h[d]);
+            _head_rects[d]    = SDL2pp::Rect(0, hl.dir_y[d], hl.width, hl.dir_h[d]);
+            _head_overlaps[d] = hl.overlaps[d];
         }
         _last_sprite_id = sprite_id;
     }
@@ -63,11 +66,10 @@ void AnimationSystem::render(SDL2pp::Renderer& renderer,
         body_src.h
     );
 
-    // Head: encima del body con overlap por dirección
-    int overlaps[4] = {10, 10, 8, 12};
+    // Head: encima del body con overlap por dirección y sprite
     SDL2pp::Rect head_dst(
         body_dst.x + (BodyLayout::FRAME_W - head_src.w) / 2,
-        body_dst.y - head_src.h + overlaps[dir_idx],
+        body_dst.y - head_src.h + _head_overlaps[dir_idx],
         head_src.w,
         head_src.h
     );
