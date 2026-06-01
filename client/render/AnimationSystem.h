@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "AssetManager.h"
+#include "SpriteLayout.h"
 #include "../game/PlayerState.h"
 
 struct Animation {
@@ -12,13 +13,11 @@ struct Animation {
 
 class AnimationSystem {
 public:
-    static constexpr int BODY_W       = 27;
-    static constexpr int BODY_H       = 48;
-    static constexpr int HEAD_W       = 27;
-    static constexpr int HEAD_DST_H = 21;
-    static constexpr int HEAD_OVERLAP = 10;
     static constexpr int TICKS_PER_FRAME = 8;
-   
+    static constexpr int DIR_SOUTH = 0;
+    static constexpr int DIR_NORTH = 1;
+    static constexpr int DIR_WEST  = 2;
+    static constexpr int DIR_EAST  = 3;
 
     AnimationSystem();
 
@@ -28,6 +27,7 @@ public:
                 AssetManager& assets,
                 const std::string& body_path,
                 const std::string& head_path,
+                uint8_t sprite_id,
                 Direction dir,
                 int screen_x, int screen_y,
                 uint32_t tick,
@@ -37,7 +37,7 @@ private:
     int frame_for_tick(uint32_t tick, int dir_idx) const;
     int direction_to_index(Direction dir) const;
 
-    Animation        _body_anims[4];
-    SDL2pp::Rect     _head_rects[4];
-    int              _frame_counts[4];
+    Animation    _body_anims[4];
+    int          _last_sprite_id;
+    SDL2pp::Rect _head_rects[4];
 };

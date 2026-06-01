@@ -5,28 +5,31 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
     : _window(window), _renderer(renderer),
       _camera(window.GetWidth(), window.GetHeight()),
       _running(false),
-      _command_queue(nullptr), _snapshot_queue(nullptr), _connected(nullptr),
+      _command_queue(nullptr), _snapshot_queue(nullptr),
+      _map_queue(nullptr), _connected(nullptr),
       _my_entity_id(0), _last_move_tick(0), _current_tick(0),
+      _map_loaded(false),
       _assets(renderer),
-      _body_path("assets/sprites/1049.png"),
-      _head_path("assets/sprites/422.png") {
+      _sprite_config("config/sprites.toml") {
     _anim.load();
 }
 
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                    Queue<Command>* command_queue,
                    Queue<SnapshotDTO>* snapshot_queue,
+                   Queue<MapaDTO>* map_queue,
                    std::atomic<bool>* connected)
     : _window(window), _renderer(renderer),
       _camera(window.GetWidth(), window.GetHeight()),
       _running(false),
       _command_queue(command_queue),
       _snapshot_queue(snapshot_queue),
+      _map_queue(map_queue),
       _connected(connected),
       _my_entity_id(0), _last_move_tick(0), _current_tick(0),
+      _map_loaded(false),
       _assets(renderer),
-      _body_path("assets/sprites/1049.png"),
-      _head_path("assets/sprites/422.png") {
+      _sprite_config("config/sprites.toml") {
     _anim.load();
 }
 
@@ -67,7 +70,7 @@ void GameLoop::handle_input() {
     if (!_command_queue && _player.is_moving()) return;
 
     Uint32 now = SDL_GetTicks();
-    if (_command_queue && (now - _last_move_tick) < 250) return;
+    if (_command_queue && (now - _last_move_tick) < 200) return;
 
     const Uint8* keys = SDL_GetKeyboardState(nullptr);
 
@@ -108,6 +111,12 @@ void GameLoop::update(float dt) {
         return;
     }
 
+    if (_map_queue) {
+        MapaDTO map;
+        if (_map_queue->try_pop(map))
+            apply_map(std::move(map));
+    }
+
     if (_snapshot_queue) {
         SnapshotDTO snap;
         while (_snapshot_queue->try_pop(snap))
@@ -118,12 +127,19 @@ void GameLoop::update(float dt) {
     _camera.follow(_player);
 }
 
-void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
-    _last_entities = snap.entities;
-    _my_entity_id  = snap.self_entity_id;
-    _current_tick  = snap.tick;
+void GameLoop::apply_map(const MapaDTO& map) {
+    _map = map;
+    _map_loaded = true;
+}
 
-    for (const auto& e : snap.entities) {
+void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
+    if (snap.entities)
+        _last_entities = *snap.entities;
+    _my_entity_id = snap.self_entity_id;
+    _current_tick = snap.tick;
+
+    if (!snap.entities) return;
+    for (const auto& e : *snap.entities) {
         if (e.entity_id == snap.self_entity_id) {
             if (e.pos_x != static_cast<uint16_t>(_player.tile_x) ||
                 e.pos_y != static_cast<uint16_t>(_player.tile_y)) {
@@ -136,26 +152,31 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
 }
 
 void GameLoop::render() {
-    _renderer.SetDrawColor(30, 30, 30, 255);
+    _renderer.SetDrawColor(0, 0, 0, 255);
     _renderer.Clear();
-    render_map();
+    render_floor();
+    render_objects();
     render_entities();
+    render_obj_sup();
     _renderer.Present();
 }
 
-void GameLoop::render_map() {
+void GameLoop::render_floor() {
     int screen_w = _window.GetWidth();
     int screen_h = _window.GetHeight();
+    int map_w = _map_loaded ? _map.width  : MAP_SIZE;
+    int map_h = _map_loaded ? _map.height : MAP_SIZE;
 
     int first_x = std::max(0, -_camera.tile_to_screen_x(0) / TILE_SIZE);
     int first_y = std::max(0, -_camera.tile_to_screen_y(0) / TILE_SIZE);
-    int last_x  = std::min(MAP_SIZE - 1, first_x + screen_w / TILE_SIZE + 2);
-    int last_y  = std::min(MAP_SIZE - 1, first_y + screen_h / TILE_SIZE + 2);
+    int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + 2);
+    int last_y  = std::min(map_h - 1, first_y + screen_h / TILE_SIZE + 2);
 
     for (int ty = first_y; ty <= last_y; ty++) {
         for (int tx = first_x; tx <= last_x; tx++) {
             int sx = _camera.tile_to_screen_x(tx);
             int sy = _camera.tile_to_screen_y(ty);
+            // TODO: renderizar tile real con AssetManager
             _renderer.SetDrawColor(34, 85, 34, 255);
             _renderer.FillRect(SDL2pp::Rect(sx, sy, TILE_SIZE, TILE_SIZE));
             _renderer.SetDrawColor(20, 60, 20, 255);
@@ -164,13 +185,21 @@ void GameLoop::render_map() {
     }
 }
 
+void GameLoop::render_objects() {
+    if (!_map_loaded) return;
+    // TODO: renderizar object_id con AssetManager
+}
+
 void GameLoop::render_entities() {
+    std::sort(_last_entities.begin(), _last_entities.end(),
+        [](const EntityDTO& a, const EntityDTO& b) {
+            return a.pos_y < b.pos_y;
+        });
+
     for (const auto& e : _last_entities) {
         int screen_x, screen_y;
         Direction dir = static_cast<Direction>(e.direction);
-        bool moving = (e.entity_id == _my_entity_id)
-                      ? _player.is_moving()
-                      : false;
+        bool moving = (e.entity_id == _my_entity_id) ? _player.is_moving() : false;
 
         if (e.entity_id == _my_entity_id) {
             screen_x = _camera.world_to_screen_x(_player.pixel_x());
@@ -182,8 +211,16 @@ void GameLoop::render_entities() {
                 static_cast<float>(e.pos_y * TILE_SIZE));
         }
 
-        _anim.render(_renderer, _assets, _body_path, _head_path,
-                     dir, screen_x, screen_y,
+        const SpriteEntry& sprite = _sprite_config.get(e.sprite_id);
+        _anim.render(_renderer, _assets,
+                     sprite.body_path, sprite.head_path,
+                     e.sprite_id, dir,
+                     screen_x, screen_y,
                      _current_tick, moving);
     }
+}
+
+void GameLoop::render_obj_sup() {
+    if (!_map_loaded) return;
+    // TODO: renderizar object_superior_id con AssetManager
 }
