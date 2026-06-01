@@ -5,7 +5,8 @@ target_sources(argentum_grupo13_client
     render/Camera.cpp
     render/AssetManager.cpp
     render/AnimationSystem.cpp
-    render/SpriteConfig.cpp 
+    render/SpriteConfig.cpp
+    render/ObjectSupConfig.cpp
     net/SenderThread.cpp
     net/ReceiverThread.cpp
 )

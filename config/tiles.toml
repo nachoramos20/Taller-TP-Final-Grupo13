@@ -1,0 +1,5 @@
+# floor_id = 0 → sin tile (vacío / negro)
+# floor_id = 1 → piedra
+
+[floor.1]
+path = "assets/tiles/floor/piedra.png"

@@ -10,7 +10,9 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
       _my_entity_id(0), _last_move_tick(0), _current_tick(0),
       _map_loaded(false),
       _assets(renderer),
-      _sprite_config("config/sprites.toml") {
+      _sprite_config("config/sprites.toml"),
+      _tile_config("config/tiles.toml", "floor"),
+      _obj_sup_config("config/objects_sup.toml") {
     _anim.load();
 }
 
@@ -29,7 +31,9 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
       _my_entity_id(0), _last_move_tick(0), _current_tick(0),
       _map_loaded(false),
       _assets(renderer),
-      _sprite_config("config/sprites.toml") {
+      _sprite_config("config/sprites.toml"),
+      _tile_config("config/tiles.toml", "floor"),
+      _obj_sup_config("config/objects_sup.toml") {
     _anim.load();
 }
 
@@ -176,11 +180,21 @@ void GameLoop::render_floor() {
         for (int tx = first_x; tx <= last_x; tx++) {
             int sx = _camera.tile_to_screen_x(tx);
             int sy = _camera.tile_to_screen_y(ty);
-            // TODO: renderizar tile real con AssetManager
-            _renderer.SetDrawColor(34, 85, 34, 255);
-            _renderer.FillRect(SDL2pp::Rect(sx, sy, TILE_SIZE, TILE_SIZE));
-            _renderer.SetDrawColor(20, 60, 20, 255);
-            _renderer.DrawRect(SDL2pp::Rect(sx, sy, TILE_SIZE, TILE_SIZE));
+            SDL2pp::Rect dst(sx, sy, TILE_SIZE, TILE_SIZE);
+
+            uint16_t floor_id = 0;
+            if (_map_loaded) {
+                floor_id = _map.tiles[ty * _map.width + tx].floor_id;
+            }
+
+            const std::string& path = _tile_config.get(floor_id);
+            if (!path.empty()) {
+                _renderer.Copy(_assets.get(path), SDL2pp::NullOpt, dst);
+            } else {
+                // fallback: negro si no hay tile configurado
+                _renderer.SetDrawColor(0, 0, 0, 255);
+                _renderer.FillRect(dst);
+            }
         }
     }
 }
@@ -222,5 +236,42 @@ void GameLoop::render_entities() {
 
 void GameLoop::render_obj_sup() {
     if (!_map_loaded) return;
-    // TODO: renderizar object_superior_id con AssetManager
+
+    int screen_w = _window.GetWidth();
+    int screen_h = _window.GetHeight();
+    int map_w = _map.width;
+    int map_h = _map.height;
+
+    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / TILE_SIZE);
+    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / TILE_SIZE);
+    int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + OBJ_SUP_TILES + 1);
+    int last_y  = std::min(map_h - 1, first_y + screen_h / TILE_SIZE + OBJ_SUP_TILES + 1);
+
+    for (int ty = first_y; ty <= last_y; ty++) {
+        for (int tx = first_x; tx <= last_x; tx++) {
+            uint16_t obj_id = _map.tiles[ty * map_w + tx].object_superior_id;
+            if (obj_id == 0) continue;
+
+            const ObjectSupEntry& entry = _obj_sup_config.get(obj_id);
+            if (entry.frames.empty()) continue;
+
+            // elegir frame según tick
+            int frame_idx = (_current_tick / OBJ_SUP_TICKS_PER_FRAME)
+                            % static_cast<int>(entry.frames.size());
+
+            int sx = _camera.tile_to_screen_x(tx);
+            int sy = _camera.tile_to_screen_y(ty);
+
+            // centrado horizontalmente, base alineada al fondo del tile ancla
+            SDL2pp::Rect dst(
+                sx - (OBJ_SUP_SIZE - TILE_SIZE) / 2,  // centrado en x
+                sy - OBJ_SUP_SIZE + TILE_SIZE,         // base abajo del tile ancla
+                OBJ_SUP_SIZE,
+                OBJ_SUP_SIZE
+            );
+
+            _renderer.Copy(_assets.get(entry.frames[frame_idx]),
+                           SDL2pp::NullOpt, dst);
+        }
+    }
 }

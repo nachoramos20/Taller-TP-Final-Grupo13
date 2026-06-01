@@ -10,12 +10,16 @@
 #include "../render/AssetManager.h"
 #include "../render/AnimationSystem.h"
 #include "../render/SpriteConfig.h"
+#include "../render/ObjectSupConfig.h"
 #include "../../common/queue.h"
 #include "../../common/protocol/dtos.h"
 #include "../../common/MapaDTO.h"
 #include "../net/Command.h"
 
-static constexpr int MAP_SIZE = 100;
+static constexpr int MAP_SIZE        = 100;
+static constexpr int OBJ_SUP_TILES   = 6;         
+static constexpr int OBJ_SUP_SIZE    = OBJ_SUP_TILES * TILE_SIZE;  
+static constexpr int OBJ_SUP_TICKS_PER_FRAME = 8;  // velocidad de animación
 
 class GameLoop {
 public:
@@ -61,7 +65,9 @@ private:
     MapaDTO   _map;
     bool      _map_loaded;
 
-    AssetManager    _assets;
-    AnimationSystem _anim;
-    SpriteConfig    _sprite_config;
+    AssetManager     _assets;
+    AnimationSystem  _anim;
+    SpriteConfig     _sprite_config;
+    TileConfig       _tile_config;
+    ObjectSupConfig  _obj_sup_config;
 };

@@ -1,0 +1,13 @@
+# object_superior_id = 0 → sin objeto superior
+
+# Objetos animados: frames en orden, se ciclan a TICKS_PER_FRAME ticks por frame
+
+[object_sup.1]
+frames = [
+    "assets/sprites/objects_sup/molino/frame1.png",
+    "assets/sprites/objects_sup/molino/frame2.png",
+    "assets/sprites/objects_sup/molino/frame3.png",
+    "assets/sprites/objects_sup/molino/frame4.png",
+    "assets/sprites/objects_sup/molino/frame5.png",
+    "assets/sprites/objects_sup/molino/frame6.png",
+]
