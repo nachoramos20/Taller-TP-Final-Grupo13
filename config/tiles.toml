@@ -33,7 +33,6 @@ tile_size = 2
 path = "assets/tiles/floor/pasto_7.png"
 tile_size = 2
 
-
 #  Tierra ---------------------------------
 [floor.10]
 path = "assets/tiles/floor/tierra_1.png"
@@ -210,6 +209,15 @@ path = "assets/tiles/floor/pasto_tierra_27.png"
 #  Agua ------------------------------------------------
 [floor.80]
 path = "assets/tiles/floor/agua.png"
+
+#  Arena -----------------------------------------------
+[floor.81]
+path = "assets/tiles/floor/arena.png"
+tile_size = 2
+
+[floor.82]
+path = "assets/tiles/floor/arena_franja_pasto.png"
+tile_size = 2
 
 #  Acantilado ------------------------------------------
 [floor.90]
