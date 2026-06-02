@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-static constexpr int TILE_SIZE = 32;
+static constexpr int TILE_SIZE = 64;
 static constexpr float MOVE_DURATION = 0.25f;
 
 enum class Direction : uint8_t {

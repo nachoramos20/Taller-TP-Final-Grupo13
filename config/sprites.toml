@@ -1,0 +1,15 @@
+[sprite.1]
+body = "assets/sprites/skins/humano.png"
+head = "assets/sprites/heads/humano.png"
+
+[sprite.2]
+body = "assets/sprites/skins/elfo.png"
+head = "assets/sprites/heads/elfo.png"
+
+[sprite.3]
+body = "assets/sprites/skins/enano.png"
+head = "assets/sprites/heads/enano.png"
+
+[sprite.4]
+body = "assets/sprites/skins/gnomo.png"
+head = "assets/sprites/heads/gnomo.png"

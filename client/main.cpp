@@ -3,11 +3,13 @@
 #include <iostream>
 #include <exception>
 #include <string>
+#include <atomic>
 
 #include "game/GameLoop.h"
 #include "../common/socket.h"
 #include "../common/queue.h"
 #include "../common/protocol/dtos.h"
+#include "../common/MapaDTO.h"
 #include "net/Command.h"
 #include "net/SenderThread.h"
 #include "net/ReceiverThread.h"
@@ -27,17 +29,18 @@ int main(int argc, char* argv[]) try {
     // Colas de comunicación
     Queue<Command>     command_queue;
     Queue<SnapshotDTO> snapshot_queue;
+    Queue<MapaDTO>     map_queue;
 
     // Hilos de red
-    SenderThread   sender(socket, command_queue);
-    std::atomic<bool> connected(true);
-    ReceiverThread receiver(socket, snapshot_queue, connected);
+    std::atomic<bool>  connected(true);
+    SenderThread       sender(socket, command_queue);
+    ReceiverThread     receiver(socket, snapshot_queue, map_queue, connected);
 
     sender.start();
     receiver.start();
 
-    // Mandar LOGIN
-    command_queue.push(Command::login("jugador1"));
+    // Registrar usuario (0=Humano, 0=Mago)
+    command_queue.push(Command::register_player("jugador1", 0, 0));
 
     // SDL
     SDL2pp::SDL sdl(SDL_INIT_VIDEO);
@@ -55,12 +58,22 @@ int main(int argc, char* argv[]) try {
     );
 
     // GameLoop con colas conectadas al servidor
-    GameLoop game_loop(window, renderer, &command_queue, &snapshot_queue, &connected);
-    game_loop.run();
+    try {
+        GameLoop game_loop(window, renderer,
+                           &command_queue, &snapshot_queue,
+                           &map_queue, &connected);
+        game_loop.run();
+    } catch (const std::exception& e) {
+        std::cerr << "GameLoop error: " << e.what() << "\n";
+    } catch (...) {
+        std::cerr << "GameLoop error: excepcion desconocida\n";
+    }
 
     // Shutdown
+    connected = false;
     command_queue.close();
     snapshot_queue.close();
+    map_queue.close();
     sender.stop();
     receiver.stop();
     sender.join();

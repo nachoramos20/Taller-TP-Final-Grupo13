@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include "../socket.h"
+#include "../MapaDTO.h"
 #include "protocol.h"
 #include "dtos.h"
 
@@ -21,6 +22,20 @@ public:
 
     std::string recv_login_error() {
         return recv_str8();
+    }
+
+    MapaDTO recv_map() {
+        MapaDTO map;
+        map.width  = recv_uint16();
+        map.height = recv_uint16();
+        uint16_t tile_count = recv_uint16();
+        map.tiles.resize(tile_count);
+        for (auto& tile : map.tiles) {
+            tile.floor_id           = recv_uint16();
+            tile.object_id          = recv_uint16();
+            tile.object_superior_id = recv_uint16();
+        }
+        return map;
     }
 
     SnapshotDTO recv_snapshot() {
@@ -52,6 +67,7 @@ public:
         for (auto& e : *s.entities) {
             e.entity_id   = recv_uint16();
             e.entity_type = recv_uint8();
+            e.username    = recv_str8();
             e.pos_x       = recv_uint16();
             e.pos_y       = recv_uint16();
             e.direction   = recv_uint8();

@@ -5,6 +5,7 @@
 #include "../socket.h"
 #include "protocol.h"
 #include "dtos.h"
+#include "../MapaDTO.h"
 
 class Serializer {
 public:
@@ -76,6 +77,17 @@ public:
         send_str8(msg);
     }
 
+    void send_map(const MapaDTO& map) {
+        send_uint8(static_cast<uint8_t>(MsgType::MAPA));
+        send_uint16(map.width);
+        send_uint16(map.height);
+        for (const auto& tile : map.tiles) {
+            send_uint16(tile.floor_id);
+            send_uint16(tile.object_id);
+            send_uint16(tile.object_superior_id);
+        }
+    }
+
     void send_snapshot(const SnapshotDTO& snap) {
         send_uint8(static_cast<uint8_t>(MsgType::SNAPSHOT));
         send_uint32(snap.tick);
@@ -108,6 +120,7 @@ public:
             send_uint8(e.sprite_id);
             send_uint8(e.is_ghost);
             send_uint8(e.hp_pct);
+            send_str8(e.username);
         }
 
         send_uint8(static_cast<uint8_t>(snap.messages->size()));

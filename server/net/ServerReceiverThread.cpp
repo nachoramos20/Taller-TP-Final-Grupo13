@@ -70,7 +70,8 @@ void ServerReceiverThread::handshake_client() {
     }
 
     server_protocol.send_login_ok(this->client_id);
-    
+    server_protocol.send_mapa(mapa); 
+
     queue_monitor.add(this->client_id, &this->sender_queue);
     this->command_queue.push(std::make_shared<LoginCommand>(player_data));
 }
