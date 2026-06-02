@@ -1,5 +1,233 @@
-# floor_id = 0 → sin tile (vacío / negro)
-# floor_id = 1 → piedra
+# floor_id = 0 → negro (sin tile)
 
+#  Piedra ----------------------------------
 [floor.1]
 path = "assets/tiles/floor/piedra.png"
+
+#  Pasto ----------------------------------
+[floor.2]
+path = "assets/tiles/floor/pasto_1.png"
+
+[floor.3]
+path = "assets/tiles/floor/pasto_2.png"
+
+[floor.4]
+path = "assets/tiles/floor/pasto_3.png"
+
+[floor.5]
+path = "assets/tiles/floor/pasto_4.png"
+
+[floor.6]
+path = "assets/tiles/floor/pasto_5.png"
+
+[floor.7]
+path = "assets/tiles/floor/pasto_6.png"
+
+[floor.8]
+path = "assets/tiles/floor/pasto_7.png"
+
+#  Tierra ---------------------------------
+[floor.10]
+path = "assets/tiles/floor/tierra_1.png"
+
+[floor.11]
+path = "assets/tiles/floor/tierra_2.png"
+
+[floor.12]
+path = "assets/tiles/floor/tierra_3.png"
+
+[floor.13]
+path = "assets/tiles/floor/tierra_4.png"
+
+[floor.14]
+path = "assets/tiles/floor/tierra_5.png"
+
+[floor.15]
+path = "assets/tiles/floor/tierra_6.png"
+
+[floor.16]
+path = "assets/tiles/floor/tierra_7.png"
+
+[floor.17]
+path = "assets/tiles/floor/tierra_8.png"
+
+[floor.18]
+path = "assets/tiles/floor/tierra_9.png"
+
+[floor.19]
+path = "assets/tiles/floor/tierra_10.png"
+
+[floor.20]
+path = "assets/tiles/floor/tierra_11.png"
+
+[floor.21]
+path = "assets/tiles/floor/tierra_12.png"
+
+[floor.22]
+path = "assets/tiles/floor/tierra_13.png"
+
+[floor.23]
+path = "assets/tiles/floor/tierra_14.png"
+
+[floor.24]
+path = "assets/tiles/floor/tierra_15.png"
+
+[floor.25]
+path = "assets/tiles/floor/tierra_16.png"
+
+[floor.26]
+path = "assets/tiles/floor/tierra_17.png"
+
+[floor.27]
+path = "assets/tiles/floor/tierra_18.png"
+
+[floor.28]
+path = "assets/tiles/floor/tierra_19.png"
+
+[floor.29]
+path = "assets/tiles/floor/tierra_20.png"
+
+[floor.30]
+path = "assets/tiles/floor/tierra_21.png"
+
+[floor.31]
+path = "assets/tiles/floor/tierra_22.png"
+
+[floor.32]
+path = "assets/tiles/floor/tierra_23.png"
+
+[floor.33]
+path = "assets/tiles/floor/tierra_24.png"
+
+[floor.34]
+path = "assets/tiles/floor/tierra_25.png"
+
+[floor.35]
+path = "assets/tiles/floor/tierra_26.png"
+
+[floor.36]
+path = "assets/tiles/floor/tierra_27.png"
+
+[floor.37]
+path = "assets/tiles/floor/tierra_28.png"
+
+[floor.38]
+path = "assets/tiles/floor/tierra_29.png"
+
+[floor.39]
+path = "assets/tiles/floor/tierra_30.png"
+
+# Pasto con tierra (transiciones) ------------
+[floor.50]
+path = "assets/tiles/floor/pasto_tierra_1.png"
+
+[floor.51]
+path = "assets/tiles/floor/pasto_tierra_2.png"
+
+[floor.52]
+path = "assets/tiles/floor/pasto_tierra_3.png"
+
+[floor.53]
+path = "assets/tiles/floor/pasto_tierra_4.png"
+
+[floor.54]
+path = "assets/tiles/floor/pasto_tierra_5.png"
+
+[floor.55]
+path = "assets/tiles/floor/pasto_tierra_6.png"
+
+[floor.56]
+path = "assets/tiles/floor/pasto_tierra_7.png"
+
+[floor.57]
+path = "assets/tiles/floor/pasto_tierra_8.png"
+
+[floor.58]
+path = "assets/tiles/floor/pasto_tierra_9.png"
+
+[floor.59]
+path = "assets/tiles/floor/pasto_tierra_10.png"
+
+[floor.60]
+path = "assets/tiles/floor/pasto_tierra_11.png"
+
+[floor.61]
+path = "assets/tiles/floor/pasto_tierra_12.png"
+
+[floor.62]
+path = "assets/tiles/floor/pasto_tierra_13.png"
+
+[floor.63]
+path = "assets/tiles/floor/pasto_tierra_14.png"
+
+[floor.64]
+path = "assets/tiles/floor/pasto_tierra_15.png"
+
+[floor.65]
+path = "assets/tiles/floor/pasto_tierra_16.png"
+
+[floor.66]
+path = "assets/tiles/floor/pasto_tierra_17.png"
+
+[floor.67]
+path = "assets/tiles/floor/pasto_tierra_18.png"
+
+[floor.68]
+path = "assets/tiles/floor/pasto_tierra_19.png"
+
+[floor.69]
+path = "assets/tiles/floor/pasto_tierra_20.png"
+
+[floor.70]
+path = "assets/tiles/floor/pasto_tierra_21.png"
+
+[floor.71]
+path = "assets/tiles/floor/pasto_tierra_22.png"
+
+[floor.72]
+path = "assets/tiles/floor/pasto_tierra_23.png"
+
+[floor.73]
+path = "assets/tiles/floor/pasto_tierra_24.png"
+
+[floor.74]
+path = "assets/tiles/floor/pasto_tierra_25.png"
+
+[floor.75]
+path = "assets/tiles/floor/pasto_tierra_26.png"
+
+[floor.76]
+path = "assets/tiles/floor/pasto_tierra_27.png"
+
+#  Agua ------------------------------------------------
+[floor.80]
+path = "assets/tiles/floor/agua.png"
+
+#  Acantilado ------------------------------------------
+[floor.90]
+path = "assets/tiles/floor/acantilado_norte_1.png"
+tile_size = 6
+
+[floor.91]
+path = "assets/tiles/floor/acantilado_sur_1.png"
+tile_size = 6
+
+[floor.92]
+path = "assets/tiles/floor/acantilado_oeste_1.png"
+tile_size = 6
+
+[floor.93]
+path = "assets/tiles/floor/acantilado_esquina_nw.png"
+tile_size = 6
+
+[floor.94]
+path = "assets/tiles/floor/acantilado_esquina_ne.png"
+tile_size = 6
+
+[floor.95]
+path = "assets/tiles/floor/acantilado_esquina_sw.png"
+tile_size = 6
+
+[floor.96]
+path = "assets/tiles/floor/acantilado_esquina_se.png"
+tile_size = 6

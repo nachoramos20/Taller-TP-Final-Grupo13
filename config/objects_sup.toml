@@ -1,8 +1,8 @@
 # object_superior_id = 0 → sin objeto superior
 
-# Objetos animados: frames en orden, se ciclan a TICKS_PER_FRAME ticks por frame
-
+#  Molino animado ---------------------------------
 [object_sup.1]
+size_tiles = 6
 frames = [
     "assets/sprites/objects_sup/molino/frame1.png",
     "assets/sprites/objects_sup/molino/frame2.png",
@@ -10,4 +10,33 @@ frames = [
     "assets/sprites/objects_sup/molino/frame4.png",
     "assets/sprites/objects_sup/molino/frame5.png",
     "assets/sprites/objects_sup/molino/frame6.png",
+]
+
+#  Árbol central ----------------------------------
+[object_sup.2]
+size_tiles = 6
+frames = [
+    "assets/sprites/objects_sup/arbol/arbol.png",
+]
+
+#  Costa animada ----------------------------------
+[object_sup.3]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/costa/frame_0.png",
+    "assets/sprites/objects_sup/costa/frame_1.png",
+    "assets/sprites/objects_sup/costa/frame_2.png",
+    "assets/sprites/objects_sup/costa/frame_3.png",
+    "assets/sprites/objects_sup/costa/frame_4.png",
+    "assets/sprites/objects_sup/costa/frame_5.png",
+    "assets/sprites/objects_sup/costa/frame_6.png",
+    "assets/sprites/objects_sup/costa/frame_7.png",
+    "assets/sprites/objects_sup/costa/frame_8.png",
+    "assets/sprites/objects_sup/costa/frame_9.png",
+    "assets/sprites/objects_sup/costa/frame_10.png",
+    "assets/sprites/objects_sup/costa/frame_11.png",
+    "assets/sprites/objects_sup/costa/frame_12.png",
+    "assets/sprites/objects_sup/costa/frame_13.png",
+    "assets/sprites/objects_sup/costa/frame_14.png",
+    "assets/sprites/objects_sup/costa/frame_15.png",
 ]

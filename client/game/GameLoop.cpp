@@ -171,30 +171,102 @@ void GameLoop::render_floor() {
     int map_w = _map_loaded ? _map.width  : MAP_SIZE;
     int map_h = _map_loaded ? _map.height : MAP_SIZE;
 
-    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / TILE_SIZE);
-    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / TILE_SIZE);
-    int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + 2);
-    int last_y  = std::min(map_h - 1, first_y + screen_h / TILE_SIZE + 2);
+    int margin = 50;
+    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / TILE_SIZE - margin);
+    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / TILE_SIZE - margin);
+    int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + margin * 2);
+    int last_y  = std::min(map_h - 1, first_y + screen_h / TILE_SIZE + margin * 2);
+
+    // tiles normales
+    for (int ty = first_y; ty <= last_y; ty++) {
+        for (int tx = first_x; tx <= last_x; tx++) {
+            uint16_t floor_id = 0;
+            if (_map_loaded)
+                floor_id = _map.tiles[ty * _map.width + tx].floor_id;
+
+            const TileEntry& entry = _tile_config.get(floor_id);
+            if (entry.is_large()) continue;  // skip en pasada 1
+
+            int sx = _camera.tile_to_screen_x(tx);
+            int sy = _camera.tile_to_screen_y(ty);
+
+            if (entry.path.empty()) {
+                if (sx >= -TILE_SIZE && sx <= screen_w &&
+                    sy >= -TILE_SIZE && sy <= screen_h) {
+                    _renderer.SetDrawColor(0, 0, 0, 255);
+                    _renderer.FillRect(SDL2pp::Rect(sx, sy, TILE_SIZE, TILE_SIZE));
+                }
+                continue;
+            }
+
+            SDL2pp::Rect dst(sx, sy, TILE_SIZE, TILE_SIZE);
+            if (entry.has_src_rect()) {
+                SDL2pp::Rect src(entry.src_x, entry.src_y, entry.src_w, entry.src_h);
+                _renderer.Copy(_assets.get(entry.path), src, dst);
+            } else {
+                _renderer.Copy(_assets.get(entry.path), SDL2pp::NullOpt, dst);
+            }
+        }
+    }
+
+    // tiles grandes
+    for (int ty = first_y; ty <= last_y; ty++) {
+        for (int tx = first_x; tx <= last_x; tx++) {
+            uint16_t floor_id = 0;
+            if (_map_loaded)
+                floor_id = _map.tiles[ty * _map.width + tx].floor_id;
+
+            const TileEntry& entry = _tile_config.get(floor_id);
+            if (!entry.is_large()) continue;  // solo large en pasada 2
+
+            int sx = _camera.tile_to_screen_x(tx);
+            int sy = _camera.tile_to_screen_y(ty);
+            int size_px = entry.tile_size * TILE_SIZE;
+            SDL2pp::Rect dst(sx, sy, size_px, size_px);
+            _renderer.Copy(_assets.get(entry.path), SDL2pp::NullOpt, dst);
+        }
+    }
+}
+
+void GameLoop::render_obj_sup() {
+    if (!_map_loaded) return;
+
+    int screen_w = _window.GetWidth();
+    int screen_h = _window.GetHeight();
+    int map_w = _map.width;
+    int map_h = _map.height;
+
+    int margin = 6;
+    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / TILE_SIZE - margin);
+    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / TILE_SIZE - margin);
+    int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + margin * 2);
+    int last_y  = std::min(map_h - 1, first_y + screen_h / TILE_SIZE + margin * 2);
 
     for (int ty = first_y; ty <= last_y; ty++) {
         for (int tx = first_x; tx <= last_x; tx++) {
+            uint16_t obj_id = _map.tiles[ty * map_w + tx].object_superior_id;
+            if (obj_id == 0) continue;
+
+            const ObjectSupEntry& entry = _obj_sup_config.get(obj_id);
+            if (entry.frames.empty()) continue;
+
+            int frame_idx = (_current_tick / OBJ_SUP_TICKS_PER_FRAME)
+                            % static_cast<int>(entry.frames.size());
+
+            int obj_size = entry.size_tiles * TILE_SIZE;
+
             int sx = _camera.tile_to_screen_x(tx);
             int sy = _camera.tile_to_screen_y(ty);
-            SDL2pp::Rect dst(sx, sy, TILE_SIZE, TILE_SIZE);
 
-            uint16_t floor_id = 0;
-            if (_map_loaded) {
-                floor_id = _map.tiles[ty * _map.width + tx].floor_id;
-            }
+            SDL2pp::Rect dst(
+                sx - (obj_size - TILE_SIZE) / 2,
+                sy - obj_size + TILE_SIZE,
+                obj_size,
+                obj_size
+            );
 
-            const std::string& path = _tile_config.get(floor_id);
-            if (!path.empty()) {
-                _renderer.Copy(_assets.get(path), SDL2pp::NullOpt, dst);
-            } else {
-                // fallback: negro si no hay tile configurado
-                _renderer.SetDrawColor(0, 0, 0, 255);
-                _renderer.FillRect(dst);
-            }
+            _renderer.Copy(_assets.get(entry.frames[frame_idx]),
+                           SDL2pp::NullOpt, dst);
         }
     }
 }
@@ -231,47 +303,5 @@ void GameLoop::render_entities() {
                      e.sprite_id, dir,
                      screen_x, screen_y,
                      _current_tick, moving);
-    }
-}
-
-void GameLoop::render_obj_sup() {
-    if (!_map_loaded) return;
-
-    int screen_w = _window.GetWidth();
-    int screen_h = _window.GetHeight();
-    int map_w = _map.width;
-    int map_h = _map.height;
-
-    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / TILE_SIZE);
-    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / TILE_SIZE);
-    int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + OBJ_SUP_TILES + 1);
-    int last_y  = std::min(map_h - 1, first_y + screen_h / TILE_SIZE + OBJ_SUP_TILES + 1);
-
-    for (int ty = first_y; ty <= last_y; ty++) {
-        for (int tx = first_x; tx <= last_x; tx++) {
-            uint16_t obj_id = _map.tiles[ty * map_w + tx].object_superior_id;
-            if (obj_id == 0) continue;
-
-            const ObjectSupEntry& entry = _obj_sup_config.get(obj_id);
-            if (entry.frames.empty()) continue;
-
-            // elegir frame según tick
-            int frame_idx = (_current_tick / OBJ_SUP_TICKS_PER_FRAME)
-                            % static_cast<int>(entry.frames.size());
-
-            int sx = _camera.tile_to_screen_x(tx);
-            int sy = _camera.tile_to_screen_y(ty);
-
-            // centrado horizontalmente, base alineada al fondo del tile ancla
-            SDL2pp::Rect dst(
-                sx - (OBJ_SUP_SIZE - TILE_SIZE) / 2,  // centrado en x
-                sy - OBJ_SUP_SIZE + TILE_SIZE,         // base abajo del tile ancla
-                OBJ_SUP_SIZE,
-                OBJ_SUP_SIZE
-            );
-
-            _renderer.Copy(_assets.get(entry.frames[frame_idx]),
-                           SDL2pp::NullOpt, dst);
-        }
     }
 }

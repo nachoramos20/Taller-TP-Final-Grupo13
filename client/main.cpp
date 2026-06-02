@@ -58,12 +58,19 @@ int main(int argc, char* argv[]) try {
     );
 
     // GameLoop con colas conectadas al servidor
-    GameLoop game_loop(window, renderer,
-                       &command_queue, &snapshot_queue,
-                       &map_queue, &connected);
-    game_loop.run();
+    try {
+        GameLoop game_loop(window, renderer,
+                           &command_queue, &snapshot_queue,
+                           &map_queue, &connected);
+        game_loop.run();
+    } catch (const std::exception& e) {
+        std::cerr << "GameLoop error: " << e.what() << "\n";
+    } catch (...) {
+        std::cerr << "GameLoop error: excepcion desconocida\n";
+    }
 
     // Shutdown
+    connected = false;
     command_queue.close();
     snapshot_queue.close();
     map_queue.close();

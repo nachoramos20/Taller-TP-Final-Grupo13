@@ -1,7 +1,7 @@
 #include "SpriteConfig.h"
 #include <toml++/toml.hpp>
 
-// ── TileConfig ───────────────────────────────────────────────────────────────
+// TileConfig ---------------------------------------------------------------------
 
 TileConfig::TileConfig(const std::string& toml_path, const std::string& section) {
     auto tbl = toml::parse_file(toml_path);
@@ -10,19 +10,27 @@ TileConfig::TileConfig(const std::string& toml_path, const std::string& section)
 
     for (auto& [key, val] : *sec) {
         uint16_t id = static_cast<uint16_t>(std::stoi(std::string(key)));
-        auto* entry = val.as_table();
-        if (!entry) continue;
-        _entries[id] = (*entry)["path"].value_or<std::string>("");
+        auto* entry_tbl = val.as_table();
+        if (!entry_tbl) continue;
+
+        TileEntry entry;
+        entry.path      = (*entry_tbl)["path"].value_or<std::string>("");
+        entry.src_x     = (*entry_tbl)["src_x"].value_or<int>(0);
+        entry.src_y     = (*entry_tbl)["src_y"].value_or<int>(0);
+        entry.src_w     = (*entry_tbl)["src_w"].value_or<int>(0);
+        entry.src_h     = (*entry_tbl)["src_h"].value_or<int>(0);
+        entry.tile_size = (*entry_tbl)["tile_size"].value_or<int>(1);
+        _entries[id] = entry;
     }
 }
 
-const std::string& TileConfig::get(uint16_t id) const {
+const TileEntry& TileConfig::get(uint16_t id) const {
     auto it = _entries.find(id);
     if (it == _entries.end()) return _fallback;
     return it->second;
 }
 
-// ── SpriteConfig ─────────────────────────────────────────────────────────────
+// SpriteConfig ----------------------------------------------------------------------
 
 SpriteConfig::SpriteConfig(const std::string& toml_path) {
     _fallback.body_path = "assets/sprites/skins/humano.png";

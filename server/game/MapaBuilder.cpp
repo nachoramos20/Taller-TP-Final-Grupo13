@@ -1,32 +1,167 @@
 #include "MapaBuilder.h"
 
+// floor_ids según tiles.toml
+static constexpr uint16_t F_NEGRO       = 0;
+static constexpr uint16_t F_PIEDRA      = 1;
+static constexpr uint16_t F_PASTO_BASE  = 2;   
+static constexpr uint16_t F_TIERRA_BASE = 10;  
+static constexpr uint16_t F_AGUA        = 80;
+static constexpr uint16_t F_AC_NORTE    = 90;
+static constexpr uint16_t F_AC_SUR      = 91;
+static constexpr uint16_t F_AC_OESTE    = 92;
+static constexpr uint16_t F_AC_NW       = 93;
+static constexpr uint16_t F_AC_NE       = 94;
+static constexpr uint16_t F_AC_SW       = 95;
+static constexpr uint16_t F_AC_SE       = 96;
+
+// object_sup_ids según objects_sup.toml
+static constexpr uint16_t O_MOLINO      = 1;
+static constexpr uint16_t O_ARBOL       = 2;
+static constexpr uint16_t O_COSTA       = 3;
+
+// límites del mapa
+static constexpr int MAP_W = 100;
+static constexpr int MAP_H = 100;
+
+// zona jugable
+static constexpr int ZJ_X1 = 6,  ZJ_X2 = 93;
+static constexpr int ZJ_Y1 = 6,  ZJ_Y2 = 93;
+
+// plaza
+static constexpr int PL_X1 = 33, PL_X2 = 53;
+static constexpr int PL_Y1 = 35, PL_Y2 = 55;
+
+// caminos
+static constexpr int CAM_H_Y1 = 48, CAM_H_Y2 = 51;
+static constexpr int CAM_V_X1 = 43, CAM_V_X2 = 46;
+
+// costa
+static constexpr int COSTA_X1 = 75, COSTA_X2 = 80;
+static constexpr int ARENA_X1 = 81, ARENA_X2 = 85;
+static constexpr int AGUA_X1  = 86, AGUA_X2  = 93;
+
+//  helpers -------------------------------------------------------------
+
 TileDTO& MapaBuilder::get_tile(MapaDTO& mapa, uint16_t x, uint16_t y) {
     return mapa.tiles[y * mapa.width + x];
 }
 
-void MapaBuilder::build_molino(MapaDTO& mapa, uint16_t x, uint16_t y) {
-    // tile ancla: tiene el floor + el object_superior_id del molino
-    TileDTO& ancla = get_tile(mapa, x, y);
-    ancla.floor_id            = 1;
-    ancla.object_id           = 0;
-    ancla.object_superior_id  = 1;  // id 1 = molino animado
+void MapaBuilder::fill_rect(MapaDTO& mapa,
+                             uint16_t x1, uint16_t y1,
+                             uint16_t x2, uint16_t y2,
+                             uint16_t floor_id,
+                             uint16_t obj_id,
+                             uint16_t obj_sup_id) {
+    for (int y = y1; y <= y2; y++) {
+        for (int x = x1; x <= x2; x++) {
+            TileDTO& t = get_tile(mapa, x, y);
+            t.floor_id           = floor_id;
+            t.object_id          = obj_id;
+            t.object_superior_id = obj_sup_id;
+        }
+    }
 }
 
-MapaDTO MapaBuilder::build_mapa_inicial() {
-    MapaDTO mapa{};
-    mapa.width  = 100;
-    mapa.height = 100;
-    mapa.tiles.resize(mapa.width * mapa.height);
+void MapaBuilder::place_object_sup(MapaDTO& mapa, uint16_t x, uint16_t y,
+                                    uint16_t obj_sup_id) {
+    get_tile(mapa, x, y).object_superior_id = obj_sup_id;
+}
 
-    for (int i = 0; i < mapa.width * mapa.height; i++) {
-        mapa.tiles[i].floor_id           = 1;
-        mapa.tiles[i].object_id          = 0;
-        mapa.tiles[i].object_superior_id = 0;
+uint16_t MapaBuilder::pasto_random() {
+    return F_PASTO_BASE + (rand() % 7);  // 2..8
+}
+
+//  zonas --------------------------------------------------------
+
+void MapaBuilder::build_acantilados(MapaDTO& mapa) {
+    // esquinas — solo el tile ancla tiene el floor_id
+    get_tile(mapa, 0,  0 ).floor_id = F_AC_NW;
+    get_tile(mapa, 94, 0 ).floor_id = F_AC_NE;
+    get_tile(mapa, 0,  94).floor_id = F_AC_SW;
+    get_tile(mapa, 94, 94).floor_id = F_AC_SE;
+
+    // borde norte y sur — ancla cada 6 tiles
+    for (int x = 6; x <= 94; x += 6) {
+        get_tile(mapa, x, 0 ).floor_id = F_AC_NORTE;
+        get_tile(mapa, x, 94).floor_id = F_AC_SUR;
     }
 
-    build_molino(mapa, 10, 10);
-    build_molino(mapa, 20, 20);
-    build_molino(mapa, 30, 30);
+    // borde oeste y este — ancla cada 6 tiles
+    for (int y = 6; y <= 94; y += 6) {
+        get_tile(mapa, 0,  y).floor_id = F_AC_OESTE;
+    }
+}
+
+void MapaBuilder::build_pasto(MapaDTO& mapa) {
+    for (int y = ZJ_Y1; y <= ZJ_Y2; y++) {
+        for (int x = ZJ_X1; x <= ZJ_X2; x++) {
+            TileDTO& t = get_tile(mapa, x, y);
+            t.floor_id           = pasto_random();
+            t.object_id          = 0;
+            t.object_superior_id = 0;
+        }
+    }
+}
+
+void MapaBuilder::build_caminos(MapaDTO& mapa) {
+    for (int y = CAM_H_Y1; y <= CAM_H_Y2; y++)
+        for (int x = ZJ_X1; x <= COSTA_X1; x++)
+            get_tile(mapa, x, y).floor_id = F_TIERRA_BASE + (rand() % 5);
+
+    for (int y = ZJ_Y1; y <= ZJ_Y2; y++)
+        for (int x = CAM_V_X1; x <= CAM_V_X2; x++)
+            get_tile(mapa, x, y).floor_id = F_TIERRA_BASE + (rand() % 5);
+}
+
+void MapaBuilder::build_plaza(MapaDTO& mapa) {
+    fill_rect(mapa, PL_X1, PL_Y1, PL_X2, PL_Y2, F_PIEDRA);
+}
+
+void MapaBuilder::build_costa(MapaDTO& mapa) {
+    for (int y = ZJ_Y1; y <= ZJ_Y2; y++)
+        for (int x = COSTA_X1; x <= COSTA_X2; x++)
+            get_tile(mapa, x, y).floor_id = F_TIERRA_BASE + 10 + (rand() % 5);
+
+    for (int y = ZJ_Y1; y <= ZJ_Y2; y++)
+        for (int x = ARENA_X1; x <= ARENA_X2; x++)
+            get_tile(mapa, x, y).floor_id = F_TIERRA_BASE + 15 + (rand() % 5);
+
+    fill_rect(mapa, AGUA_X1, ZJ_Y1, AGUA_X2, ZJ_Y2, F_AGUA);
+
+    for (int y = ZJ_Y1; y <= ZJ_Y2; y++)
+        place_object_sup(mapa, ARENA_X2, y, O_COSTA);
+}
+
+void MapaBuilder::build_objetos(MapaDTO& mapa) {
+    place_object_sup(mapa, PL_X1,     PL_Y1,     O_MOLINO);
+    place_object_sup(mapa, PL_X2 - 1, PL_Y1,     O_MOLINO);
+    place_object_sup(mapa, PL_X1,     PL_Y2 - 1, O_MOLINO);
+    place_object_sup(mapa, PL_X2 - 1, PL_Y2 - 1, O_MOLINO);
+    place_object_sup(mapa, (PL_X1 + PL_X2) / 2, (PL_Y1 + PL_Y2) / 2, O_ARBOL);
+}
+
+//  entry point -----------------------------------------------
+
+MapaDTO MapaBuilder::build_mapa_inicial() {
+    srand(42);
+
+    MapaDTO mapa{};
+    mapa.width  = MAP_W;
+    mapa.height = MAP_H;
+    mapa.tiles.resize(MAP_W * MAP_H);
+
+    for (auto& t : mapa.tiles) {
+        t.floor_id           = F_NEGRO;
+        t.object_id          = 0;
+        t.object_superior_id = 0;
+    }
+
+    build_pasto(mapa);
+    build_caminos(mapa);
+    build_plaza(mapa);
+    build_costa(mapa);
+    build_acantilados(mapa);
+    build_objetos(mapa);
 
     return mapa;
 }

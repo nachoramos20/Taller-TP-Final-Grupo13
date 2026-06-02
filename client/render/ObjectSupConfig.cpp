@@ -11,10 +11,12 @@ ObjectSupConfig::ObjectSupConfig(const std::string& toml_path) {
         auto* entry_tbl = val.as_table();
         if (!entry_tbl) continue;
 
+        ObjectSupEntry entry;
+        entry.size_tiles = (*entry_tbl)["size_tiles"].value_or<int>(4);
+
         auto* frames_arr = (*entry_tbl)["frames"].as_array();
         if (!frames_arr) continue;
 
-        ObjectSupEntry entry;
         for (auto& frame_val : *frames_arr) {
             auto path = frame_val.value<std::string>();
             if (path) entry.frames.push_back(*path);
