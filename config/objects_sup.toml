@@ -14,7 +14,7 @@ frames = [
 
 #  Árbol central ----------------------------------
 [object_sup.2]
-size_tiles = 6
+size_tiles = 8
 frames = [
     "assets/sprites/objects_sup/arbol/arbol.png",
 ]
