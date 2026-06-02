@@ -62,6 +62,9 @@ void ServerReceiverThread::handshake_client() {
         case MsgType::REGISTER:
             auth = handshake_register(player_data);
             break;
+        default:
+            server_protocol.send_login_error("Handshake failed: invalid handshake code");
+            throw std::runtime_error("Handshake failed: invalid handshake code");
     }
 
     if (!auth) {
