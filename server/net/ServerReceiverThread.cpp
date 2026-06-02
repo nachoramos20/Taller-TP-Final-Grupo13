@@ -49,32 +49,42 @@ void ServerReceiverThread::stop() {
 }
 
 void ServerReceiverThread::handshake_client() {
-    std::string username;
-    uint8_t race = 0;
-    uint8_t cls = 0;
+
+    MsgType handshake_type = this->server_protocol.receive_handshake();
     PlayerData player_data;
+    bool auth = false;
+    
 
-    MsgType handshake_type = this->server_protocol.handshake(username, race, cls);
-    bool authenticated = false;
+    switch (handshake_type) {
+        case MsgType::LOGIN:
+            auth = handshake_login(player_data);
+            break;
+        case MsgType::REGISTER:
+            auth = handshake_register(player_data);
+            break;
+    }
 
-    if (handshake_type == MsgType::LOGIN) {
-        authenticated = persistence_monitor.login(username, player_data, this->client_id);
-        if (!authenticated) {
-            server_protocol.send_login_error("Usuario inexistente");
-            client_alive = false;
-            return;
-        }
-    } else if (handshake_type == MsgType::REGISTER) {
-        authenticated = persistence_monitor.register_user(username, race, cls, player_data, this->client_id);
-        if (!authenticated) {
-            server_protocol.send_login_error("Nombre de usuario ya ocupado");
-            client_alive = false;
-            return;
-        }
+    if (!auth) {
+        server_protocol.send_login_error("Login failed: invalid username or user already exists");
+        throw std::runtime_error("Handshake failed: authentication error");
     }
 
     server_protocol.send_login_ok(this->client_id);
     
     queue_monitor.add(this->client_id, &this->sender_queue);
     this->command_queue.push(std::make_shared<LoginCommand>(player_data));
+}
+
+bool ServerReceiverThread::handshake_login(PlayerData& player_data) {
+    std::string username;
+    server_protocol.handshake_login(username);
+    return persistence_monitor.login(username, player_data, this->client_id);
+}
+
+bool ServerReceiverThread::handshake_register(PlayerData& player_data) {
+    std::string username;
+    uint8_t race;
+    uint8_t cls;
+    server_protocol.handshake_register(username, race, cls);
+    return persistence_monitor.register_user(username, race, cls, player_data, this->client_id);
 }

@@ -43,4 +43,6 @@ private:
     PersistenceMonitor&   persistence_monitor;
     MapaDTO&               mapa;
     void handshake_client();
+    bool handshake_login(PlayerData& player_data);
+    bool handshake_register(PlayerData& player_data);
 };

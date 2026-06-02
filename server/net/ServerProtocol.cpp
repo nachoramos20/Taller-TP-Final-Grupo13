@@ -155,34 +155,39 @@ void ServerProtocol::shutdown(int how) {
     this->socket.shutdown(how);
 }
 
-
-MsgType ServerProtocol::handshake(std::string& out_username, uint8_t& out_race, uint8_t& out_cls) {
+MsgType ServerProtocol::receive_handshake() {
     uint8_t handshake_code;
     int bytes_recibidos = this->socket.recvall(&handshake_code, sizeof(handshake_code));
     if (bytes_recibidos == 0) {
         throw std::runtime_error("Handshake failed: connection closed by peer");
     }
 
-    uint8_t username_len;
     switch (static_cast<MsgType>(handshake_code)) {
-        case MsgType::LOGIN: {
-            socket.recvall(&username_len, sizeof(username_len));
-            std::vector<char> username_buf(username_len);
-            socket.recvall(username_buf.data(), username_len);
-            out_username.assign(username_buf.data(), username_len);
+        case MsgType::LOGIN:
             return MsgType::LOGIN;
-        }
-        case MsgType::REGISTER: {
-            socket.recvall(&username_len, sizeof(username_len));
-            std::vector<char> username_buf(username_len);
-            socket.recvall(username_buf.data(), username_len);
-            out_username.assign(username_buf.data(), username_len);
-            socket.recvall(&out_race, sizeof(out_race));
-            socket.recvall(&out_cls, sizeof(out_cls));
+        case MsgType::REGISTER:
             return MsgType::REGISTER;
-        }
         default:
             throw std::runtime_error("Handshake failed: invalid handshake code");
     }
 }
+void ServerProtocol::handshake_login(std::string& username) {
 
+
+    uint8_t username_len;
+    socket.recvall(&username_len, sizeof(username_len));
+    std::vector<char> username_buf(username_len);
+    socket.recvall(username_buf.data(), username_len);
+    username.assign(username_buf.data(), username_len);
+}
+
+void ServerProtocol::handshake_register(std::string& username, uint8_t& race, uint8_t& cls) {
+    uint8_t username_len;
+    socket.recvall(&username_len, sizeof(username_len));
+    std::vector<char> username_buf(username_len);
+    socket.recvall(username_buf.data(), username_len);
+    username.assign(username_buf.data(), username_len);
+
+    socket.recvall(&race, sizeof(race));
+    socket.recvall(&cls, sizeof(cls));
+}
