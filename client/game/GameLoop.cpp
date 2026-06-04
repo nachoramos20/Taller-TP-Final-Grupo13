@@ -171,7 +171,7 @@ void GameLoop::render_floor() {
     int map_w = _map_loaded ? _map.width  : MAP_SIZE;
     int map_h = _map_loaded ? _map.height : MAP_SIZE;
 
-    int margin = 50;
+    int margin = 8;
     int first_x = std::max(0, -_camera.tile_to_screen_x(0) / TILE_SIZE - margin);
     int first_y = std::max(0, -_camera.tile_to_screen_y(0) / TILE_SIZE - margin);
     int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + margin * 2);

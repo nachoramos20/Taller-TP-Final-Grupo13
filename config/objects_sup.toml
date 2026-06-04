@@ -1,6 +1,6 @@
 # object_superior_id = 0 → sin objeto superior
 
-#  Molino animado ---------------------------------
+#  Molino animado -------------------------------------------------------------
 [object_sup.1]
 size_tiles = 6
 frames = [
@@ -12,14 +12,14 @@ frames = [
     "assets/sprites/objects_sup/molino/frame6.png",
 ]
 
-#  Árbol central ----------------------------------
+#  Árbol central plaza --------------------------------------------------------
 [object_sup.2]
-size_tiles = 8
+size_tiles = 6
 frames = [
-    "assets/sprites/objects_sup/arbol/arbol.png",
+    "assets/sprites/objects_sup/arboles/arbol.png",
 ]
 
-#  Costa animada ----------------------------------
+#  Costa animada -------------------------------------------------------------
 [object_sup.3]
 size_tiles = 1
 frames = [
@@ -39,4 +39,103 @@ frames = [
     "assets/sprites/objects_sup/costa/frame_13.png",
     "assets/sprites/objects_sup/costa/frame_14.png",
     "assets/sprites/objects_sup/costa/frame_15.png",
+]
+
+#  Árboles bosque ---------------------------------------------------
+[object_sup.4]
+size_tiles = 5
+frames = [
+    "assets/sprites/objects_sup/arboles/arbol_recto_1.png",
+]
+
+[object_sup.5]
+size_tiles = 5
+frames = [
+    "assets/sprites/objects_sup/arboles/arbol_recto_2.png",
+]
+
+[object_sup.6]
+size_tiles = 5
+frames = [
+    "assets/sprites/objects_sup/arboles/arbol_recto_3.png",
+]
+
+[object_sup.7]
+size_tiles = 5
+frames = [
+    "assets/sprites/objects_sup/arboles/pino_recto.png",
+]
+
+[object_sup.8]
+size_tiles = 5
+frames = [
+    "assets/sprites/objects_sup/arboles/pino_recto_2.png",
+]
+
+[object_sup.9]
+size_tiles = 5
+frames = [
+    "assets/sprites/objects_sup/arboles/pino_torcido.png",
+]
+
+[object_sup.10]
+size_tiles = 5
+frames = [
+    "assets/sprites/objects_sup/arboles/pino_torcido_izq.png",
+]
+
+#  Mar -------------------------------------------------------------
+[object_sup.11]
+size_tiles = 5
+frames = [
+    "assets/sprites/objects_sup/mar/barco_hundido.png",
+]
+
+[object_sup.12]
+size_tiles = 3
+frames = [
+    "assets/sprites/objects_sup/mar/canoa_hundida.png",
+]
+
+#  Flores ----------------------------------------------------------
+[object_sup.13]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/flores/flores_1.png",
+]
+
+[object_sup.14]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/flores/flores_2.png",
+]
+
+[object_sup.15]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/flores/flores_3.png",
+]
+
+[object_sup.16]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/flores/flores_4.png",
+]
+
+[object_sup.17]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/flores/flores_5.png",
+]
+
+[object_sup.18]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/flores/flores_6.png",
+]
+
+[object_sup.19]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/flores/flores_7.png",
 ]
