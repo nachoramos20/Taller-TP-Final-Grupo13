@@ -1,6 +1,8 @@
 #include "Game.h"
+#include "Items.h"
 #include <algorithm>
 #include <iostream>
+
 
 Game::Game() : world(100, 100) {}
 
@@ -60,24 +62,28 @@ void Game::player_attack(uint16_t client_id, uint16_t target_id) {
 void Game::player_equip(uint16_t client_id, uint8_t inv_slot) {
     PlayerData* p = world.get_player_mutable(client_id);
     if (!p || p->is_ghost) return;
-
     if (inv_slot >= PlayerData::INVENTORY_SIZE) return;
 
-    uint8_t item_id = p->inventory[inv_slot];
-    if (item_id == 0) return;
+    uint8_t raw_id = p->inventory[inv_slot];
+    if (raw_id == 0) return;
 
-    if (item_id >= 1 && item_id <= 20) {
-        p->equipped_weapon = item_id;
-    } else if (item_id >= 21 && item_id <= 40) {
-        p->equipped_armor = item_id;
-    } else if (item_id >= 41 && item_id <= 60) {
-        p->equipped_shield = item_id;
-    } else if (item_id >= 61 && item_id <= 80) {
-        p->equipped_helmet = item_id;
+    ItemId item_id = static_cast<ItemId>(raw_id);
+    if (!Items::exists(item_id)) return;
+
+    const ItemDef& def = Items::get(item_id);
+    EquipSlot slot = Items::equip_slot_for(def.kind);
+
+    switch (slot) {
+        case EquipSlot::WEAPON: p->equipped_weapon = raw_id; break;
+        case EquipSlot::ARMOR:  p->equipped_armor  = raw_id; break;
+        case EquipSlot::HELMET: p->equipped_helmet = raw_id; break;
+        case EquipSlot::SHIELD: p->equipped_shield = raw_id; break;
     }
 
     p->inventory[inv_slot] = 0;
 }
+
+
 
 void Game::player_unequip(uint16_t client_id, EquipSlot slot) {
     PlayerData* p = world.get_player_mutable(client_id);
@@ -146,18 +152,26 @@ void Game::player_use(uint16_t client_id, uint8_t inv_slot) {
     PlayerData* p = world.get_player_mutable(client_id);
     if (!p || p->is_ghost || inv_slot >= PlayerData::INVENTORY_SIZE) return;
 
-    uint8_t item_id = p->inventory[inv_slot];
-    if (item_id == 0) return;
+    uint8_t raw_id = p->inventory[inv_slot];
+    if (raw_id == 0) return;
+
+    ItemId item_id = static_cast<ItemId>(raw_id);
+    if (!Items::exists(item_id)) return;
+
+    const ItemDef& def = Items::get(item_id);
+    if (def.kind != ItemKind::POTION) return;
 
     p->meditating = false;
 
-    if (item_id == 90) {
-        p->hp = std::min(p->max_hp, static_cast<uint16_t>(p->hp + 40));
-        p->inventory[inv_slot] = 0; // Se consume
-    } else if (item_id == 91) {
-        p->mp = std::min(p->max_mp, static_cast<uint16_t>(p->mp + 25));
-        p->inventory[inv_slot] = 0; // Se consume
+    if (item_id == ItemId::HEALTH_POTION) {
+        p->hp = std::min(p->max_hp,
+            static_cast<uint16_t>(p->hp + def.min_value));
+    } else if (item_id == ItemId::MANA_POTION) {
+        p->mp = std::min(p->max_mp,
+            static_cast<uint16_t>(p->mp + def.min_value));
     }
+
+    p->inventory[inv_slot] = 0;
 }
 
 void Game::player_meditate(uint16_t client_id) {
