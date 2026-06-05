@@ -7,7 +7,6 @@ target_sources(argentum_grupo13_server
     net/ServerProtocol.cpp
     net/ServerSenderThread.cpp
     game/ServerGameLoop.cpp
-    game/Game.cpp
     game/Commands.cpp
     game/PersistenceMonitor.cpp
     game/World.cpp

@@ -59,6 +59,19 @@ public:
         send_uint8(static_cast<uint8_t>(MsgType::PICK_ITEM));
     }
 
+    void send_use_item(uint8_t inv_slot) {
+        send_uint8(static_cast<uint8_t>(MsgType::USE_ITEM));
+        send_uint8(inv_slot);
+    }
+
+    void send_meditate() {
+        send_uint8(static_cast<uint8_t>(MsgType::MEDITATE));
+    }
+
+    void send_resurrect() {
+        send_uint8(static_cast<uint8_t>(MsgType::RESURRECT));
+    }
+
     void send_npc_interact(uint16_t npc_id) {
         send_uint8(static_cast<uint8_t>(MsgType::NPC_INTERACT));
         send_uint16(npc_id);

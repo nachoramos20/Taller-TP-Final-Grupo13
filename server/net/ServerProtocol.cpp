@@ -5,6 +5,7 @@
 #include <vector>
 #include <stdexcept>
 #include "../../common/protocol/protocol.h"
+#include <iostream>
 
 ServerProtocol::ServerProtocol(Socket&& socket) : socket(std::move(socket)) {}
 
@@ -91,7 +92,7 @@ void ServerProtocol::send_mapa(const MapaDTO& mapa) {
     if (mapa.width == 0 && mapa.height == 0 && mapa.tiles.empty()) return;
     send_uint16(mapa.width);
     send_uint16(mapa.height);
-    send_uint16((uint16_t)mapa.tiles.size());
+    send_uint32((uint32_t)mapa.tiles.size());
     for (const TileDTO& t : mapa.tiles) {
         send_uint16(t.floor_id);
         send_uint16(t.object_id);
