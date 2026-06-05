@@ -6,188 +6,174 @@
 #include <stdexcept>
 #include "../../common/protocol/protocol.h"
 
-ServerProtocol::ServerProtocol(Socket&& socket)
-    : socket(std::move(socket)) {}
-
-#define CODIGO_COMANDO_LOGIN 0x01
-#define CODIGO_COMANDO_MOVERSE 0x03
-
+ServerProtocol::ServerProtocol(Socket&& socket) : socket(std::move(socket)) {}
 
 std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_id) {
+    uint8_t code;
+    int n = socket.recvall(&code, 1);
+    if (n == 0) return nullptr;
 
-
-    
-    uint8_t codigo_inicio;
-    int bytes_recibidos = this->socket.recvall(&codigo_inicio, sizeof(codigo_inicio));
-    if (bytes_recibidos == 0) {
-        return nullptr;
+    switch (static_cast<MsgType>(code)) {
+        case MsgType::MOVE:         return receive_move_command(client_id);
+        case MsgType::ATTACK:       return receive_attack(client_id);
+        case MsgType::EQUIP_ITEM:   return receive_equip(client_id);
+        case MsgType::UNEQUIP_ITEM: return receive_unequip(client_id);
+        case MsgType::DROP_ITEM:    return receive_drop(client_id);
+        case MsgType::PICK_ITEM:    return receive_pick(client_id);
+        case MsgType::USE_ITEM:     return receive_use(client_id);
+        case MsgType::MEDITATE:     return receive_meditate(client_id);
+        case MsgType::RESURRECT:    return receive_resurrect(client_id);
+        case MsgType::LOGOUT:       return receive_logout(client_id);
+        default: return nullptr;
     }
+}
 
-    switch (static_cast<MsgType>(codigo_inicio)) {
-        case MsgType::MOVE:
-            return this->receive_move_command(client_id);
-        default:
-            return nullptr;
-    }
+std::shared_ptr<MoveCommand> ServerProtocol::receive_move_command(uint16_t client_id) {
+    uint16_t xn, yn;
+    socket.recvall(&xn, sizeof(xn));
+    socket.recvall(&yn, sizeof(yn));
+    return std::make_shared<MoveCommand>(client_id, ntohs(xn), ntohs(yn));
+}
 
-    //TODO Implementar un MAP en vez de un switch case
+std::shared_ptr<AttackCommand> ServerProtocol::receive_attack(uint16_t client_id) {
+    uint16_t tn; socket.recvall(&tn, sizeof(tn));
+    return std::make_shared<AttackCommand>(client_id, ntohs(tn));
+}
 
+std::shared_ptr<EquipCommand> ServerProtocol::receive_equip(uint16_t client_id) {
+    uint8_t s = recv_uint8();
+    return std::make_shared<EquipCommand>(client_id, s);
+}
+
+std::shared_ptr<UnequipCommand> ServerProtocol::receive_unequip(uint16_t client_id) {
+    uint8_t s = recv_uint8();
+    return std::make_shared<UnequipCommand>(client_id, static_cast<EquipSlot>(s));
+}
+
+std::shared_ptr<DropCommand> ServerProtocol::receive_drop(uint16_t client_id) {
+    uint8_t s = recv_uint8();
+    return std::make_shared<DropCommand>(client_id, s);
+}
+
+std::shared_ptr<PickCommand> ServerProtocol::receive_pick(uint16_t client_id) {
+    return std::make_shared<PickCommand>(client_id);
+}
+
+std::shared_ptr<UseItemCommand> ServerProtocol::receive_use(uint16_t client_id) {
+    uint8_t s = recv_uint8();
+    return std::make_shared<UseItemCommand>(client_id, s);
+}
+
+std::shared_ptr<MeditateCommand> ServerProtocol::receive_meditate(uint16_t client_id) {
+    return std::make_shared<MeditateCommand>(client_id);
+}
+
+std::shared_ptr<ResurrectCommand> ServerProtocol::receive_resurrect(uint16_t client_id) {
+    return std::make_shared<ResurrectCommand>(client_id);
+}
+
+std::shared_ptr<LogoutCommand> ServerProtocol::receive_logout(uint16_t client_id) {
+    return std::make_shared<LogoutCommand>(client_id);
 }
 
 void ServerProtocol::send_login_ok(uint16_t entity_id) {
-    send_uint8(static_cast<uint8_t>(MsgType::LOGIN_OK));
+    send_uint8((uint8_t)MsgType::LOGIN_OK);
     send_uint16(entity_id);
 }
 
 void ServerProtocol::send_login_error(const std::string& msg) {
-    send_uint8(static_cast<uint8_t>(MsgType::LOGIN_ERROR));
+    send_uint8((uint8_t)MsgType::LOGIN_ERROR);
     send_str8(msg);
 }
 
 void ServerProtocol::send_mapa(const MapaDTO& mapa) {
-    send_uint8(static_cast<uint8_t>(MsgType::MAPA));
-
-    if (mapa.width == 0 && mapa.height == 0 && mapa.tiles.empty()) {
-        return;
-    }
-
+    send_uint8((uint8_t)MsgType::MAPA);
+    if (mapa.width == 0 && mapa.height == 0 && mapa.tiles.empty()) return;
     send_uint16(mapa.width);
     send_uint16(mapa.height);
-    send_uint16(static_cast<uint16_t>(mapa.tiles.size()));
-    for (const TileDTO& tile : mapa.tiles) {
-        send_uint16(tile.floor_id);
-        send_uint16(tile.object_id);
-        send_uint16(tile.object_superior_id);
+    send_uint16((uint16_t)mapa.tiles.size());
+    for (const TileDTO& t : mapa.tiles) {
+        send_uint16(t.floor_id);
+        send_uint16(t.object_id);
+        send_uint16(t.object_superior_id);
     }
-}
-
-
-std::shared_ptr<MoveCommand> ServerProtocol::receive_move_command(uint16_t client_id) {
-    uint16_t pos_x_network;
-    uint16_t pos_y_network;
-    socket.recvall(&pos_x_network, sizeof(pos_x_network));
-    socket.recvall(&pos_y_network, sizeof(pos_y_network));
-    uint16_t pos_x = ntohs(pos_x_network);
-    uint16_t pos_y = ntohs(pos_y_network);
-
-    return std::make_shared<MoveCommand>(client_id, pos_x, pos_y);
 }
 
 void ServerProtocol::send_snapshot(const SnapshotDTO& snap) {
-        send_uint8(static_cast<uint8_t>(MsgType::SNAPSHOT));
-        send_uint32(snap.tick);
-        send_uint16(snap.self_entity_id);
-        send_uint16(snap.hp);
-        send_uint16(snap.max_hp);
-        send_uint16(snap.mp);
-        send_uint16(snap.max_mp);
-        send_uint32(snap.exp);
-        send_uint8(snap.level);
-        send_uint32(snap.gold);
-        send_uint8(snap.is_ghost);
-        send_uint8(snap.meditating);
+    send_uint8((uint8_t)MsgType::SNAPSHOT);
+    send_uint32(snap.tick);
+    send_uint16(snap.self_entity_id);
+    send_uint16(snap.hp); send_uint16(snap.max_hp);
+    send_uint16(snap.mp); send_uint16(snap.max_mp);
+    send_uint32(snap.exp); send_uint8(snap.level); send_uint32(snap.gold);
+    send_uint8(snap.is_ghost); send_uint8(snap.meditating);
 
-        send_uint8(static_cast<uint8_t>(SnapshotDTO::INVENTORY_SIZE));
-        for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++)
-            send_uint8(snap.inventory[i]);
-        send_uint8(snap.equipped_wpn);
-        send_uint8(snap.equipped_arm);
-        send_uint8(snap.equipped_helm);
-        send_uint8(snap.equipped_shld);
+    send_uint8((uint8_t)SnapshotDTO::INVENTORY_SIZE);
+    for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++) send_uint8(snap.inventory[i]);
+    send_uint8(snap.equipped_wpn);
+    send_uint8(snap.equipped_arm);
+    send_uint8(snap.equipped_helm);
+    send_uint8(snap.equipped_shld);
 
-        if (snap.entities) {
-            const std::vector<EntityDTO>& entities = *snap.entities;
-            send_uint8(static_cast<uint8_t>(entities.size()));
-            for (std::vector<EntityDTO>::const_iterator it = entities.begin();
-                 it != entities.end();
-                 ++it) {
-                const EntityDTO& e = *it;
-                send_uint16(e.entity_id);
-                send_uint8(e.entity_type);
-                send_str8(e.username);
-                send_uint16(e.pos_x);
-                send_uint16(e.pos_y);
-                send_uint8(e.direction);
-                send_uint8(e.sprite_id);
-                send_uint8(e.is_ghost);
-                send_uint8(e.hp_pct);
-            }
-        } else {
-            send_uint8(0);
+    if (snap.entities) {
+        send_uint8((uint8_t)snap.entities->size());
+        for (const auto& e : *snap.entities) {
+            send_uint16(e.entity_id);
+            send_uint8(e.entity_type);
+            send_str8(e.username);
+            send_uint16(e.pos_x); send_uint16(e.pos_y);
+            send_uint8(e.direction); send_uint8(e.sprite_id);
+            send_uint8(e.is_ghost); send_uint8(e.hp_pct);
         }
+    } else send_uint8(0);
 
-        if (snap.messages) {
-            const std::vector<ChatMessageDTO>& messages = *snap.messages;
-            send_uint8(static_cast<uint8_t>(messages.size()));
-            for (std::vector<ChatMessageDTO>::const_iterator it = messages.begin();
-                 it != messages.end();
-                 ++it) {
-                const ChatMessageDTO& m = *it;
-                send_uint8(m.msg_type);
-                send_str8(m.text);
-            }
-        } else {
-            send_uint8(0);
+    if (snap.messages) {
+        send_uint8((uint8_t)snap.messages->size());
+        for (const auto& m : *snap.messages) {
+            send_uint8(m.msg_type);
+            send_str8(m.text);
         }
-    }
-
-void ServerProtocol::send_uint8(uint8_t value) {
-    socket.sendall(&value, sizeof(value));
-}
-
-void ServerProtocol::send_uint16(uint16_t value) {
-    uint16_t net_value = htons(value);
-    socket.sendall(&net_value, sizeof(net_value));
-}
-
-void ServerProtocol::send_uint32(uint32_t value) {
-    uint32_t net_value = htonl(value);
-    socket.sendall(&net_value, sizeof(net_value));
-}
-
-void ServerProtocol::send_str8(const std::string& s) {
-    uint8_t len = static_cast<uint8_t>(s.size());
-    send_uint8(len);
-    socket.sendall(s.data(), len);
-}
-
-void ServerProtocol::shutdown(int how) {
-    this->socket.shutdown(how);
+    } else send_uint8(0);
 }
 
 MsgType ServerProtocol::receive_handshake() {
-    uint8_t handshake_code;
-    int bytes_recibidos = this->socket.recvall(&handshake_code, sizeof(handshake_code));
-    if (bytes_recibidos == 0) {
-        throw std::runtime_error("Handshake failed: connection closed by peer");
-    }
-
-    switch (static_cast<MsgType>(handshake_code)) {
-        case MsgType::LOGIN:
-            return MsgType::LOGIN;
-        case MsgType::REGISTER:
-            return MsgType::REGISTER;
-        default:
-            throw std::runtime_error("Handshake failed: invalid handshake code");
-    }
+    uint8_t code;
+    int n = socket.recvall(&code, 1);
+    if (n == 0) throw std::runtime_error("Handshake: peer closed");
+    auto m = static_cast<MsgType>(code);
+    if (m != MsgType::LOGIN && m != MsgType::REGISTER)
+        throw std::runtime_error("Handshake: invalid opcode");
+    return m;
 }
+
 void ServerProtocol::handshake_login(std::string& username) {
-
-
-    uint8_t username_len;
-    socket.recvall(&username_len, sizeof(username_len));
-    std::vector<char> username_buf(username_len);
-    socket.recvall(username_buf.data(), username_len);
-    username.assign(username_buf.data(), username_len);
+    uint8_t len; socket.recvall(&len, 1);
+    std::vector<char> buf(len);
+    socket.recvall(buf.data(), len);
+    username.assign(buf.data(), len);
 }
 
 void ServerProtocol::handshake_register(std::string& username, uint8_t& race, uint8_t& cls) {
-    uint8_t username_len;
-    socket.recvall(&username_len, sizeof(username_len));
-    std::vector<char> username_buf(username_len);
-    socket.recvall(username_buf.data(), username_len);
-    username.assign(username_buf.data(), username_len);
-
-    socket.recvall(&race, sizeof(race));
-    socket.recvall(&cls, sizeof(cls));
+    handshake_login(username);
+    socket.recvall(&race, 1);
+    socket.recvall(&cls, 1);
 }
+
+uint8_t  ServerProtocol::recv_uint8()  { uint8_t v; socket.recvall(&v,1); return v; }
+uint16_t ServerProtocol::recv_uint16() { uint16_t v; socket.recvall(&v,2); return ntohs(v); }
+std::string ServerProtocol::recv_str8() {
+    uint8_t len = recv_uint8();
+    std::vector<char> buf(len);
+    socket.recvall(buf.data(), len);
+    return std::string(buf.data(), len);
+}
+
+void ServerProtocol::send_uint8(uint8_t v)  { socket.sendall(&v, 1); }
+void ServerProtocol::send_uint16(uint16_t v){ uint16_t n=htons(v); socket.sendall(&n,2); }
+void ServerProtocol::send_uint32(uint32_t v){ uint32_t n=htonl(v); socket.sendall(&n,4); }
+void ServerProtocol::send_str8(const std::string& s){
+    send_uint8((uint8_t)s.size());
+    socket.sendall(s.data(), s.size());
+}
+
+void ServerProtocol::shutdown(int how) { socket.shutdown(how); }
