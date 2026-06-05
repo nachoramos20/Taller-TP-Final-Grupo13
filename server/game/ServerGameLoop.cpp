@@ -1,9 +1,7 @@
 #include "ServerGameLoop.h"
-
 #include "PlayerData.h"
 
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 ServerGameLoop::ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_queue,
@@ -11,42 +9,54 @@ ServerGameLoop::ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_qu
     : command_queue(command_queue),
       queue_monitor(queue_monitor),
       save_queue(save_queue),
-      tick(0) {}
+      world(100, 100), tick(0) {}
 
 void ServerGameLoop::run() {
     using clock = std::chrono::steady_clock;
-    std::chrono::time_point<clock> next_tick = clock::now();
+    auto next_tick = clock::now();
 
     while (should_keep_running()) {
-        game.revisar_colisiones();
-        std::shared_ptr<ServerCommand> command;
-        while (command_queue.try_pop(command)) {
-            command->execute(game);
-        }
-
+        process_commands();
+        update();
         broadcast_snapshots();
 
         tick++;
-
         next_tick += std::chrono::milliseconds(SERVER_TICK_MS);
         std::this_thread::sleep_until(next_tick);
     }
 }
 
-void ServerGameLoop::stop() {
-    Thread::stop();
+void ServerGameLoop::stop() { Thread::stop(); }
+
+void ServerGameLoop::process_commands() {
+    std::shared_ptr<ServerCommand> command;
+    while (command_queue.try_pop(command)) {
+        command->execute(world);
+    }
 }
 
+void ServerGameLoop::update() {
+    // tick de cooldowns de ataque
+    for (auto& [id, player] : world.get_players_mutable()) {
+        if (player.attack_cooldown > 0)
+            player.attack_cooldown--;
+    }
+
+    // tick de meditación — regenerar MP por tick
+    for (auto& [id, player] : world.get_players_mutable()) {
+        if (player.meditating && !player.is_ghost) {
+            player.mp = std::min(player.max_mp,
+                static_cast<uint16_t>(player.mp + (player.intelligence / 10 + 1)));
+        }
+    }
+}
 
 void ServerGameLoop::broadcast_snapshots() {
-    std::shared_ptr<std::vector<EntityDTO>> entities = game.get_entities();
-    const std::unordered_map<uint16_t, PlayerData>& players = game.get_players();
+    auto entities = world.get_entities();
+    const auto& players = world.get_players();
 
-    for (std::unordered_map<uint16_t, PlayerData>::const_iterator it = players.begin();
-         it != players.end();
-         ++it) {
-        const uint16_t client_id = it->first;
-        SnapshotDTO snap = game.build_snapshot(client_id, tick, entities);
+    for (const auto& [client_id, player] : players) {
+        SnapshotDTO snap = world.build_snapshot(client_id, tick, entities);
         queue_monitor.send_to(client_id, snap);
     }
 }

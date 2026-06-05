@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 #include "../socket.h"
 #include "protocol.h"
 #include "dtos.h"
@@ -58,6 +59,19 @@ public:
         send_uint8(static_cast<uint8_t>(MsgType::PICK_ITEM));
     }
 
+    void send_use_item(uint8_t inv_slot) {
+        send_uint8(static_cast<uint8_t>(MsgType::USE_ITEM));
+        send_uint8(inv_slot);
+    }
+
+    void send_meditate() {
+        send_uint8(static_cast<uint8_t>(MsgType::MEDITATE));
+    }
+
+    void send_resurrect() {
+        send_uint8(static_cast<uint8_t>(MsgType::RESURRECT));
+    }
+
     void send_npc_interact(uint16_t npc_id) {
         send_uint8(static_cast<uint8_t>(MsgType::NPC_INTERACT));
         send_uint16(npc_id);
@@ -81,11 +95,19 @@ public:
         send_uint8(static_cast<uint8_t>(MsgType::MAPA));
         send_uint16(map.width);
         send_uint16(map.height);
+        send_uint32(static_cast<uint32_t>(map.tiles.size()));
+
+        std::vector<uint8_t> buf;
+        buf.reserve(map.tiles.size() * 6);
         for (const auto& tile : map.tiles) {
-            send_uint16(tile.floor_id);
-            send_uint16(tile.object_id);
-            send_uint16(tile.object_superior_id);
+            buf.push_back(tile.floor_id >> 8);
+            buf.push_back(tile.floor_id & 0xFF);
+            buf.push_back(tile.object_id >> 8);
+            buf.push_back(tile.object_id & 0xFF);
+            buf.push_back(tile.object_superior_id >> 8);
+            buf.push_back(tile.object_superior_id & 0xFF);
         }
+        _socket.sendall(buf.data(), buf.size());
     }
 
     void send_snapshot(const SnapshotDTO& snap) {

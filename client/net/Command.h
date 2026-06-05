@@ -11,6 +11,7 @@ struct Command {
     uint16_t    pos_y     = 0;
     uint16_t    target_id = 0;
     uint8_t     slot      = 0;
+    uint8_t     equip_slot = 0;
     std::string text;
     uint8_t     race      = 0;
     uint8_t     cls       = 0;
@@ -61,6 +62,13 @@ struct Command {
         return c;
     }
 
+    static Command unequip(EquipSlot slot) {
+        Command c;
+        c.type       = MsgType::UNEQUIP_ITEM;
+        c.equip_slot = static_cast<uint8_t>(slot);
+        return c;
+    }
+
     static Command drop(uint8_t slot) {
         Command c;
         c.type = MsgType::DROP_ITEM;
@@ -71,6 +79,32 @@ struct Command {
     static Command pick_item() {
         Command c;
         c.type = MsgType::PICK_ITEM;
+        return c;
+    }
+
+    static Command use_item(uint8_t slot) {
+        Command c;
+        c.type = MsgType::USE_ITEM;
+        c.slot = slot;
+        return c;
+    }
+
+    static Command meditate() {
+        Command c;
+        c.type = MsgType::MEDITATE;
+        return c;
+    }
+
+    static Command resurrect() {
+        Command c;
+        c.type = MsgType::RESURRECT;
+        return c;
+    }
+
+    static Command npc_interact(uint16_t npc_id) {
+        Command c;
+        c.type      = MsgType::NPC_INTERACT;
+        c.target_id = npc_id;
         return c;
     }
 

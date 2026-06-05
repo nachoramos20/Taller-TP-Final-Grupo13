@@ -24,6 +24,11 @@ private:
     void build_plaza(MapaDTO& mapa);
     void build_costa(MapaDTO& mapa);
     void build_objetos(MapaDTO& mapa);
+    void build_bosque(MapaDTO& mapa);
+    void build_ciudad(MapaDTO& mapa);
+    void build_pueblo(MapaDTO& mapa);
+    uint16_t arbol_bosque_random();
+    uint16_t flores_random();
 
     uint16_t pasto_random();
 

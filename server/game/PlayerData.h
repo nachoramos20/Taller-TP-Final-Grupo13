@@ -33,6 +33,30 @@ struct PlayerData {
                     std::min(source.size(), PlayerData::USERNAME_MAX_LENGTH));
     }
 
+    uint16_t hp          = 0;
+    uint16_t max_hp      = 0;
+    uint16_t mp          = 0;
+    uint16_t max_mp      = 0;
+    uint32_t exp         = 0;
+    uint8_t  level       = 1;
+    uint32_t gold        = 0;
+    bool     is_ghost    = false;
+    bool     meditating  = false;
+
+    uint16_t strength    = 18;
+    uint16_t agility     = 18;
+    uint16_t intelligence= 18;
+    uint16_t constitution= 18;
+
+    static constexpr int INVENTORY_SIZE = 16;
+    std::array<uint8_t, INVENTORY_SIZE> inventory{};
+
+    uint8_t equipped_weapon = 0;
+    uint8_t equipped_armor  = 0;
+    uint8_t equipped_helmet = 0;
+    uint8_t equipped_shield = 0;
+
+    uint16_t attack_cooldown = 0;
 };
 
 
