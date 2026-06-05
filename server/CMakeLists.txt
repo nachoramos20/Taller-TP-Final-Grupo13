@@ -13,6 +13,8 @@ target_sources(argentum_grupo13_server
     game/World.cpp
     game/QueueMonitor.cpp
     game/MapaBuilder.cpp
+    game/Items.cpp
+    game/Npc.cpp
 )
 
 target_include_directories(argentum_grupo13_server
