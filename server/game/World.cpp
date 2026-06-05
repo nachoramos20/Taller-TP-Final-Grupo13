@@ -59,6 +59,42 @@ const std::unordered_map<uint16_t, PlayerData>& World::get_players() const {
     return players_map;
 }
 
+std::unordered_map<uint16_t, PlayerData>& World::get_players_mutable() {
+    return players_map;
+}
+
+SnapshotDTO World::build_snapshot(uint16_t client_id,
+                                   uint32_t tick,
+                                   const std::shared_ptr<std::vector<EntityDTO>>& entities) const {
+    SnapshotDTO snap{};
+    snap.tick = tick;
+
+    if (const PlayerData* p = find_player(client_id)) {
+        snap.self_entity_id = p->entity_id;
+        snap.hp             = p->hp;
+        snap.max_hp         = p->max_hp;
+        snap.mp             = p->mp;
+        snap.max_mp         = p->max_mp;
+        snap.exp            = p->exp;
+        snap.level          = p->level;
+        snap.gold           = p->gold;
+        snap.is_ghost       = p->is_ghost ? 1 : 0;
+        snap.meditating     = p->meditating ? 1 : 0;
+
+        for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; ++i)
+            snap.inventory[i] = p->inventory[i];
+
+        snap.equipped_wpn  = p->equipped_weapon;
+        snap.equipped_arm  = p->equipped_armor;
+        snap.equipped_helm = p->equipped_helmet;
+        snap.equipped_shld = p->equipped_shield;
+    }
+
+    snap.entities = entities;
+    snap.messages = std::make_shared<std::vector<ChatMessageDTO>>();
+    return snap;
+}
+
 const PlayerData* World::find_player(uint16_t client_id) const {
     auto it = players_map.find(client_id);
     return it == players_map.end() ? nullptr : &it->second;
@@ -98,4 +134,19 @@ std::shared_ptr<std::vector<EntityDTO>> World::get_entities() const {
 PlayerData* World::get_player_mutable(uint16_t client_id) {
     auto it = players_map.find(client_id);
     return it == players_map.end() ? nullptr : &it->second;
+}
+
+void World::add_floor_item(uint8_t item_id, uint16_t x, uint16_t y) {
+    floor_items.push_back({0, item_id, x, y, 0});
+}
+
+uint8_t World::pick_floor_item(uint16_t x, uint16_t y) {
+    for (auto it = floor_items.begin(); it != floor_items.end(); ++it) {
+        if (it->pos_x == x && it->pos_y == y) {
+            uint8_t id = it->item_id;
+            floor_items.erase(it);
+            return id;
+        }
+    }
+    return 0;
 }
