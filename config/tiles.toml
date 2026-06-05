@@ -144,6 +144,7 @@ tile_size = 2
 #  Agua ------------------------------------------------
 [floor.44]
 path = "assets/tiles/floor/agua.png"
+tile_size = 2
 
 #  Arena -----------------------------------------------
 [floor.45]

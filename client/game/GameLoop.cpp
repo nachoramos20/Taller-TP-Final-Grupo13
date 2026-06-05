@@ -267,8 +267,8 @@ void GameLoop::render_obj_sup() {
             int sy = _camera.tile_to_screen_y(ty);
 
             SDL2pp::Rect dst(
-                sx - (obj_size - TILE_SIZE) / 2,
-                sy - obj_size + TILE_SIZE,
+                sx - (obj_size - TILE_SIZE) / 2 + entry.offset_x,
+                sy - obj_size + TILE_SIZE + entry.offset_y,
                 obj_size,
                 obj_size
             );

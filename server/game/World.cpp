@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <utility>
+#include <iostream>
 
 #include "../../common/protocol/protocol.h"
 
@@ -53,6 +54,7 @@ void World::move_player(uint16_t client_id, uint16_t new_x, uint16_t new_y) {
 
     player.pos_x = new_x;
     player.pos_y = new_y;
+    std::cout << "Player " << player.username << " se mueve a (" << new_x << "," << new_y << ")\n";
 }
 
 const std::unordered_map<uint16_t, PlayerData>& World::get_players() const {

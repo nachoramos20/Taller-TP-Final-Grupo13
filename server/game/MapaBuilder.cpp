@@ -134,7 +134,7 @@ void MapaBuilder::build_acantilados(MapaDTO& mapa) {
 
 void MapaBuilder::build_pasto(MapaDTO& mapa) {
     // Pasto principal (tile_size=2, anclas en posiciones pares)
-    for (int y = ZJ_Y1; y <= 98; y += 2)
+    for (int y = ZJ_Y1; y <= 96; y += 2)
         for (int x = ZJ_X1; x <= FRANJA_X1 - 1; x += 2)
             get_tile(mapa, x, y).floor_id = pasto_random();
 
@@ -174,13 +174,13 @@ void MapaBuilder::build_bosque(MapaDTO& mapa) {
 void MapaBuilder::build_caminos(MapaDTO& mapa) {
     // camino horizontal
     for (int y = CAM_H_Y1; y <= CAM_H_Y2; y++)
-        for (int x = ZJ_X1; x <= FRANJA_X1; x++)
+        for (int x = ZJ_X1; x <= FRANJA_X1 - 1; x++)
             get_tile(mapa, x, y).floor_id = F_TIERRA_BASE + (rand() % 5);
 
     // franjas camino horizontal
-    for (int x = ZJ_X1; x <= FRANJA_X1; x += 2)
+    for (int x = ZJ_X1; x <= FRANJA_X1 - 1; x += 2)
         get_tile(mapa, x, CAM_H_Y1 - 2).floor_id = F_FRANJA_SUP;
-    for (int x = ZJ_X1; x <= FRANJA_X1; x += 2)
+    for (int x = ZJ_X1; x <= FRANJA_X1 - 1; x += 2)
         get_tile(mapa, x, CAM_H_Y2 + 1).floor_id = F_FRANJA_INF;
 
     // camino vertical
@@ -206,26 +206,28 @@ void MapaBuilder::build_pueblo(MapaDTO& mapa) {
 }
 
 void MapaBuilder::build_costa(MapaDTO& mapa) {
-    // franja pasto→arena — zona jugable
-    for (int y = 2; y <= 99; y += 2)
+    // franja pasto→arena
+    for (int y = 1; y <= 99; y += 2)
         get_tile(mapa, FRANJA_X1, y).floor_id = F_ARENA_FRANJA;
 
     // arena pura
-    for (int y = 2; y <= 99; y++)
+    for (int y = 1; y <= 99; y++)
         for (int x = ARENA_X1; x <= OLAS_X2; x++)
             get_tile(mapa, x, y).floor_id = F_ARENA;
 
     // olas animadas
-    for (int y = 2; y <= 99; y += 2)
+    for (int y = 1; y <= 99; y++)
         for (int x = OLAS_X1; x <= OLAS_X2; x += 2)
             place_object_sup(mapa, x, y, O_COSTA);
 
     // agua
-    fill_rect(mapa, AGUA_X1, 2, AGUA_X2, 99, F_AGUA);
+    for (int y = 1; y <= 99; y++)
+        for (int x = AGUA_X1; x <= AGUA_X2; x++)
+            get_tile(mapa, x, y).floor_id = F_AGUA;
 
     // costa en borde norte (y=0..7) — negro, no hay costa
     // costa en borde sur (y=94..99)
-    for (int y = ZJ_Y2 + 1; y < MAP_H; y++) {
+    for (int y = ZJ_Y2 + 1; y <= MAP_H; y++) {
         get_tile(mapa, FRANJA_X1, y).floor_id = F_ARENA_FRANJA;
         for (int x = ARENA_X1; x <= OLAS_X2; x++)
             get_tile(mapa, x, y).floor_id = F_ARENA;

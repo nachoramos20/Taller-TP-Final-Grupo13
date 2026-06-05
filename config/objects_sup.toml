@@ -21,7 +21,9 @@ frames = [
 
 #  Costa animada -------------------------------------------------------------
 [object_sup.3]
-size_tiles = 1
+size_tiles = 2
+offset_x = 32
+offset_y = 64
 frames = [
     "assets/sprites/objects_sup/costa/frame_0.png",
     "assets/sprites/objects_sup/costa/frame_1.png",
@@ -33,12 +35,6 @@ frames = [
     "assets/sprites/objects_sup/costa/frame_7.png",
     "assets/sprites/objects_sup/costa/frame_8.png",
     "assets/sprites/objects_sup/costa/frame_9.png",
-    "assets/sprites/objects_sup/costa/frame_10.png",
-    "assets/sprites/objects_sup/costa/frame_11.png",
-    "assets/sprites/objects_sup/costa/frame_12.png",
-    "assets/sprites/objects_sup/costa/frame_13.png",
-    "assets/sprites/objects_sup/costa/frame_14.png",
-    "assets/sprites/objects_sup/costa/frame_15.png",
 ]
 
 #  Árboles bosque ---------------------------------------------------
