@@ -3,6 +3,7 @@
 
 #include "World.h"
 #include "PlayerData.h"
+#include "../../common/protocol/protocol.h"
 #include <string>
 
 class ServerCommand {

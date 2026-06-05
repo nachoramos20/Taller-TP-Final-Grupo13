@@ -17,10 +17,11 @@ int main(int argc, char* argv[]) {
 
         Queue<std::shared_ptr<ServerCommand>> command_queue;
         QueueMonitor queue_monitor;
-        PersistenceMonitor persistence_monitor;
+        Queue<PlayerData> save_queue;
+        PersistenceMonitor persistence_monitor(save_queue);
 
         Acceptor       acceptor(port, command_queue, queue_monitor, persistence_monitor);
-        ServerGameLoop game_loop(command_queue, queue_monitor);
+        ServerGameLoop game_loop(command_queue, queue_monitor, save_queue);
 
         std::cout << "Servidor escuchando en puerto " << port << "\n";
         std::cout << "Presioná 'q' + Enter para cerrar\n";
