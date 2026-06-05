@@ -210,19 +210,27 @@ void GameLoop::render_floor() {
     }
 
     // tiles grandes
-    for (int ty = first_y; ty <= last_y; ty++) {
-        for (int tx = first_x; tx <= last_x; tx++) {
+    for (int ty = 0; ty < map_h; ty++) {
+        int sy_raw = _camera.tile_to_screen_y(ty);
+        if (sy_raw > screen_h + 384) continue;
+        if (sy_raw < -(384 + 384))   continue;
+
+        for (int tx = 0; tx < map_w; tx++) {
             uint16_t floor_id = 0;
             if (_map_loaded)
                 floor_id = _map.tiles[ty * _map.width + tx].floor_id;
 
             const TileEntry& entry = _tile_config.get(floor_id);
-            if (!entry.is_large()) continue;  // solo large en pasada 2
+            if (!entry.is_large()) continue;
 
             int sx = _camera.tile_to_screen_x(tx);
-            int sy = _camera.tile_to_screen_y(ty);
+
+            // Culling de columna con margen para offsets
+            if (sx > screen_w + 384) continue;
+            if (sx < -(384 + 384))   continue;
+
             int size_px = entry.tile_size * TILE_SIZE;
-            SDL2pp::Rect dst(sx, sy, size_px, size_px);
+            SDL2pp::Rect dst(sx + entry.offset_x, sy_raw + entry.offset_y, size_px, size_px);
             _renderer.Copy(_assets.get(entry.path), SDL2pp::NullOpt, dst);
         }
     }

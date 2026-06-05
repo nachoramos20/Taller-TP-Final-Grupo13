@@ -20,6 +20,8 @@ TileConfig::TileConfig(const std::string& toml_path, const std::string& section)
         entry.src_w     = (*entry_tbl)["src_w"].value_or<int>(0);
         entry.src_h     = (*entry_tbl)["src_h"].value_or<int>(0);
         entry.tile_size = (*entry_tbl)["tile_size"].value_or<int>(1);
+        entry.offset_x  = (*entry_tbl)["offset_x"].value_or<int>(0);
+        entry.offset_y  = (*entry_tbl)["offset_y"].value_or<int>(0);
         _entries[id] = entry;
     }
 }

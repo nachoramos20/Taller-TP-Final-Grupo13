@@ -158,27 +158,38 @@ tile_size = 2
 [floor.50]
 path = "assets/tiles/floor/acantilado_norte_1.png"
 tile_size = 6
+offset_y = -42
 
 [floor.51]
 path = "assets/tiles/floor/acantilado_sur_1.png"
 tile_size = 6
+offset_y = 0
 
 [floor.52]
 path = "assets/tiles/floor/acantilado_oeste_1.png"
 tile_size = 6
+offset_x = -384
+offset_y = -64
 
 [floor.53]
 path = "assets/tiles/floor/acantilado_esquina_nw.png"
 tile_size = 6
+offset_x = -384
+offset_y = -108
 
 [floor.54]
 path = "assets/tiles/floor/acantilado_esquina_ne.png"
 tile_size = 6
+offset_y = -42         
 
 [floor.55]
 path = "assets/tiles/floor/acantilado_esquina_sw.png"
 tile_size = 6
+offset_x = -384
+offset_y = 64
 
 [floor.56]
 path = "assets/tiles/floor/acantilado_esquina_se.png"
 tile_size = 6
+offset_x = 0
+offset_y = 0

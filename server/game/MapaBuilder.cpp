@@ -114,8 +114,8 @@ uint16_t MapaBuilder::flores_random() {
 
 void MapaBuilder::build_acantilados(MapaDTO& mapa) {
     // esquinas oeste
-    get_tile(mapa, 0,  0 ).floor_id = F_AC_NW;
-    get_tile(mapa, 0,  99).floor_id = F_AC_SW;
+    get_tile(mapa, 0,  1 ).floor_id = F_AC_NW;
+    get_tile(mapa, 0,  98).floor_id = F_AC_SW;
 
     // borde norte y sur — de 6 a 70 + esquina en 76
     for (int x = 0; x <= 76; x += 6) {
@@ -128,14 +128,30 @@ void MapaBuilder::build_acantilados(MapaDTO& mapa) {
     get_tile(mapa, 76, 99).floor_id = F_AC_SE;
 
     // borde oeste
-    for (int y = 6; y < 94; y += 6)
+    for (int y = 6; y < 99; y += 6)
         get_tile(mapa, 0, y).floor_id = F_AC_OESTE;
 }
 
 void MapaBuilder::build_pasto(MapaDTO& mapa) {
+    // Pasto principal (tile_size=2, anclas en posiciones pares)
     for (int y = ZJ_Y1; y <= 98; y += 2)
         for (int x = ZJ_X1; x <= FRANJA_X1 - 1; x += 2)
             get_tile(mapa, x, y).floor_id = pasto_random();
+
+    for (int y = ZJ_Y1; y <= 98; y += 2)
+        get_tile(mapa, 53, y).floor_id = pasto_random();
+
+    for (int y = 1; y <= ZJ_Y1 - 1; y++)
+        for (int x = 0; x <= FRANJA_X1 - 1; x++)
+            get_tile(mapa, x, y).floor_id = F_PASTO_BASE;
+
+    for (int y = ZJ_Y2 + 1; y <= 98; y++)
+        for (int x = 0; x <= FRANJA_X1 - 1; x++)
+            get_tile(mapa, x, y).floor_id = F_PASTO_BASE;
+
+    for (int y = 1; y <= ZJ_Y2; y++)
+        for (int x = 0; x <= ZJ_X1 - 1; x++)
+            get_tile(mapa, x, y).floor_id = F_PASTO_BASE;
 }
 
 void MapaBuilder::build_bosque(MapaDTO& mapa) {
@@ -184,8 +200,8 @@ void MapaBuilder::build_ciudad(MapaDTO& mapa) {
 }
 
 void MapaBuilder::build_pueblo(MapaDTO& mapa) {
-    for (int y = PUE_Y1; y <= PUE_Y2; y++)
-        for (int x = PUE_X1; x <= PUE_X2; x++)
+    for (int y = PUE_Y1; y <= PUE_Y2 + 1; y++)
+        for (int x = PUE_X1; x <= PUE_X2 + 1; x++)
             get_tile(mapa, x, y).floor_id = F_TIERRA_BASE + (rand() % 10);
 }
 
@@ -256,7 +272,7 @@ MapaDTO MapaBuilder::build_mapa_inicial() {
     build_ciudad(mapa);
     build_pueblo(mapa);
     build_costa(mapa);
-    build_acantilados(mapa);
+    build_acantilados(mapa); 
     build_objetos(mapa);
 
     return mapa;

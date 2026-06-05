@@ -12,6 +12,8 @@ struct TileEntry {
     int src_w    = 0;  // 0 = usar imagen completa
     int src_h    = 0;
     int tile_size = 1; // cuántos tiles ocupa (1 = normal, 6 = acantilado)
+    int offset_x = 0;
+    int offset_y = 0;
 
     bool has_src_rect() const { return src_w > 0; }
     bool is_large()     const { return tile_size > 1; }
