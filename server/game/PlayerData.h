@@ -1,11 +1,16 @@
 #ifndef PLAYERDATA_H
 #define PLAYERDATA_H
 
-#include <string>
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <string>
 
 struct PlayerData {
-    std::string username;
+    static constexpr std::size_t USERNAME_MAX_LENGTH = 32;
+
+    char     username[USERNAME_MAX_LENGTH + 1];
     uint16_t entity_id;
     uint8_t  race;
     uint8_t  cls;
@@ -20,7 +25,15 @@ struct PlayerData {
     uint8_t  level;
     uint32_t gold;
     bool     is_ghost;
+    static void copy_username(char (&destination)[PlayerData::USERNAME_MAX_LENGTH + 1],
+                              const std::string& source) {
+        std::memset(destination, 0, sizeof(destination));
+        std::memcpy(destination,
+                    source.data(),
+                    std::min(source.size(), PlayerData::USERNAME_MAX_LENGTH));
+    }
 
 };
+
 
 #endif // PLAYERDATA_H

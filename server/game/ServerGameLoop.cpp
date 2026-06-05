@@ -7,9 +7,10 @@
 #include <vector>
 
 ServerGameLoop::ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_queue,
-                               QueueMonitor& queue_monitor)
+                               QueueMonitor& queue_monitor, Queue<PlayerData>& save_queue)
     : command_queue(command_queue),
       queue_monitor(queue_monitor),
+      save_queue(save_queue),
       tick(0) {}
 
 void ServerGameLoop::run() {

@@ -15,7 +15,7 @@ static constexpr int SERVER_TICK_MS = 1000 / SERVER_TICK_RATE_HZ;
 class ServerGameLoop : public Thread {
 public:
     ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_queue,
-                   QueueMonitor& queue_monitor);
+                   QueueMonitor& queue_monitor, Queue<PlayerData>& save_queue);
 
     void run() override;
     void stop() override;
@@ -25,6 +25,7 @@ private:
 
     Queue<std::shared_ptr<ServerCommand>>& command_queue;
     QueueMonitor&         queue_monitor;
+    Queue<PlayerData>&    save_queue;
     Game                  game;
     uint32_t              tick;
 };

@@ -14,6 +14,6 @@ void LoginCommand::execute(Game &game) {
     game.add_player(player_data);
 }
 
-const std::string& LoginCommand::get_username() const {
+const char* LoginCommand::get_username() const {
     return player_data.username;
 }
