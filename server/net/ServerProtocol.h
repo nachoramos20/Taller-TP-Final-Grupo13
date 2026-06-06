@@ -32,16 +32,18 @@ public:
     void shutdown(int how);
 
 private:
-    std::shared_ptr<MoveCommand>      receive_move_command(uint16_t client_id);
-    std::shared_ptr<AttackCommand>    receive_attack(uint16_t client_id);
-    std::shared_ptr<EquipCommand>     receive_equip(uint16_t client_id);
-    std::shared_ptr<UnequipCommand>   receive_unequip(uint16_t client_id);
-    std::shared_ptr<DropCommand>      receive_drop(uint16_t client_id);
-    std::shared_ptr<PickCommand>      receive_pick(uint16_t client_id);
-    std::shared_ptr<UseItemCommand>   receive_use(uint16_t client_id);
-    std::shared_ptr<MeditateCommand>  receive_meditate(uint16_t client_id);
-    std::shared_ptr<ResurrectCommand> receive_resurrect(uint16_t client_id);
-    std::shared_ptr<LogoutCommand>    receive_logout(uint16_t client_id);
+    std::shared_ptr<MoveCommand>        receive_move_command(uint16_t client_id);
+    std::shared_ptr<AttackCommand>      receive_attack(uint16_t client_id);
+    std::shared_ptr<EquipCommand>       receive_equip(uint16_t client_id);
+    std::shared_ptr<UnequipCommand>     receive_unequip(uint16_t client_id);
+    std::shared_ptr<DropCommand>        receive_drop(uint16_t client_id);
+    std::shared_ptr<PickCommand>        receive_pick(uint16_t client_id);
+    std::shared_ptr<UseItemCommand>     receive_use(uint16_t client_id);
+    std::shared_ptr<MeditateCommand>    receive_meditate(uint16_t client_id);
+    std::shared_ptr<ResurrectCommand>   receive_resurrect(uint16_t client_id);
+    std::shared_ptr<LogoutCommand>      receive_logout(uint16_t client_id);
+    std::shared_ptr<ChatCommand>        receive_chat_command(uint16_t client_id);
+    std::shared_ptr<NpcInteractCommand> receive_npc_interact(uint16_t client_id);
 
     uint8_t  recv_uint8();
     uint16_t recv_uint16();
