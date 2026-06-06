@@ -7,7 +7,15 @@ target_sources(argentum_grupo13_server
     net/ServerProtocol.cpp
     net/ServerSenderThread.cpp
     game/ServerGameLoop.cpp
-    game/Commands.cpp
+    game/commands/MovementCommands.cpp
+    game/commands/SessionCommands.cpp
+    game/commands/CombatCommands.cpp
+    game/commands/InventoryCommands.cpp
+    game/commands/MagicCommands.cpp
+    game/commands/NpcCommands.cpp
+    game/commands/ChatCommands.cpp
+    game/commands/ChatCommand_Bank.cpp
+    game/commands/ChatCommand_Clan.cpp
     game/PersistenceMonitor.cpp
     game/world/World.cpp
     game/world/WorldCollision.cpp
