@@ -44,6 +44,8 @@ void ServerReceiverThread::run() {
             if (!cmd) { client_alive = false; break; }
             command_queue.push(cmd);
         }
+        std::shared_ptr<LogoutCommand> logout = std::make_shared<LogoutCommand>(this->client_id);
+        command_queue.push(logout);
     } catch (const ClosedQueue&) {
     } catch (const std::exception& e) {
         std::cerr << "Cliente " << client_id << " desconectado: " << e.what() << "\n";

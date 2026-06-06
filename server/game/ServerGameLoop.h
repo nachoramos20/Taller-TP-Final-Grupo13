@@ -25,6 +25,7 @@ private:
     void process_commands();
     void update();
     void broadcast_snapshots();
+    void save_players();
 
     Queue<std::shared_ptr<ServerCommand>>& command_queue;
     QueueMonitor&         queue_monitor;

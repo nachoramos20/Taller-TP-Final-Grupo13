@@ -14,6 +14,7 @@ target_sources(argentum_grupo13_server
     game/MapaBuilder.cpp
     game/Items.cpp
     game/Npc.cpp
+    game/PersistenceThread.cpp
 )
 
 target_include_directories(argentum_grupo13_server

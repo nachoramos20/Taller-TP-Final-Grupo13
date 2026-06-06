@@ -21,6 +21,9 @@ void ServerGameLoop::run() {
         broadcast_snapshots();
 
         tick++;
+        if (tick % 60 == 0) {
+            save_players();
+        }
         next_tick += std::chrono::milliseconds(SERVER_TICK_MS);
         std::this_thread::sleep_until(next_tick);
     }
@@ -58,5 +61,12 @@ void ServerGameLoop::broadcast_snapshots() {
     for (const auto& [client_id, player] : players) {
         SnapshotDTO snap = world.build_snapshot(client_id, tick, entities);
         queue_monitor.send_to(client_id, snap);
+    }
+}
+
+void ServerGameLoop::save_players() {
+    const auto& players = world.get_players();
+    for (const auto& [client_id, player] : players) {
+        save_queue.push(player);
     }
 }

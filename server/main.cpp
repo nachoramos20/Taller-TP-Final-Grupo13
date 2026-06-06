@@ -5,6 +5,7 @@
 #include "game/QueueMonitor.h"
 #include "game/PersistenceMonitor.h"
 #include "../common/queue.h"
+#include "game/PersistenceThread.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -22,10 +23,12 @@ int main(int argc, char* argv[]) {
 
         Acceptor       acceptor(port, command_queue, queue_monitor, persistence_monitor);
         ServerGameLoop game_loop(command_queue, queue_monitor, save_queue);
+        PersistenceThread persistence_thread(save_queue, persistence_monitor);
 
         std::cout << "Servidor escuchando en puerto " << port << "\n";
         std::cout << "Presioná 'q' + Enter para cerrar\n";
-
+        
+        persistence_thread.start();
         game_loop.start();
         acceptor.start();
 
@@ -33,6 +36,8 @@ int main(int argc, char* argv[]) {
         while (std::cin >> c && c != 'q') {}
 
         std::cout << "Cerrando servidor...\n";
+        persistence_thread.stop();
+        persistence_thread.join();
         acceptor.stop();
         acceptor.join();
         game_loop.stop();
