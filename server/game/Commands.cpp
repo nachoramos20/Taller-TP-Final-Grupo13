@@ -144,6 +144,9 @@ void MoveCommand::execute(World& world) {
 LoginCommand::LoginCommand(PlayerData p) : player_data(std::move(p)) {}
 
 void LoginCommand::execute(World& world) {
+    // Hardcode de arma para testing: damos espada en slot 0 y la equipamos.
+    player_data.inventory[0]    = static_cast<uint8_t>(ItemId::SWORD);
+    player_data.equipped_weapon = static_cast<uint8_t>(ItemId::SWORD);
     world.add_player(player_data);
 }
 
@@ -168,7 +171,16 @@ void AttackCommand::execute(World& world) {
     PlayerData* attacker = world.get_player_mutable(client_id);
     PlayerData* target   = world.get_player_mutable(target_id);
 
-    if (!attacker || !target) return;
+    if (!attacker) return;
+
+    // Si el target no es un jugador, probamos NPC y delegamos.
+    if (!target) {
+        if (world.find_npc(target_id)) {
+            AttackNpcCommand npc_cmd(client_id, target_id);
+            npc_cmd.execute(world);
+        }
+        return;
+    }
     if (attacker->is_ghost || target->is_ghost) return;
     if (attacker->attack_cooldown > 0) return;
 

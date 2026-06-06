@@ -9,7 +9,15 @@ target_sources(argentum_grupo13_server
     game/ServerGameLoop.cpp
     game/Commands.cpp
     game/PersistenceMonitor.cpp
-    game/World.cpp
+    game/world/World.cpp
+    game/world/WorldCollision.cpp
+    game/world/WorldChat.cpp
+    game/world/WorldPlayers.cpp
+    game/world/WorldItems.cpp
+    game/world/WorldClans.cpp
+    game/world/WorldBank.cpp
+    game/world/WorldNpcs.cpp
+    game/world/WorldSnapshot.cpp
     game/QueueMonitor.cpp
     game/MapaBuilder.cpp
     game/Items.cpp
