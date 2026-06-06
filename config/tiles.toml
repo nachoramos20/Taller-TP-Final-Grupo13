@@ -33,7 +33,7 @@ tile_size = 2
 path = "assets/tiles/floor/pasto_7.png"
 tile_size = 2
 
-#  Tierra ---------------------------------
+#  Tierra (pueblo) -------------------------
 [floor.10]
 path = "assets/tiles/floor/tierra_1.png"
 
@@ -46,99 +46,21 @@ path = "assets/tiles/floor/tierra_3.png"
 [floor.13]
 path = "assets/tiles/floor/tierra_4.png"
 
-[floor.14]
-path = "assets/tiles/floor/tierra_5.png"
-
-[floor.15]
-path = "assets/tiles/floor/tierra_6.png"
-
-[floor.16]
-path = "assets/tiles/floor/tierra_7.png"
-
-[floor.17]
-path = "assets/tiles/floor/tierra_8.png"
-
-[floor.18]
-path = "assets/tiles/floor/tierra_9.png"
-
-[floor.19]
-path = "assets/tiles/floor/tierra_10.png"
-
-[floor.20]
-path = "assets/tiles/floor/tierra_11.png"
-
-[floor.21]
-path = "assets/tiles/floor/tierra_12.png"
-
-[floor.22]
-path = "assets/tiles/floor/tierra_13.png"
-
-[floor.23]
-path = "assets/tiles/floor/tierra_14.png"
-
-[floor.24]
-path = "assets/tiles/floor/tierra_15.png"
-
-[floor.25]
-path = "assets/tiles/floor/tierra_16.png"
-
-[floor.26]
-path = "assets/tiles/floor/tierra_17.png"
-
-[floor.27]
-path = "assets/tiles/floor/tierra_18.png"
-
-[floor.28]
-path = "assets/tiles/floor/tierra_19.png"
-
-[floor.29]
-path = "assets/tiles/floor/tierra_20.png"
-
-[floor.30]
-path = "assets/tiles/floor/tierra_21.png"
-
-[floor.31]
-path = "assets/tiles/floor/tierra_22.png"
-
-[floor.32]
-path = "assets/tiles/floor/tierra_23.png"
-
-[floor.33]
-path = "assets/tiles/floor/tierra_24.png"
-
-[floor.34]
-path = "assets/tiles/floor/tierra_25.png"
-
-[floor.35]
-path = "assets/tiles/floor/tierra_26.png"
-
-[floor.36]
-path = "assets/tiles/floor/tierra_27.png"
-
-[floor.37]
-path = "assets/tiles/floor/tierra_28.png"
-
-[floor.38]
-path = "assets/tiles/floor/tierra_29.png"
-
-[floor.39]
-path = "assets/tiles/floor/tierra_30.png"
-
-# ── Franjas tierra-pasto ──────────────────────────────────────────
+#  Franja tierra-pasto ----------------------------------
 [floor.40]
-path = "assets/tiles/floor/tierra_franja_pasto_1.png"
+path = "assets/tiles/floor/arena_franja_pasto.png"
 tile_size = 2
 
 [floor.41]
-path = "assets/tiles/floor/tierra_franja_pasto_2.png"
+path = "assets/tiles/floor/arena_franja_pasto.png"
 tile_size = 2
 
 [floor.42]
-path = "assets/tiles/floor/tierra_franja_pasto_3.png"
+path = "assets/tiles/floor/arena_franja_pasto.png"
 tile_size = 2
 
 [floor.43]
-path = "assets/tiles/floor/tierra_franja_pasto_4.png"
+path = "assets/tiles/floor/arena_franja_pasto.png"
 tile_size = 2
 
 #  Agua ------------------------------------------------
@@ -181,7 +103,7 @@ offset_y = -108
 [floor.54]
 path = "assets/tiles/floor/acantilado_esquina_ne.png"
 tile_size = 6
-offset_y = -42         
+offset_y = -42
 
 [floor.55]
 path = "assets/tiles/floor/acantilado_esquina_sw.png"
@@ -194,3 +116,53 @@ path = "assets/tiles/floor/acantilado_esquina_se.png"
 tile_size = 6
 offset_x = 0
 offset_y = 0
+
+# Caminos ----------------------------------------------------
+[floor.60]
+path = "assets/tiles/floor/camino_vertical_1.png"
+tile_size = 2
+
+[floor.61]
+path = "assets/tiles/floor/camino_vertical_2.png"
+tile_size = 2
+
+[floor.62]
+path = "assets/tiles/floor/camino_vertical_3.png"
+tile_size = 2
+
+[floor.63]
+path = "assets/tiles/floor/camino_vertical_4.png"
+tile_size = 2
+
+[floor.64]
+path = "assets/tiles/floor/camino_horizontal_1.png"
+tile_size = 2
+
+[floor.65]
+path = "assets/tiles/floor/camino_horizontal_2.png"
+tile_size = 2
+
+[floor.66]
+path = "assets/tiles/floor/camino_horizontal_3.png"
+tile_size = 2
+
+[floor.67]
+path = "assets/tiles/floor/camino_horizontal_4.png"
+tile_size = 2
+
+# Terminaciones / esquineros de camino -----------------------------------
+[floor.68]
+path = "assets/tiles/floor/camino_norte.png"
+
+[floor.69]
+path = "assets/tiles/floor/camino_sur.png"
+
+[floor.70]
+path = "assets/tiles/floor/camino_este.png"
+
+[floor.71]
+path = "assets/tiles/floor/camino_oeste.png"
+
+[floor.72]
+path = "assets/tiles/floor/camino_interseccion.png"
+tile_size = 2
