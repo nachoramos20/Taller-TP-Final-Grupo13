@@ -22,14 +22,22 @@ private:
 
 class LoginCommand : public ServerCommand {
 public:
-    LoginCommand(uint16_t client_id, const std::string& username);
-    LoginCommand(PlayerData player_data);
-    void execute(World &world) override;
+    explicit LoginCommand(PlayerData player_data);
+    void execute(World& world) override;
     const char* get_username() const;
-private:    
+private:
     PlayerData player_data;
 };
 
+class LogoutCommand : public ServerCommand {
+public:
+    explicit LogoutCommand(uint16_t client_id);
+    void execute(World& world) override;
+private:
+    uint16_t client_id;
+};
+
+// Ataque a jugador (click sobre otro player)
 class AttackCommand : public ServerCommand {
 public:
     AttackCommand(uint16_t client_id, uint16_t target_id);
@@ -38,13 +46,22 @@ private:
     uint16_t client_id, target_id;
 };
 
+// Ataque a NPC
+class AttackNpcCommand : public ServerCommand {
+public:
+    AttackNpcCommand(uint16_t client_id, uint16_t npc_id);
+    void execute(World& world) override;
+private:
+    uint16_t client_id, npc_id;
+};
+
 class EquipCommand : public ServerCommand {
 public:
     EquipCommand(uint16_t client_id, uint8_t inv_slot);
     void execute(World& world) override;
 private:
     uint16_t client_id;
-    uint8_t inv_slot;
+    uint8_t  inv_slot;
 };
 
 class UnequipCommand : public ServerCommand {
@@ -62,7 +79,7 @@ public:
     void execute(World& world) override;
 private:
     uint16_t client_id;
-    uint8_t inv_slot;
+    uint8_t  inv_slot;
 };
 
 class PickCommand : public ServerCommand {
@@ -79,9 +96,9 @@ public:
     void execute(World& world) override;
 private:
     uint16_t client_id;
-    uint8_t inv_slot;
+    uint8_t  inv_slot;
 };
-
+// ─── Magia / Meditación ───────────────────────────────────────────────────────
 class MeditateCommand : public ServerCommand {
 public:
     explicit MeditateCommand(uint16_t client_id);
@@ -98,14 +115,6 @@ private:
     uint16_t client_id;
 };
 
-class LogoutCommand : public ServerCommand {
-public:
-    explicit LogoutCommand(uint16_t client_id);
-    void execute(World& world) override;
-private:
-    uint16_t client_id;
-};
-
 class NpcInteractCommand : public ServerCommand {
 public:
     NpcInteractCommand(uint16_t client_id, uint16_t npc_id);
@@ -114,13 +123,35 @@ private:
     uint16_t client_id, npc_id;
 };
 
+// ChatCommand parsea el string y delega al sub-comando apropiado.
 class ChatCommand : public ServerCommand {
 public:
     ChatCommand(uint16_t client_id, std::string cmd);
     void execute(World& world) override;
 private:
-    uint16_t client_id;
+    uint16_t    client_id;
     std::string cmd;
+
+    // Handlers internos
+    void handle_meditar(World& world);
+    void handle_resucitar(World& world);
+    void handle_curar(World& world);           // sacerdote
+    void handle_depositar(World& world, const std::string& args);
+    void handle_retirar(World& world, const std::string& args);
+    void handle_listar(World& world);
+    void handle_comprar(World& world, const std::string& item_name);
+    void handle_vender(World& world, const std::string& item_name);
+    void handle_tomar(World& world);
+    void handle_tirar(World& world, const std::string& args);
+    void handle_private_msg(World& world, const std::string& args); // @nick msg
+    void handle_fundar_clan(World& world, const std::string& clan_name);
+    void handle_unirse(World& world, const std::string& clan_name);
+    void handle_revisar_clan(World& world);
+    void handle_clan_aceptar(World& world, const std::string& nick);
+    void handle_clan_rechazar(World& world, const std::string& nick);
+    void handle_clan_ban(World& world, const std::string& nick);
+    void handle_clan_kick(World& world, const std::string& nick);
+    void handle_dejar_clan(World& world);
 };
 
-#endif
+#endif // COMMANDS_H
