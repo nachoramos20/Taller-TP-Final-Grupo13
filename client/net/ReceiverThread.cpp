@@ -20,6 +20,8 @@ void ReceiverThread::run() {
                     break;
                 case MsgType::LOGIN_ERROR: {
                     std::string err = _deserializer.recv_login_error();
+                    std::cout << "Error de login: " << err << "\n";
+                    this->stop();
                     break;
 }
                 case MsgType::MAPA: {

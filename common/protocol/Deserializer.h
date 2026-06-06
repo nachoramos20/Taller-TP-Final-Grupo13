@@ -28,7 +28,7 @@ public:
         MapaDTO map;
         map.width  = recv_uint16();
         map.height = recv_uint16();
-        uint16_t tile_count = recv_uint16();
+        uint32_t tile_count = recv_uint32();
         map.tiles.resize(tile_count);
         for (auto& tile : map.tiles) {
             tile.floor_id           = recv_uint16();
