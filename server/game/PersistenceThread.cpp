@@ -19,9 +19,7 @@ void PersistenceThread::run()
 }
 
 void PersistenceThread::stop() {
-    if (!this->vive) {
-        return;
-    }
     this->vive = false;
+    this->save_queue.close();
     Thread::stop();
 }

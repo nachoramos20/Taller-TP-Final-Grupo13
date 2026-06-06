@@ -36,12 +36,12 @@ int main(int argc, char* argv[]) {
         while (std::cin >> c && c != 'q') {}
 
         std::cout << "Cerrando servidor...\n";
-        persistence_thread.stop();
-        persistence_thread.join();
         acceptor.stop();
         acceptor.join();
         game_loop.stop();
         game_loop.join();
+        persistence_thread.stop();
+        persistence_thread.join();
 
     } catch (const std::exception& e) {
         std::cerr << "Error fatal: " << e.what() << "\n";
