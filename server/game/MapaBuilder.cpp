@@ -22,7 +22,7 @@ static constexpr uint16_t F_AC_SE        = 56;
 
 // object_sup_ids
 static constexpr uint16_t O_MOLINO           = 1;
-static constexpr uint16_t O_ARBOL            = 2;
+static constexpr uint16_t O_FUENTE           = 2;
 static constexpr uint16_t O_COSTA            = 3;
 static constexpr uint16_t O_ARBOL_RECTO_1    = 4;
 static constexpr uint16_t O_ARBOL_RECTO_2    = 5;
@@ -34,6 +34,11 @@ static constexpr uint16_t O_PINO_TORCIDO_IZQ = 10;
 static constexpr uint16_t O_BARCO            = 11;
 static constexpr uint16_t O_CANOA            = 12;
 static constexpr uint16_t O_FLORES_BASE      = 13;
+static constexpr uint16_t O_BARRIL_FLOTANDO    = 20;
+static constexpr uint16_t O_CUERNOS_FLOTANDO   = 21;
+static constexpr uint16_t O_ESQUELETO_1        = 22;
+static constexpr uint16_t O_ESQUELETO_2        = 23;
+static constexpr uint16_t O_ESQUELETO_3        = 24;
 
 // límites del mapa
 static constexpr int MAP_W = 100;
@@ -238,6 +243,14 @@ void MapaBuilder::build_costa(MapaDTO& mapa) {
     // barco hundido y canoa en el mar
     place_object_sup(mapa, 92, 20, O_BARCO);
     place_object_sup(mapa, 93, 70, O_CANOA);
+    place_object_sup(mapa, 90, 35, O_BARRIL_FLOTANDO);
+    place_object_sup(mapa, 89, 5, O_BARRIL_FLOTANDO);
+    place_object_sup(mapa, 95, 15, O_CUERNOS_FLOTANDO);
+    place_object_sup(mapa, 95, 30, O_CUERNOS_FLOTANDO);
+    place_object_sup(mapa, 91, 55, O_ESQUELETO_1);
+    place_object_sup(mapa, 94, 80, O_ESQUELETO_2);
+    place_object_sup(mapa, 97, 45, O_ESQUELETO_3);
+    place_object_sup(mapa, 96, 75, O_ESQUELETO_1);
 }
 
 void MapaBuilder::build_objetos(MapaDTO& mapa) {
@@ -249,7 +262,7 @@ void MapaBuilder::build_objetos(MapaDTO& mapa) {
 
     // árbol en el centro de la ciudad
     place_object_sup(mapa, (CIU_X1 + CIU_X2) / 2 + 1,
-                           (CIU_Y1 + CIU_Y2) / 2 + 3, O_ARBOL);
+                           (CIU_Y1 + CIU_Y2) / 2 + 3, O_FUENTE);
 }
 
 // ── entry point ──────────────────────────────────────────────────

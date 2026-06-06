@@ -12,11 +12,20 @@ frames = [
     "assets/sprites/objects_sup/molino/frame6.png",
 ]
 
-#  Árbol central plaza --------------------------------------------------------
+#  Fuente de agua --------------------------------------------------------
 [object_sup.2]
-size_tiles = 6
+size_tiles = 5
 frames = [
-    "assets/sprites/objects_sup/arboles/arbol.png",
+    "assets/sprites/objects_sup/fuente/fuente_1.png",
+    "assets/sprites/objects_sup/fuente/fuente_2.png",
+    "assets/sprites/objects_sup/fuente/fuente_3.png",
+    "assets/sprites/objects_sup/fuente/fuente_4.png",
+    "assets/sprites/objects_sup/fuente/fuente_5.png",
+    "assets/sprites/objects_sup/fuente/fuente_6.png",
+    "assets/sprites/objects_sup/fuente/fuente_7.png",
+    "assets/sprites/objects_sup/fuente/fuente_8.png",
+    "assets/sprites/objects_sup/fuente/fuente_9.png",
+    "assets/sprites/objects_sup/fuente/fuente_10.png",
 ]
 
 #  Costa animada -------------------------------------------------------------
@@ -134,4 +143,34 @@ frames = [
 size_tiles = 1
 frames = [
     "assets/sprites/objects_sup/flores/flores_7.png",
+]
+
+[object_sup.20]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/mar/barril_flotando_1.png",
+]
+
+[object_sup.21]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/mar/cuernos_flotando_1.png",
+]
+
+[object_sup.22]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/mar/esqueleto_flotando_1.png",
+]
+
+[object_sup.23]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/mar/esqueleto_flotando_2.png",
+]
+
+[object_sup.24]
+size_tiles = 1
+frames = [
+    "assets/sprites/objects_sup/mar/esqueleto_flotando_3.png",
 ]
