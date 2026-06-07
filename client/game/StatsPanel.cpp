@@ -23,7 +23,7 @@ void StatsPanel::update(uint16_t hp, uint16_t max_hp, uint16_t mp, uint16_t max_
     _hp        = hp;
     _max_hp    = std::max<uint16_t>(1, max_hp);
     _mp        = mp;
-    _max_mp    = std::max<uint16_t>(1, max_mp);
+    _max_mp    = max_mp;  // 0 = guerrero, la sección se oculta
     _gold      = gold;
     _level     = level;
     _meditating = meditating;
@@ -138,24 +138,23 @@ void StatsPanel::render(int screen_w, int screen_h) {
     draw_text(hp_str, px + pad + 4, cy + 1, bar_text);
     cy += 18 + 8;
 
-    // Maná
-    draw_text("Maná", px + pad, cy, white);
-    cy += lh - 2;
+    if (_max_mp > 0) {
+        draw_text("Maná", px + pad, cy, white);
+        cy += lh - 2;
+        float mp_frac = static_cast<float>(_mp) / static_cast<float>(_max_mp);
+        SDL_Color mp_fill { 50, 100, 220, 255 };
+        SDL_Color mp_bg   { 10,  10,  40, 200 };
+        draw_bar(px + pad, cy, PW - pad * 2, 18, mp_frac, mp_fill, mp_bg);
+        std::string mp_str = std::to_string(_mp) + " / " + std::to_string(_max_mp);
+        draw_text(mp_str, px + pad + 4, cy + 1, bar_text);
+        cy += 18 + 12;
+    }
 
-    float mp_frac = static_cast<float>(_mp) / _max_mp;
-    SDL_Color mp_fill { 50, 100, 220, 255 };
-    SDL_Color mp_bg   { 10,  10,  40, 200 };
-    draw_bar(px + pad, cy, PW - pad * 2, 18, mp_frac, mp_fill, mp_bg);
-
-    std::string mp_str = std::to_string(_mp) + " / " + std::to_string(_max_mp);
-    draw_text(mp_str, px + pad + 4, cy + 1, bar_text);
-    cy += 18 + 12;
-
-    // ── Oro ────────────────────────────────────────────────
+    // Oro
     draw_text("Oro:  " + std::to_string(_gold), px + pad, cy, gold_c);
     cy += lh + 14;
 
-    // ── Botón Inventario ───────────────────────────────────
+    // Botón Inventario
     const int btn_h = 36;
     const int btn_w = PW - pad * 2;
     _inv_btn_rect = { px + pad, cy, btn_w, btn_h };
@@ -163,7 +162,6 @@ void StatsPanel::render(int screen_w, int screen_h) {
     SDL_Color btn_bg { 70, 50, 20, 230 };
     draw_rounded_rect(px + pad, cy, btn_w, btn_h, btn_bg);
 
-    // Icono pequeño de bolsa (unicode en UTF-8: 🎒 no funciona bien en SDL_ttf, usamos texto)
     SDL_Color btn_text{ 255, 230, 150, 255 };
     draw_text("[ Inventario ]", px + pad + 20, cy + (btn_h - _font_size) / 2, btn_text);
 }
