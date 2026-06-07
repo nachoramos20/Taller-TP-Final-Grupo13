@@ -63,9 +63,9 @@ static constexpr int ZJ_X1 = 6,  ZJ_X2 = 93;
 static constexpr int ZJ_Y1 = 6,  ZJ_Y2 = 93;
 
 // bosque
-static constexpr int BOS_X1    = 6,  BOS_X2    = 18;
-static constexpr int BOS_NO_Y1 = 6,  BOS_NO_Y2 = 45;
-static constexpr int BOS_SO_Y1 = 55, BOS_SO_Y2 = 93;
+static constexpr int BOS_X1    = 4,  BOS_X2    = 22;
+static constexpr int BOS_NO_Y1 = 5,  BOS_NO_Y2 = 49;
+static constexpr int BOS_SO_Y1 = 55, BOS_SO_Y2 = 95;
 
 // ciudad principal
 static constexpr int CIU_X1 = 25, CIU_X2 = 75;
