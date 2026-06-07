@@ -13,6 +13,8 @@ ObjectSupConfig::ObjectSupConfig(const std::string& toml_path) {
 
         ObjectSupEntry entry;
         entry.size_tiles = (*entry_tbl)["size_tiles"].value_or<int>(4);
+        entry.offset_x   = (*entry_tbl)["offset_x"].value_or<int>(0);
+        entry.offset_y   = (*entry_tbl)["offset_y"].value_or<int>(0);
 
         auto* frames_arr = (*entry_tbl)["frames"].as_array();
         if (!frames_arr) continue;

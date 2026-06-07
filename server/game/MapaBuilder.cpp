@@ -4,7 +4,9 @@
 static constexpr uint16_t F_NEGRO        = 0;
 static constexpr uint16_t F_PIEDRA       = 1;
 static constexpr uint16_t F_PASTO_BASE   = 2;
-static constexpr uint16_t F_TIERRA_BASE  = 10;
+static constexpr uint16_t F_PASTO_1X1    = 9;   
+static constexpr uint16_t F_TIERRA_BASE  = 10;  
+static constexpr uint16_t F_TIERRA_COUNT = 4;
 static constexpr uint16_t F_FRANJA_IZQ   = 40;
 static constexpr uint16_t F_FRANJA_DER   = 41;
 static constexpr uint16_t F_FRANJA_SUP   = 42;
@@ -19,10 +21,22 @@ static constexpr uint16_t F_AC_NW        = 53;
 static constexpr uint16_t F_AC_NE        = 54;
 static constexpr uint16_t F_AC_SW        = 55;
 static constexpr uint16_t F_AC_SE        = 56;
+// caminos verticales
+static constexpr uint16_t F_CAM_V_BASE   = 60;
+static constexpr uint16_t F_CAM_V_COUNT  = 4;
+// caminos horizontales 
+static constexpr uint16_t F_CAM_H_BASE   = 64;
+static constexpr uint16_t F_CAM_H_COUNT  = 4;
+// terminaciones de camino 
+static constexpr uint16_t F_CAM_NORTE       = 68;
+static constexpr uint16_t F_CAM_SUR         = 69;
+static constexpr uint16_t F_CAM_ESTE        = 70;
+static constexpr uint16_t F_CAM_OESTE       = 71;
+static constexpr uint16_t F_CAM_INTERSECCION = 72;
 
 // object_sup_ids
 static constexpr uint16_t O_MOLINO           = 1;
-static constexpr uint16_t O_ARBOL            = 2;
+static constexpr uint16_t O_FUENTE           = 2;
 static constexpr uint16_t O_COSTA            = 3;
 static constexpr uint16_t O_ARBOL_RECTO_1    = 4;
 static constexpr uint16_t O_ARBOL_RECTO_2    = 5;
@@ -34,6 +48,11 @@ static constexpr uint16_t O_PINO_TORCIDO_IZQ = 10;
 static constexpr uint16_t O_BARCO            = 11;
 static constexpr uint16_t O_CANOA            = 12;
 static constexpr uint16_t O_FLORES_BASE      = 13;
+static constexpr uint16_t O_BARRIL_FLOTANDO    = 20;
+static constexpr uint16_t O_CUERNOS_FLOTANDO   = 21;
+static constexpr uint16_t O_ESQUELETO_1        = 22;
+static constexpr uint16_t O_ESQUELETO_2        = 23;
+static constexpr uint16_t O_ESQUELETO_3        = 24;
 
 // límites del mapa
 static constexpr int MAP_W = 100;
@@ -49,16 +68,17 @@ static constexpr int BOS_NO_Y1 = 6,  BOS_NO_Y2 = 45;
 static constexpr int BOS_SO_Y1 = 55, BOS_SO_Y2 = 93;
 
 // ciudad principal
-static constexpr int CIU_X1 = 20, CIU_X2 = 55;
-static constexpr int CIU_Y1 = 8,  CIU_Y2 = 44;
+static constexpr int CIU_X1 = 25, CIU_X2 = 75;
+static constexpr int CIU_Y1 = 5,  CIU_Y2 = 45;
 
-// pueblo
-static constexpr int PUE_X1 = 20, PUE_X2 = 52;
-static constexpr int PUE_Y1 = 55, PUE_Y2 = 88;
+// pueblo — debajo del camino horizontal
+static constexpr int PUE_X1 = 25, PUE_X2 = 75;
+static constexpr int PUE_Y1 = 60, PUE_Y2 = 95;
 
 // caminos
-static constexpr int CAM_H_Y1 = 47, CAM_H_Y2 = 49;
-static constexpr int CAM_V_X1 = 37, CAM_V_X2 = 39;
+static constexpr int CAM_H_Y1 = 51, CAM_H_Y2 = 53;
+// vertical centrado en x de la ciudad
+static constexpr int CAM_V_X1 = 50, CAM_V_X2 = 52;
 
 // costa
 static constexpr int FRANJA_X1 = 82;
@@ -66,7 +86,7 @@ static constexpr int ARENA_X1  = 84, ARENA_X2  = 85;
 static constexpr int OLAS_X1   = 86, OLAS_X2   = 87;
 static constexpr int AGUA_X1   = 88, AGUA_X2   = 99;
 
-// ── helpers ──────────────────────────────────────────────────────
+// HELPERS
 
 TileDTO& MapaBuilder::get_tile(MapaDTO& mapa, uint16_t x, uint16_t y) {
     return mapa.tiles[y * mapa.width + x];
@@ -110,20 +130,20 @@ uint16_t MapaBuilder::flores_random() {
     return O_FLORES_BASE + (rand() % 7);
 }
 
-// ── zonas ────────────────────────────────────────────────────────
+// ZONAS 
 
 void MapaBuilder::build_acantilados(MapaDTO& mapa) {
     // esquinas oeste
     get_tile(mapa, 0,  1 ).floor_id = F_AC_NW;
     get_tile(mapa, 0,  98).floor_id = F_AC_SW;
 
-    // borde norte y sur — de 6 a 70 + esquina en 76
+    // borde norte y sur
     for (int x = 0; x <= 76; x += 6) {
         get_tile(mapa, x, 0 ).floor_id = F_AC_NORTE;
         get_tile(mapa, x, 99).floor_id = F_AC_SUR;
     }
 
-    // esquinas este — donde termina el acantilado y empieza la costa
+    // esquinas este
     get_tile(mapa, 76, 0 ).floor_id = F_AC_NE;
     get_tile(mapa, 76, 99).floor_id = F_AC_SE;
 
@@ -133,8 +153,8 @@ void MapaBuilder::build_acantilados(MapaDTO& mapa) {
 }
 
 void MapaBuilder::build_pasto(MapaDTO& mapa) {
-    // Pasto principal (tile_size=2, anclas en posiciones pares)
-    for (int y = ZJ_Y1; y <= 98; y += 2)
+    // Pasto principal
+    for (int y = ZJ_Y1; y <= 96; y += 2)
         for (int x = ZJ_X1; x <= FRANJA_X1 - 1; x += 2)
             get_tile(mapa, x, y).floor_id = pasto_random();
 
@@ -172,27 +192,34 @@ void MapaBuilder::build_bosque(MapaDTO& mapa) {
 }
 
 void MapaBuilder::build_caminos(MapaDTO& mapa) {
-    // camino horizontal
-    for (int y = CAM_H_Y1; y <= CAM_H_Y2; y++)
-        for (int x = ZJ_X1; x <= FRANJA_X1; x++)
-            get_tile(mapa, x, y).floor_id = F_TIERRA_BASE + (rand() % 5);
 
-    // franjas camino horizontal
-    for (int x = ZJ_X1; x <= FRANJA_X1; x += 2)
-        get_tile(mapa, x, CAM_H_Y1 - 2).floor_id = F_FRANJA_SUP;
-    for (int x = ZJ_X1; x <= FRANJA_X1; x += 2)
-        get_tile(mapa, x, CAM_H_Y2 + 1).floor_id = F_FRANJA_INF;
+    // Franja horizontal
+    fill_rect(mapa, 2, CAM_H_Y1, FRANJA_X1 - 3, CAM_H_Y2, F_PASTO_1X1);
 
-    // camino vertical
-    for (int y = ZJ_Y1; y <= ZJ_Y2; y++)
+    // Franja vertical
+    for (int y = 46; y <= PUE_Y1 - 1; y++)
         for (int x = CAM_V_X1; x <= CAM_V_X2; x++)
-            get_tile(mapa, x, y).floor_id = F_TIERRA_BASE + (rand() % 5);
+            get_tile(mapa, x, y).floor_id = F_PASTO_1X1;
 
-    // franjas camino vertical
-    for (int y = ZJ_Y1; y <= ZJ_Y2; y += 2)
-        get_tile(mapa, CAM_V_X1 - 2, y).floor_id = F_FRANJA_IZQ;
-    for (int y = ZJ_Y1; y <= ZJ_Y2; y += 2)
-        get_tile(mapa, CAM_V_X2 + 1, y).floor_id = F_FRANJA_DER;
+    // Camino horizontal
+    for (int x = 2; x <= FRANJA_X1 - 3; x += 3) {
+        if (x == CAM_V_X1) continue;
+        get_tile(mapa, x, CAM_H_Y1).floor_id = F_CAM_H_BASE + (rand() % F_CAM_H_COUNT);
+    }
+    // Terminaciones fijas del camino horizontal
+    get_tile(mapa, 2,  CAM_H_Y1).floor_id = F_CAM_OESTE;  
+    get_tile(mapa, 77, CAM_H_Y1).floor_id = F_CAM_ESTE;   
+
+    // Dos tiles verticales que conectan la ciudad con la intersección sin dejar pasto
+    get_tile(mapa, CAM_V_X1, 46).floor_id = F_CAM_V_BASE + (rand() % F_CAM_V_COUNT);
+    get_tile(mapa, CAM_V_X1, 49).floor_id = F_CAM_V_BASE + (rand() % F_CAM_V_COUNT);
+
+    // Camino vertical debajo de la intersección, hasta el pueblo
+    for (int y = CAM_H_Y1 + 3; y <= PUE_Y1 - 3; y += 3)
+        get_tile(mapa, CAM_V_X1, y).floor_id = F_CAM_V_BASE + (rand() % F_CAM_V_COUNT);
+
+    // Intersección 
+    get_tile(mapa, CAM_V_X1, CAM_H_Y1).floor_id = F_CAM_INTERSECCION;
 }
 
 void MapaBuilder::build_ciudad(MapaDTO& mapa) {
@@ -200,32 +227,34 @@ void MapaBuilder::build_ciudad(MapaDTO& mapa) {
 }
 
 void MapaBuilder::build_pueblo(MapaDTO& mapa) {
-    for (int y = PUE_Y1; y <= PUE_Y2 + 1; y++)
-        for (int x = PUE_X1; x <= PUE_X2 + 1; x++)
-            get_tile(mapa, x, y).floor_id = F_TIERRA_BASE + (rand() % 10);
+    for (int y = PUE_Y1; y <= PUE_Y2; y++)
+        for (int x = PUE_X1; x <= PUE_X2; x++)
+            get_tile(mapa, x, y).floor_id = F_TIERRA_BASE + (rand() % F_TIERRA_COUNT);
 }
 
 void MapaBuilder::build_costa(MapaDTO& mapa) {
-    // franja pasto→arena — zona jugable
-    for (int y = 2; y <= 99; y += 2)
+    // franja pasto->arena
+    for (int y = 1; y <= 99; y += 2)
         get_tile(mapa, FRANJA_X1, y).floor_id = F_ARENA_FRANJA;
 
     // arena pura
-    for (int y = 2; y <= 99; y++)
+    for (int y = 1; y <= 99; y++)
         for (int x = ARENA_X1; x <= OLAS_X2; x++)
             get_tile(mapa, x, y).floor_id = F_ARENA;
 
     // olas animadas
-    for (int y = 2; y <= 99; y += 2)
+    for (int y = 1; y <= 99; y++)
         for (int x = OLAS_X1; x <= OLAS_X2; x += 2)
             place_object_sup(mapa, x, y, O_COSTA);
 
     // agua
-    fill_rect(mapa, AGUA_X1, 2, AGUA_X2, 99, F_AGUA);
+    for (int y = 1; y <= 99; y++)
+        for (int x = AGUA_X1; x <= AGUA_X2; x++)
+            get_tile(mapa, x, y).floor_id = F_AGUA;
 
-    // costa en borde norte (y=0..7) — negro, no hay costa
-    // costa en borde sur (y=94..99)
-    for (int y = ZJ_Y2 + 1; y < MAP_H; y++) {
+    // costa en borde norte
+    // costa en borde sur 
+    for (int y = ZJ_Y2 + 1; y <= MAP_H; y++) {
         get_tile(mapa, FRANJA_X1, y).floor_id = F_ARENA_FRANJA;
         for (int x = ARENA_X1; x <= OLAS_X2; x++)
             get_tile(mapa, x, y).floor_id = F_ARENA;
@@ -233,24 +262,33 @@ void MapaBuilder::build_costa(MapaDTO& mapa) {
             get_tile(mapa, x, y).floor_id = F_AGUA;
     }
 
-    // barco hundido y canoa en el mar
-    place_object_sup(mapa, 92, 20, O_BARCO);
-    place_object_sup(mapa, 93, 70, O_CANOA);
 }
 
 void MapaBuilder::build_objetos(MapaDTO& mapa) {
-    // molinos en esquinas de la ciudad
+    // molinos en las 4 esquinas interiores de la ciudad
     place_object_sup(mapa, CIU_X1 + 3, CIU_Y1 + 4, O_MOLINO);
-    place_object_sup(mapa, CIU_X2,     CIU_Y1 + 4, O_MOLINO);
+    place_object_sup(mapa, CIU_X2 - 3, CIU_Y1 + 4, O_MOLINO);
     place_object_sup(mapa, CIU_X1 + 3, CIU_Y2 - 3, O_MOLINO);
-    place_object_sup(mapa, CIU_X2,     CIU_Y2 - 3, O_MOLINO);
+    place_object_sup(mapa, CIU_X2 - 3, CIU_Y2 - 3, O_MOLINO);
 
-    // árbol en el centro de la ciudad
-    place_object_sup(mapa, (CIU_X1 + CIU_X2) / 2 + 1,
-                           (CIU_Y1 + CIU_Y2) / 2 + 3, O_ARBOL);
+    // fuente en el centro de la ciudad
+    place_object_sup(mapa, (CIU_X1 + CIU_X2) / 2,
+                           (CIU_Y1 + CIU_Y2) / 2, O_FUENTE);
+
+    // elementos en el mar
+    place_object_sup(mapa, 92, 20, O_BARCO);
+    place_object_sup(mapa, 93, 70, O_CANOA);
+    place_object_sup(mapa, 90, 35, O_BARRIL_FLOTANDO);
+    place_object_sup(mapa, 89, 5, O_BARRIL_FLOTANDO);
+    place_object_sup(mapa, 95, 15, O_CUERNOS_FLOTANDO);
+    place_object_sup(mapa, 95, 30, O_CUERNOS_FLOTANDO);
+    place_object_sup(mapa, 91, 55, O_ESQUELETO_1);
+    place_object_sup(mapa, 94, 80, O_ESQUELETO_2);
+    place_object_sup(mapa, 97, 45, O_ESQUELETO_3);
+    place_object_sup(mapa, 96, 75, O_ESQUELETO_1);
 }
 
-// ── entry point ──────────────────────────────────────────────────
+// ENTRY POINT
 
 MapaDTO MapaBuilder::build_mapa_inicial() {
     srand(42);
@@ -268,11 +306,12 @@ MapaDTO MapaBuilder::build_mapa_inicial() {
 
     build_pasto(mapa);
     build_bosque(mapa);
-    build_caminos(mapa);
+    
+    build_costa(mapa);
+    build_acantilados(mapa);
+    build_caminos(mapa);   
     build_ciudad(mapa);
     build_pueblo(mapa);
-    build_costa(mapa);
-    build_acantilados(mapa); 
     build_objetos(mapa);
 
     return mapa;
