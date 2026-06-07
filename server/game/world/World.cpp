@@ -9,8 +9,10 @@ World::World(uint16_t width, uint16_t height)
       items_(id_alloc),
       clans_(players_, chat_),
       bank_(players_, chat_),
-      npcs_(collision_, players_, items_, chat_, clans_, id_alloc, rng),
+      npcs_(collision_, players_, items_, chat_, clans_, id_alloc, rng, spawner_),
+      spawner_(collision_, rng),
       snapshot_(players_, npcs_, items_, chat_) {}
+
 
 // ---- Players ----
 void World::add_player(const PlayerData& p) {

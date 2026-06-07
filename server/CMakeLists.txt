@@ -25,6 +25,7 @@ target_sources(argentum_grupo13_server
     game/world/WorldClans.cpp
     game/world/WorldBank.cpp
     game/world/WorldNpcs.cpp
+    game/world/WorldSpawner.cpp
     game/world/WorldSnapshot.cpp
     game/QueueMonitor.cpp
     game/MapaBuilder.cpp
