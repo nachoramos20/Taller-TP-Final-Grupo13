@@ -85,7 +85,13 @@ static void check_level_up(PlayerData& p, World& world) {
         if (p.exp < limit) break;
         p.level++;
         p.max_hp = Stats::initial_max_hp(p.race, p.cls) * p.level;
-        p.max_mp = Stats::initial_max_mp(p.race, p.cls) * p.level;
+        if (static_cast<Class>(p.cls) == Class::WARRIOR) {
+            p.max_mp = 0;
+            p.mp     = 0;
+        } else {
+            p.max_mp = Stats::initial_max_mp(p.race, p.cls) * p.level;
+        }
+
         p.hp = std::min(p.hp, p.max_hp);
         p.mp = std::min(p.mp, p.max_mp);
         if (p.level != orig_level)
@@ -269,6 +275,7 @@ void AttackNpcCommand::execute(World& world) {
         world.push_message(client_id, 1,
             "Mataste al " + tpl.name + "! +" + std::to_string(gold) + " oro.");
 
+        world.update_occupied({npc->pos_x, npc->pos_y}, false);
         npc->hp = 0;
     } else {
         npc->hp -= damage;

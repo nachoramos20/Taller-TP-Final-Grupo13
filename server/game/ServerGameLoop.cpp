@@ -101,6 +101,9 @@ void ServerGameLoop::broadcast_snapshots() {
 
 void ServerGameLoop::cleanup_dead_npcs() {
     auto& npcs = const_cast<std::vector<NpcData>&>(world.get_npcs());
+    for (const auto& n : npcs) {
+        if (n.hp == 0) world.update_occupied({n.pos_x, n.pos_y}, false);
+    }
     npcs.erase(
         std::remove_if(npcs.begin(), npcs.end(),
             [](const NpcData& n){ return n.hp == 0; }),
