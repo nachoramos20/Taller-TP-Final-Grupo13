@@ -3,7 +3,8 @@
 // floor_ids según tiles.toml
 static constexpr uint16_t F_NEGRO        = 0;
 static constexpr uint16_t F_PIEDRA       = 1;
-static constexpr uint16_t F_PASTO_BASE   = 2;   
+static constexpr uint16_t F_PASTO_BASE   = 2;
+static constexpr uint16_t F_PASTO_1X1    = 9;   
 static constexpr uint16_t F_TIERRA_BASE  = 10;  
 static constexpr uint16_t F_TIERRA_COUNT = 4;
 static constexpr uint16_t F_FRANJA_IZQ   = 40;
@@ -72,12 +73,12 @@ static constexpr int CIU_Y1 = 5,  CIU_Y2 = 45;
 
 // pueblo — debajo del camino horizontal
 static constexpr int PUE_X1 = 25, PUE_X2 = 75;
-static constexpr int PUE_Y1 = 55, PUE_Y2 = 95;
+static constexpr int PUE_Y1 = 60, PUE_Y2 = 95;
 
-// caminos — horizontal pasa justo debajo de la ciudad 
-static constexpr int CAM_H_Y1 = 47, CAM_H_Y2 = 49;
-// vertical centrado en x de la ciudad 
-static constexpr int CAM_V_X1 = 49, CAM_V_X2 = 51;
+// caminos
+static constexpr int CAM_H_Y1 = 51, CAM_H_Y2 = 53;
+// vertical centrado en x de la ciudad
+static constexpr int CAM_V_X1 = 50, CAM_V_X2 = 52;
 
 // costa
 static constexpr int FRANJA_X1 = 82;
@@ -136,7 +137,7 @@ void MapaBuilder::build_acantilados(MapaDTO& mapa) {
     get_tile(mapa, 0,  1 ).floor_id = F_AC_NW;
     get_tile(mapa, 0,  98).floor_id = F_AC_SW;
 
-    // borde norte y sur — de 6 a 70 + esquina en 76
+    // borde norte y sur
     for (int x = 0; x <= 76; x += 6) {
         get_tile(mapa, x, 0 ).floor_id = F_AC_NORTE;
         get_tile(mapa, x, 99).floor_id = F_AC_SUR;
@@ -191,29 +192,34 @@ void MapaBuilder::build_bosque(MapaDTO& mapa) {
 }
 
 void MapaBuilder::build_caminos(MapaDTO& mapa) {
-    // camino horizontal
-    for (int x = ZJ_X1; x <= FRANJA_X1 - 2; x += 2) {
-        uint16_t var = F_CAM_H_BASE + (rand() % F_CAM_H_COUNT);
-        get_tile(mapa, x, CAM_H_Y1 + 1).floor_id = var;
-    }
-    // terminaciones norte y sur del camino horizontal
-    for (int x = ZJ_X1; x <= FRANJA_X1 - 1; x++) {
-        get_tile(mapa, x, CAM_H_Y1).floor_id = F_CAM_NORTE;
-        get_tile(mapa, x, CAM_H_Y2).floor_id = F_CAM_SUR;
-    }
 
-    // camino vertical
-    for (int y = ZJ_Y1; y <= ZJ_Y2 - 1; y += 2) {
-        uint16_t var = F_CAM_V_BASE + (rand() % F_CAM_V_COUNT);
-        get_tile(mapa, CAM_V_X1 + 1, y).floor_id = var;
+    // Franja horizontal
+    fill_rect(mapa, 2, CAM_H_Y1, FRANJA_X1 - 3, CAM_H_Y2, F_PASTO_1X1);
+
+    // Franja vertical
+    for (int y = 46; y <= PUE_Y1 - 1; y++)
+        for (int x = CAM_V_X1; x <= CAM_V_X2; x++)
+            get_tile(mapa, x, y).floor_id = F_PASTO_1X1;
+
+    // Camino horizontal
+    for (int x = 2; x <= FRANJA_X1 - 3; x += 3) {
+        if (x == CAM_V_X1) continue;
+        get_tile(mapa, x, CAM_H_Y1).floor_id = F_CAM_H_BASE + (rand() % F_CAM_H_COUNT);
     }
-    // terminaciones oeste y este del camino vertical
-    for (int y = ZJ_Y1; y <= ZJ_Y2; y++) {
-        get_tile(mapa, CAM_V_X1, y).floor_id = F_CAM_OESTE;
-        get_tile(mapa, CAM_V_X2, y).floor_id = F_CAM_ESTE;
-    }
-    //  intersección
-    get_tile(mapa, CAM_V_X1 + 1, CAM_H_Y1 + 1).floor_id = F_CAM_INTERSECCION;
+    // Terminaciones fijas del camino horizontal
+    get_tile(mapa, 2,  CAM_H_Y1).floor_id = F_CAM_OESTE;  
+    get_tile(mapa, 77, CAM_H_Y1).floor_id = F_CAM_ESTE;   
+
+    // Dos tiles verticales que conectan la ciudad con la intersección sin dejar pasto
+    get_tile(mapa, CAM_V_X1, 46).floor_id = F_CAM_V_BASE + (rand() % F_CAM_V_COUNT);
+    get_tile(mapa, CAM_V_X1, 49).floor_id = F_CAM_V_BASE + (rand() % F_CAM_V_COUNT);
+
+    // Camino vertical debajo de la intersección, hasta el pueblo
+    for (int y = CAM_H_Y1 + 3; y <= PUE_Y1 - 3; y += 3)
+        get_tile(mapa, CAM_V_X1, y).floor_id = F_CAM_V_BASE + (rand() % F_CAM_V_COUNT);
+
+    // Intersección 
+    get_tile(mapa, CAM_V_X1, CAM_H_Y1).floor_id = F_CAM_INTERSECCION;
 }
 
 void MapaBuilder::build_ciudad(MapaDTO& mapa) {
@@ -300,11 +306,12 @@ MapaDTO MapaBuilder::build_mapa_inicial() {
 
     build_pasto(mapa);
     build_bosque(mapa);
-    build_caminos(mapa);
+    
+    build_costa(mapa);
+    build_acantilados(mapa);
+    build_caminos(mapa);   
     build_ciudad(mapa);
     build_pueblo(mapa);
-    build_costa(mapa);
-    build_acantilados(mapa); 
     build_objetos(mapa);
 
     return mapa;

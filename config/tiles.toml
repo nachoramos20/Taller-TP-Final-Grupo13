@@ -4,6 +4,9 @@
 [floor.1]
 path = "assets/tiles/floor/piedra.png"
 
+[floor.9]
+path = "assets/tiles/floor/pasto_1.png"
+
 #  Pasto ----------------------------------
 [floor.2]
 path = "assets/tiles/floor/pasto_1.png"
@@ -120,49 +123,53 @@ offset_y = 0
 # Caminos ----------------------------------------------------
 [floor.60]
 path = "assets/tiles/floor/camino_vertical_1.png"
-tile_size = 2
+tile_size = 3
 
 [floor.61]
 path = "assets/tiles/floor/camino_vertical_2.png"
-tile_size = 2
+tile_size = 3
 
 [floor.62]
 path = "assets/tiles/floor/camino_vertical_3.png"
-tile_size = 2
+tile_size = 3
 
 [floor.63]
 path = "assets/tiles/floor/camino_vertical_4.png"
-tile_size = 2
+tile_size = 3
 
 [floor.64]
 path = "assets/tiles/floor/camino_horizontal_1.png"
-tile_size = 2
+tile_size = 3
 
 [floor.65]
 path = "assets/tiles/floor/camino_horizontal_2.png"
-tile_size = 2
+tile_size = 3
 
 [floor.66]
 path = "assets/tiles/floor/camino_horizontal_3.png"
-tile_size = 2
+tile_size = 3
 
 [floor.67]
 path = "assets/tiles/floor/camino_horizontal_4.png"
-tile_size = 2
+tile_size = 3
 
 # Terminaciones / esquineros de camino -----------------------------------
 [floor.68]
 path = "assets/tiles/floor/camino_norte.png"
+tile_size = 3
 
 [floor.69]
 path = "assets/tiles/floor/camino_sur.png"
+tile_size = 3
 
 [floor.70]
 path = "assets/tiles/floor/camino_este.png"
+tile_size = 3
 
 [floor.71]
 path = "assets/tiles/floor/camino_oeste.png"
+tile_size = 3
 
 [floor.72]
 path = "assets/tiles/floor/camino_interseccion.png"
-tile_size = 2
+tile_size = 3
