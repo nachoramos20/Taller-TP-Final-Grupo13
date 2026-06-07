@@ -25,30 +25,51 @@ static bool fair_play_ok(const PlayerData& a, const PlayerData& b) {
 }
 
 static uint16_t calc_weapon_damage(const PlayerData& attacker) {
-    uint8_t wpn = attacker.equipped_weapon;
-    int dmin = 1, dmax = 3;
-    if (wpn != 0 && Items::exists(static_cast<ItemId>(wpn))) {
-        const ItemDef& def = Items::get(static_cast<ItemId>(wpn));
-        dmin = def.min_value;
-        dmax = def.max_value;
+    uint8_t slot = attacker.equipped_weapon;
+    
+    // Daño base por defecto "a puño limpio" (Unarmed)
+    int dmin = 1;
+    int dmax = 3;
+
+    if (slot != 0xFF && slot < PlayerData::INVENTORY_SIZE) {
+        uint8_t item_id = attacker.inventory[slot];
+        
+        if (item_id != 0 && Items::exists(static_cast<ItemId>(item_id))) {
+            const ItemDef& def = Items::get(static_cast<ItemId>(item_id));
+            dmin = def.min_value;
+            dmax = def.max_value;
+        }
     }
+
     int raw = attacker.strength * rand_range(dmin, dmax);
     return static_cast<uint16_t>(raw);
 }
 
 static uint16_t calc_defense(const PlayerData& defender) {
     int def = 0;
-    if (defender.equipped_armor != 0 && Items::exists(static_cast<ItemId>(defender.equipped_armor))) {
-        const auto& a = Items::get(static_cast<ItemId>(defender.equipped_armor));
-        def += rand_range(a.min_value, a.max_value);
+
+    if (defender.equipped_armor != 0xFF && defender.equipped_armor < PlayerData::INVENTORY_SIZE) {
+        uint8_t item_id = defender.inventory[defender.equipped_armor];
+        if (item_id != 0 && Items::exists(static_cast<ItemId>(item_id))) {
+            const auto& a = Items::get(static_cast<ItemId>(item_id));
+            def += rand_range(a.min_value, a.max_value);
+        }
     }
-    if (defender.equipped_helmet != 0 && Items::exists(static_cast<ItemId>(defender.equipped_helmet))) {
-        const auto& h = Items::get(static_cast<ItemId>(defender.equipped_helmet));
-        def += rand_range(h.min_value, h.max_value);
+
+    if (defender.equipped_helmet != 0xFF && defender.equipped_helmet < PlayerData::INVENTORY_SIZE) {
+        uint8_t item_id = defender.inventory[defender.equipped_helmet];
+        if (item_id != 0 && Items::exists(static_cast<ItemId>(item_id))) {
+            const auto& h = Items::get(static_cast<ItemId>(item_id));
+            def += rand_range(h.min_value, h.max_value);
+        }
     }
-    if (defender.equipped_shield != 0 && Items::exists(static_cast<ItemId>(defender.equipped_shield))) {
-        const auto& s = Items::get(static_cast<ItemId>(defender.equipped_shield));
-        def += rand_range(s.min_value, s.max_value);
+
+    if (defender.equipped_shield != 0xFF && defender.equipped_shield < PlayerData::INVENTORY_SIZE) {
+        uint8_t item_id = defender.inventory[defender.equipped_shield];
+        if (item_id != 0 && Items::exists(static_cast<ItemId>(item_id))) {
+            const auto& s = Items::get(static_cast<ItemId>(item_id));
+            def += rand_range(s.min_value, s.max_value);
+        }
     }
     return static_cast<uint16_t>(def);
 }

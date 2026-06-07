@@ -124,8 +124,15 @@ bool InventoryPanel::handle_event(const SDL_Event& e, Queue<Command>* cmd_queue)
 
         if (_selected_slot >= 0 && _inventory[_selected_slot] != 0) {
             if (in(mx, my, _equip_btn)) {
-                if (cmd_queue) cmd_queue->push(Command::equip(
-                    static_cast<uint8_t>(_selected_slot)));
+                if (cmd_queue) {
+                    if      (_selected_slot == _eq_wpn)  cmd_queue->push(Command::unequip(EquipSlot::WEAPON));
+                    else if (_selected_slot == _eq_arm)  cmd_queue->push(Command::unequip(EquipSlot::ARMOR));
+                    else if (_selected_slot == _eq_helm) cmd_queue->push(Command::unequip(EquipSlot::HELMET));
+                    else if (_selected_slot == _eq_shld) cmd_queue->push(Command::unequip(EquipSlot::SHIELD));
+                    else {
+                        cmd_queue->push(Command::equip(static_cast<uint8_t>(_selected_slot)));
+                    }
+                }
                 return true;
             }
             if (in(mx, my, _drop_btn)) {
@@ -142,7 +149,6 @@ bool InventoryPanel::handle_event(const SDL_Event& e, Queue<Command>* cmd_queue)
             }
         }
 
-        // Si clickeó dentro del panel pero no en nada, igual absorber
         if (in(mx, my, _panel_rect)) return true;
     }
     return false;
@@ -239,8 +245,8 @@ void InventoryPanel::draw_slot(int x, int y, int size, int idx) {
 
     uint8_t item     = _inventory[idx];
     bool is_empty    = (item == 0);
-    bool is_equipped = !is_empty && (item == _eq_wpn  || item == _eq_arm ||
-                                     item == _eq_helm || item == _eq_shld);
+    bool is_equipped = !is_empty && (idx == _eq_wpn  || idx == _eq_arm ||
+                                     idx == _eq_helm || idx == _eq_shld);
     bool is_selected = (_selected_slot == idx);
 
     SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
@@ -310,10 +316,11 @@ void InventoryPanel::draw_slot(int x, int y, int size, int idx) {
 
 // Fila de equip (sección superior del panel)
 void InventoryPanel::draw_equip_row(int x, int y, int w, int h,
-                                     const char* label, uint8_t item_id) {
+                                     const char* label, uint8_t slot_idx) {
     SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
 
-    bool has_item = (item_id != 0);
+    bool has_item = (slot_idx != 0xFF && slot_idx < INV_SIZE && _inventory[slot_idx] != 0);
+    uint8_t item_id = has_item ? _inventory[slot_idx] : 0;
 
     // Fondo
     if (has_item) {
@@ -344,7 +351,6 @@ void InventoryPanel::draw_equip_row(int x, int y, int w, int h,
                                 : SDL_Color{ 55,  50,  40, 255};
     std::string display = name ? std::string(name) : std::string("—");
 
-    // Calcular ancho de la etiqueta para posicionar el nombre
     int lbl_w = 0, dummy = 0;
     if (_font) TTF_SizeUTF8(_font, label, &lbl_w, &dummy);
     draw_text(display, x + 6 + lbl_w + 10, y + (h - _font_size) / 2, name_c);
@@ -405,7 +411,7 @@ void InventoryPanel::render(int screen_w, int screen_h) {
     draw_text("Equipado", mx0 + PAD, cy, section);
     cy += _font_size + 4;
 
-    struct EqEntry { const char* label; uint8_t id; };
+    struct EqEntry { const char* label; uint8_t slot_idx; };
     const EqEntry eq_entries[] = {
         { "Arma",     _eq_wpn  },
         { "Armadura", _eq_arm  },
@@ -413,7 +419,7 @@ void InventoryPanel::render(int screen_w, int screen_h) {
         { "Escudo",   _eq_shld },
     };
     for (const auto& eq : eq_entries) {
-        draw_equip_row(mx0 + PAD, cy, GRID_W, EQ_ROW_H, eq.label, eq.id);
+        draw_equip_row(mx0 + PAD, cy, GRID_W, EQ_ROW_H, eq.label, eq.slot_idx);
         cy += EQ_ROW_H + 3;
     }
     cy += 8;
@@ -458,16 +464,36 @@ void InventoryPanel::render(int screen_w, int screen_h) {
         const int BTN_W = (GRID_W - 6) / 2;
         const int BTN_H = 22;
 
-        // Botón equipar / usar
-        bool is_potion = (item_id == 40 || item_id == 41);
+        // Botón usar / desequipar / equipar
+        bool is_potion   = (item_id == 40 || item_id == 41);
+        
+        bool is_equipped = (_selected_slot == _eq_wpn  || _selected_slot == _eq_arm ||
+                            _selected_slot == _eq_helm || _selected_slot == _eq_shld);
+
+        const char* btn_label = is_potion    ? "Usar"
+                              : is_equipped  ? "Desequipar"
+                                             : "Equipar";
+
         _equip_btn = { mx0 + PAD, cy, BTN_W, BTN_H };
-        SDL_SetRenderDrawColor(_renderer.Get(), 25, 70, 25, 230);
-        SDL_RenderFillRect(_renderer.Get(), &_equip_btn);
-        SDL_SetRenderDrawColor(_renderer.Get(), 65, 155, 65, 200);
-        SDL_RenderDrawRect(_renderer.Get(), &_equip_btn);
-        draw_text_centered(is_potion ? "Usar" : "Equipar",
-                           _equip_btn.x + BTN_W / 2, _equip_btn.y + BTN_H / 2,
-                           SDL_Color{160, 235, 160, 255}, _font_sm);
+        if (is_equipped) {
+            // Estilo visual del botón Desequipar (marrón/ámbar)
+            SDL_SetRenderDrawColor(_renderer.Get(), 70, 50, 18, 230);
+            SDL_RenderFillRect(_renderer.Get(), &_equip_btn);
+            SDL_SetRenderDrawColor(_renderer.Get(), 170, 130, 50, 200);
+            SDL_RenderDrawRect(_renderer.Get(), &_equip_btn);
+            draw_text_centered(btn_label,
+                               _equip_btn.x + BTN_W / 2, _equip_btn.y + BTN_H / 2,
+                               SDL_Color{235, 200, 110, 255}, _font_sm);
+        } else {
+            // Estilo visual del botón Equipar/Usar (verde)
+            SDL_SetRenderDrawColor(_renderer.Get(), 25, 70, 25, 230);
+            SDL_RenderFillRect(_renderer.Get(), &_equip_btn);
+            SDL_SetRenderDrawColor(_renderer.Get(), 65, 155, 65, 200);
+            SDL_RenderDrawRect(_renderer.Get(), &_equip_btn);
+            draw_text_centered(btn_label,
+                               _equip_btn.x + BTN_W / 2, _equip_btn.y + BTN_H / 2,
+                               SDL_Color{160, 235, 160, 255}, _font_sm);
+        }
 
         // Botón tirar
         _drop_btn = { mx0 + PAD + BTN_W + 6, cy, BTN_W, BTN_H };
