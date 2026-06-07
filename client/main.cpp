@@ -1,11 +1,13 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <iostream>
-#include <exception>
 #include <string>
 #include <atomic>
+#include <memory>
 
 #include "game/GameLoop.h"
+#include "game/LoginScreen.h"
 #include "../common/socket.h"
 #include "../common/queue.h"
 #include "../common/protocol/dtos.h"
@@ -15,33 +17,23 @@
 #include "net/SenderThread.h"
 #include "net/ReceiverThread.h"
 
-static void print_menu() {
-    std::cout << "\n=== Argentum Online - Grupo 13 ===\n";
-    std::cout << "1. Iniciar sesion\n";
-    std::cout << "2. Registrarse\n";
-    std::cout << "Opcion: ";
-}
+static const char* FONT_PATH = "assets/fonts/DejaVuSans.ttf";
 
-static uint8_t select_race() {
-    std::cout << "Raza:\n";
-    std::cout << "  0 - Humano\n";
-    std::cout << "  1 - Elfo\n";
-    std::cout << "  2 - Enano\n";
-    std::cout << "  3 - Gnomo\n";
-    std::cout << "Opcion: ";
-    int r; std::cin >> r;
-    return static_cast<uint8_t>(r % 4);
-}
-
-static uint8_t select_class() {
-    std::cout << "Clase:\n";
-    std::cout << "  0 - Mago\n";
-    std::cout << "  1 - Clerigo\n";
-    std::cout << "  2 - Paladin\n";
-    std::cout << "  3 - Guerrero\n";
-    std::cout << "Opcion: ";
-    int c; std::cin >> c;
-    return static_cast<uint8_t>(c % 4);
+// Detiene y joinea todos los threads de red de forma segura.
+static void shutdown_net(std::atomic<bool>& connected,
+                         Queue<Command>& cq,
+                         Queue<SnapshotDTO>& sq,
+                         Queue<MapaDTO>& mq,
+                         SenderThread& sender,
+                         ReceiverThread& receiver) {
+    connected = false;
+    try { cq.close(); } catch (...) {}
+    try { sq.close(); } catch (...) {}
+    try { mq.close(); } catch (...) {}
+    sender.stop();
+    receiver.stop();
+    sender.join();
+    receiver.join();
 }
 
 int main(int argc, char* argv[]) try {
@@ -49,81 +41,108 @@ int main(int argc, char* argv[]) try {
         std::cerr << "Uso: " << argv[0] << " <host> <puerto>\n";
         return 1;
     }
+    const std::string host = argv[1];
+    const std::string port = argv[2];
 
-    std::string host = argv[1];
-    std::string port = argv[2];
+    SDL2pp::SDL sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
-    // Conectar al servidor
-    Socket socket(host.c_str(), port.c_str());
-
-    // Colas
-    Queue<Command>     command_queue;
-    Queue<SnapshotDTO> snapshot_queue;
-    Queue<MapaDTO>     map_queue;
-
-    std::atomic<bool> connected(true);
-    SenderThread      sender(socket, command_queue);
-    ReceiverThread    receiver(socket, snapshot_queue, map_queue, connected);
-
-    sender.start();
-    receiver.start();
-
-    // Login / Registro por consola 
-    print_menu();
-    int opcion; std::cin >> opcion;
-    std::cin.ignore();
-
-    std::string username;
-    std::cout << "Usuario: ";
-    std::getline(std::cin, username);
-
-    if (opcion == 2) {
-        uint8_t race = select_race();
-        uint8_t cls  = select_class();
-        command_queue.push(Command::register_player(username, race, cls));
-    } else {
-        command_queue.push(Command::login(username));
+    if (TTF_Init() != 0) {
+        std::cerr << "TTF_Init: " << TTF_GetError() << "\n";
+        return 1;
     }
-
-    // SDL
-    SDL2pp::SDL sdl(SDL_INIT_VIDEO);
 
     SDL2pp::Window window(
         "Argentum Online - Grupo 13",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        800, 600,
+        900, 620,
         SDL_WINDOW_RESIZABLE
     );
-
     SDL2pp::Renderer renderer(
         window, -1,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
     );
 
-    // GameLoop
-    try {
-        GameLoop game_loop(window, renderer,
-                           &command_queue, &snapshot_queue,
-                           &map_queue, &connected);
-        game_loop.run();
-    } catch (const std::exception& e) {
-        std::cerr << "GameLoop error: " << e.what() << "\n";
-    } catch (...) {
-        std::cerr << "GameLoop error: excepcion desconocida\n";
+    std::string pending_error;  // error del servidor para mostrar en el próximo login
+
+    while (true) {
+        // Mostrar pantalla de login/registro
+        LoginScreen login_screen(window, renderer, FONT_PATH);
+        if (!pending_error.empty()) {
+            login_screen.set_error(pending_error);
+            pending_error.clear();
+        }
+        LoginResult result = login_screen.run();
+
+        if (result.cancelled) break;  // salida limpia
+
+        // Validación local
+        if (result.username.empty()) { pending_error = "Ingresa un nombre."; continue; }
+        if (result.username.size() > 20) { pending_error = "Nombre demasiado largo (max 20)."; continue; }
+        for (char c : result.username) {
+            if (c == ' ') { pending_error = "El nombre no puede tener espacios."; break; }
+        }
+        if (!pending_error.empty()) continue;
+
+        // Conectar socket
+        std::unique_ptr<Socket> sock;
+        try {
+            sock = std::make_unique<Socket>(host.c_str(), port.c_str());
+        } catch (const std::exception& e) {
+            pending_error = std::string("No se pudo conectar: ") + e.what();
+            continue;
+        }
+
+        // Threads de red
+        Queue<Command>     command_queue;
+        Queue<SnapshotDTO> snapshot_queue;
+        Queue<MapaDTO>     map_queue;
+        std::atomic<bool>  connected(true);
+
+        SenderThread   sender(*sock, command_queue);
+        ReceiverThread receiver(*sock, snapshot_queue, map_queue, connected);
+        sender.start();
+        receiver.start();
+
+        // Enviar handshake
+        if (result.do_register)
+            command_queue.push(Command::register_player(result.username, result.race, result.cls));
+        else
+            command_queue.push(Command::login(result.username));
+
+        // Esperar respuesta del servidor
+        std::string error_msg;
+        HandshakeResult hs = receiver.wait_handshake(error_msg);
+
+        if (hs != HandshakeResult::OK) {
+            shutdown_net(connected, command_queue, snapshot_queue, map_queue, sender, receiver);
+            pending_error = error_msg.empty()
+                ? "Usuario invalido o ya existente."
+                : error_msg;
+            continue;
+        }
+
+        // GameLoop
+        try {
+            GameLoop game_loop(window, renderer,
+                               &command_queue, &snapshot_queue,
+                               &map_queue, &connected);
+            game_loop.run();
+        } catch (const std::exception& e) {
+            std::cerr << "GameLoop error: " << e.what() << "\n";
+        } catch (...) {
+            std::cerr << "GameLoop: excepcion desconocida\n";
+        }
+
+        // Cleanup y salir
+        shutdown_net(connected, command_queue, snapshot_queue, map_queue, sender, receiver);
+        break;  // sesión terminada: no volver al login
     }
 
-    // Shutdown 
-    connected = false;
-    command_queue.close();
-    snapshot_queue.close();
-    map_queue.close();
-    sender.stop();
-    receiver.stop();
-    sender.join();
-    receiver.join();
-
+    TTF_Quit();
     return 0;
+
 } catch (const std::exception& e) {
-    std::cerr << "Error: " << e.what() << "\n";
+    std::cerr << "Error fatal: " << e.what() << "\n";
+    TTF_Quit();
     return 1;
 }

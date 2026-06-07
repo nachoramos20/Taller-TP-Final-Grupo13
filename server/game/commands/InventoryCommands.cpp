@@ -19,42 +19,19 @@ void EquipCommand::execute(World& world) {
     if (def.kind == ItemKind::NONE || def.kind == ItemKind::POTION ||
         def.kind == ItemKind::GOLD) return;
 
-    if (static_cast<Class>(p->cls) == Class::WARRIOR &&
-        def.kind == ItemKind::WEAPON_RANGED && def.mana_cost > 0) {
+    if (static_cast<Class>(p->cls) == Class::WARRIOR && def.mana_cost > 0) {
         world.push_message(client_id, 0, "El Guerrero no puede usar magia.");
         return;
     }
 
     EquipSlot slot = Items::equip_slot_for(def.kind);
 
-    if (slot == EquipSlot::WEAPON) {
-        bool new_is_magic   = (def.mana_cost > 0);
-        bool curr_is_magic  = false;
-        
-        // Ahora p->equipped_weapon guarda el SLOT (0-15). Necesitamos verificar si ese slot es válido.
-        // Usamos una constante mágica como 0xFF (255) para indicar "NADA EQUIPADO".
-        if (p->equipped_weapon != 0xFF) {
-            uint8_t curr_item_id = p->inventory[p->equipped_weapon];
-            if (Items::exists(static_cast<ItemId>(curr_item_id))) {
-                curr_is_magic = (Items::get(static_cast<ItemId>(curr_item_id)).mana_cost > 0);
-            }
-        }
-        if (new_is_magic != curr_is_magic && p->equipped_weapon != 0xFF) {
-            world.push_message(client_id, 0, "No puedes tener arma y báculo equipados a la vez.");
-            return;
-        }
-    }
-
-    // En lugar de guardar el "raw_id", guardamos el "inv_slot" (el índice de la mochila)
-    // Si ya había algo equipado en ese slot corporal, simplemente se pisa por el nuevo slot elegido.
     switch (slot) {
         case EquipSlot::WEAPON: p->equipped_weapon = inv_slot; break;
         case EquipSlot::ARMOR:  p->equipped_armor  = inv_slot; break;
         case EquipSlot::HELMET: p->equipped_helmet = inv_slot; break;
         case EquipSlot::SHIELD: p->equipped_shield = inv_slot; break;
     }
-    // YA NO HACEMOS: p->inventory[inv_slot] = prev; 
-    // El ítem se queda intacto en la mochila.
 }
 
 UnequipCommand::UnequipCommand(uint16_t c, EquipSlot s) : client_id(c), slot(s) {}
@@ -63,8 +40,7 @@ void UnequipCommand::execute(World& world) {
     PlayerData* p = world.get_player_mutable(client_id);
     if (!p || p->is_ghost) return;
 
-    // Ya no necesitamos buscar un slot libre ni mover ítems de lugar.
-    // Simplemente marcamos el slot del cuerpo como "vacío" usando 0xFF.
+    // Marcamos el slot del cuerpo como "vacío" usando 0xFF.
     switch (slot) {
         case EquipSlot::WEAPON: p->equipped_weapon = 0xFF; break;
         case EquipSlot::ARMOR:  p->equipped_armor  = 0xFF; break;
