@@ -25,6 +25,9 @@ std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_i
         case MsgType::MEDITATE:     return receive_meditate(client_id);
         case MsgType::RESURRECT:    return receive_resurrect(client_id);
         case MsgType::LOGOUT:       return receive_logout(client_id);
+        case MsgType::CHAT_COMMAND: return receive_chat_command(client_id);
+        case MsgType::NPC_INTERACT: return receive_npc_interact(client_id);
+
         default: return nullptr;
     }
 }
@@ -75,6 +78,16 @@ std::shared_ptr<ResurrectCommand> ServerProtocol::receive_resurrect(uint16_t cli
 
 std::shared_ptr<LogoutCommand> ServerProtocol::receive_logout(uint16_t client_id) {
     return std::make_shared<LogoutCommand>(client_id);
+}
+
+std::shared_ptr<ChatCommand> ServerProtocol::receive_chat_command(uint16_t client_id) {
+    std::string text = recv_str8();
+    return std::make_shared<ChatCommand>(client_id, std::move(text));
+}
+
+std::shared_ptr<NpcInteractCommand> ServerProtocol::receive_npc_interact(uint16_t client_id) {
+    uint16_t tn; socket.recvall(&tn, sizeof(tn));
+    return std::make_shared<NpcInteractCommand>(client_id, ntohs(tn));
 }
 
 void ServerProtocol::send_login_ok(uint16_t entity_id) {

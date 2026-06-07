@@ -3,9 +3,11 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL.h>
 #include <atomic>
+#include <memory>
 #include <vector>
 
 #include "../game/PlayerState.h"
+#include "../game/ChatWidget.h"
 #include "../render/Camera.h"
 #include "../render/AssetManager.h"
 #include "../render/AnimationSystem.h"
@@ -17,9 +19,9 @@
 #include "../net/Command.h"
 
 static constexpr int MAP_SIZE        = 100;
-static constexpr int OBJ_SUP_TILES   = 6;         
-static constexpr int OBJ_SUP_SIZE    = OBJ_SUP_TILES * TILE_SIZE;  
-static constexpr int OBJ_SUP_TICKS_PER_FRAME = 8;  // velocidad de animación
+static constexpr int OBJ_SUP_TILES   = 6;
+static constexpr int OBJ_SUP_SIZE    = OBJ_SUP_TILES * TILE_SIZE;
+static constexpr int OBJ_SUP_TICKS_PER_FRAME = 8;
 
 class GameLoop {
 public:
@@ -37,6 +39,7 @@ public:
 private:
     void handle_events();
     void handle_input();
+    void handle_mouse_click(int mouse_x, int mouse_y);
     void update(float dt);
     void apply_snapshot(const SnapshotDTO& snap);
     void apply_map(const MapaDTO& map);
@@ -70,4 +73,6 @@ private:
     SpriteConfig     _sprite_config;
     TileConfig       _tile_config;
     ObjectSupConfig  _obj_sup_config;
+
+    std::unique_ptr<ChatWidget> _chat;
 };

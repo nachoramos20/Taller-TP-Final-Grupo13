@@ -1,0 +1,174 @@
+#include "Commands.h"
+#include "../Items.h"
+#include <sstream>
+#include <vector>
+
+ChatCommand::ChatCommand(uint16_t c, std::string cmd)
+    : client_id(c), cmd(std::move(cmd)) {}
+
+void ChatCommand::execute(World& world) {
+    std::istringstream ss(cmd);
+    std::string token;
+    ss >> token;
+
+    if (!token.empty() && token[0] == '@') {
+        handle_private_msg(world, cmd);
+        return;
+    }
+
+    std::string rest;
+    std::getline(ss, rest);
+    if (!rest.empty() && rest[0] == ' ') rest = rest.substr(1);
+
+    if (token == "/meditar")        { handle_meditar(world); }
+    else if (token == "/resucitar") { handle_resucitar(world); }
+    else if (token == "/curar")     { handle_curar(world); }
+    else if (token == "/depositar") { handle_depositar(world, rest); }
+    else if (token == "/retirar")   { handle_retirar(world, rest); }
+    else if (token == "/listar")    { handle_listar(world); }
+    else if (token == "/comprar")   { handle_comprar(world, rest); }
+    else if (token == "/vender")    { handle_vender(world, rest); }
+    else if (token == "/tomar")     { handle_tomar(world); }
+    else if (token == "/tirar")     { handle_tirar(world, rest); }
+    else if (token == "/fundar-clan")   { handle_fundar_clan(world, rest); }
+    else if (token == "/unirse")        { handle_unirse(world, rest); }
+    else if (token == "/revisar-clan")  { handle_revisar_clan(world); }
+    else if (token == "/clan-aceptar")  { handle_clan_aceptar(world, rest); }
+    else if (token == "/clan-rechazar") { handle_clan_rechazar(world, rest); }
+    else if (token == "/clan-ban")      { handle_clan_ban(world, rest); }
+    else if (token == "/clan-kick")     { handle_clan_kick(world, rest); }
+    else if (token == "/dejar-clan")    { handle_dejar_clan(world); }
+    else {
+        world.push_message(client_id, 0, "Comando desconocido: " + token);
+    }
+}
+
+void ChatCommand::handle_meditar(World& world) {
+    MeditateCommand(client_id).execute(world);
+}
+
+void ChatCommand::handle_resucitar(World& world) {
+    ResurrectCommand(client_id).execute(world);
+}
+
+void ChatCommand::handle_curar(World& world) {
+    PlayerData* p = world.get_player_mutable(client_id);
+    if (!p) return;
+    if (p->is_ghost) {
+        world.push_message(client_id, 0, "Eres un fantasma, no puedes ser curado.");
+        return;
+    }
+    p->hp = p->max_hp;
+    p->mp = p->max_mp;
+    world.push_message(client_id, 0, "El sacerdote te curó completamente.");
+}
+
+void ChatCommand::handle_comprar(World& world, const std::string& item_name) {
+    PlayerData* p = world.get_player_mutable(client_id);
+    if (!p || p->is_ghost) return;
+
+    int free_slot = -1;
+    for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i)
+        if (p->inventory[i] == 0) { free_slot = i; break; }
+    if (free_slot == -1) {
+        world.push_message(client_id, 0, "Inventario lleno.");
+        return;
+    }
+
+    static const std::vector<ItemId> all_items = {
+        ItemId::SWORD, ItemId::AXE, ItemId::HAMMER,
+        ItemId::SIMPLE_BOW, ItemId::COMPOUND_BOW,
+        ItemId::ELVEN_FLUTE, ItemId::GEMMED_STAFF,
+        ItemId::LEATHER_ARMOR, ItemId::PLATE_ARMOR,
+        ItemId::HOOD, ItemId::IRON_HELMET, ItemId::MAGIC_HAT,
+        ItemId::TURTLE_SHIELD, ItemId::IRON_SHIELD,
+        ItemId::HEALTH_POTION, ItemId::MANA_POTION,
+    };
+
+    for (ItemId iid : all_items) {
+        const ItemDef& def = Items::get(iid);
+        if (def.name == item_name) {
+            uint32_t price = def.max_value * 10 + 10;
+            if (p->gold < price) {
+                world.push_message(client_id, 0, "Oro insuficiente. Necesitas " + std::to_string(price) + " de oro.");
+                return;
+            }
+            p->gold -= price;
+            p->inventory[free_slot] = static_cast<uint8_t>(iid);
+            world.push_message(client_id, 0, "Compraste " + item_name + " por " + std::to_string(price) + " de oro.");
+            return;
+        }
+    }
+    world.push_message(client_id, 0, "El vendedor no tiene ese artículo.");
+}
+
+void ChatCommand::handle_vender(World& world, const std::string& item_name) {
+    PlayerData* p = world.get_player_mutable(client_id);
+    if (!p || p->is_ghost) return;
+
+    for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i) {
+        if (p->inventory[i] == 0) continue;
+        if (!Items::exists(static_cast<ItemId>(p->inventory[i]))) continue;
+        const ItemDef& def = Items::get(static_cast<ItemId>(p->inventory[i]));
+        if (def.name == item_name) {
+            uint32_t sell_price = (def.max_value * 10 + 10) / 2;
+            p->gold += sell_price;
+            p->inventory[i] = 0;
+            world.push_message(client_id, 0, "Vendiste " + item_name + " por " + std::to_string(sell_price) + " de oro.");
+            return;
+        }
+    }
+    world.push_message(client_id, 0, "No tienes ese objeto para vender.");
+}
+
+void ChatCommand::handle_tomar(World& world) {
+    PickCommand(client_id).execute(world);
+}
+
+void ChatCommand::handle_tirar(World& world, const std::string& args) {
+    PlayerData* p = world.get_player_mutable(client_id);
+    if (!p) return;
+
+    try {
+        int slot = std::stoi(args);
+        if (slot >= 0 && slot < PlayerData::INVENTORY_SIZE) {
+            DropCommand(client_id, static_cast<uint8_t>(slot)).execute(world);
+            return;
+        }
+    } catch (...) {}
+
+    for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i) {
+        if (p->inventory[i] == 0) continue;
+        if (Items::exists(static_cast<ItemId>(p->inventory[i]))) {
+            if (Items::get(static_cast<ItemId>(p->inventory[i])).name == args) {
+                DropCommand(client_id, static_cast<uint8_t>(i)).execute(world);
+                return;
+            }
+        }
+    }
+    world.push_message(client_id, 0, "No encontraste ese objeto en tu inventario.");
+}
+
+void ChatCommand::handle_private_msg(World& world, const std::string& full_cmd) {
+    std::istringstream ss(full_cmd);
+    std::string target_token;
+    ss >> target_token;
+    if (target_token.size() < 2) return;
+    std::string target_nick = target_token.substr(1);
+
+    std::string msg;
+    std::getline(ss, msg);
+    if (!msg.empty() && msg[0] == ' ') msg = msg.substr(1);
+
+    uint16_t target_id = world.find_player_by_name(target_nick);
+    if (target_id == 0) {
+        world.push_message(client_id, 0, "Jugador " + target_nick + " no encontrado.");
+        return;
+    }
+
+    const PlayerData* sender = world.find_player(client_id);
+    std::string sender_name  = sender ? std::string(sender->username) : "?";
+
+    world.push_message(target_id, 2, "[" + sender_name + " → ti]: " + msg);
+    world.push_message(client_id,  2, "[tú → " + target_nick + "]: " + msg);
+}

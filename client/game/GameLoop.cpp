@@ -1,6 +1,8 @@
 #include "GameLoop.h"
 #include <algorithm>
 
+static const char* CHAT_FONT_PATH = "assets/fonts/DejaVuSans.ttf";
+
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
     : _window(window), _renderer(renderer),
       _camera(window.GetWidth(), window.GetHeight()),
@@ -14,6 +16,8 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
       _tile_config("config/tiles.toml", "floor"),
       _obj_sup_config("config/objects_sup.toml") {
     _anim.load();
+    _chat = std::make_unique<ChatWidget>(renderer, CHAT_FONT_PATH);
+    _chat->add_message("Bienvenido. Enter para chatear.");
 }
 
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
@@ -35,6 +39,13 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
       _tile_config("config/tiles.toml", "floor"),
       _obj_sup_config("config/objects_sup.toml") {
     _anim.load();
+    _chat = std::make_unique<ChatWidget>(renderer, CHAT_FONT_PATH);
+    _chat->add_message("Conectado. Enter para chatear. Click izq sobre enemigo para atacar.");
+    _chat->on_submit([this](const std::string& text) {
+        if (!_command_queue) return;
+        _command_queue->push(Command::chat(text));
+        _chat->add_message("> " + text);
+    });
 }
 
 void GameLoop::run() {
@@ -58,19 +69,25 @@ void GameLoop::stop() { _running = false; }
 void GameLoop::handle_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) {
-            _running = false;
-        } else if (event.type == SDL_KEYDOWN
-                   && event.key.keysym.sym == SDLK_ESCAPE) {
+        if (event.type == SDL_QUIT) { _running = false; continue; }
+
+        if (_chat && _chat->handle_event(event)) continue;
+
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
             _running = false;
         } else if (event.type == SDL_WINDOWEVENT
                    && event.window.event == SDL_WINDOWEVENT_RESIZED) {
             _camera.set_screen_size(event.window.data1, event.window.data2);
+        } else if (event.type == SDL_MOUSEBUTTONDOWN
+                   && event.button.button == SDL_BUTTON_LEFT) {
+            handle_mouse_click(event.button.x, event.button.y);
         }
     }
 }
 
+
 void GameLoop::handle_input() {
+    if (_chat && _chat->input_active()) return;
     if (!_command_queue && _player.is_moving()) return;
 
     Uint32 now = SDL_GetTicks();
@@ -141,6 +158,10 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
         _last_entities = *snap.entities;
     _my_entity_id = snap.self_entity_id;
     _current_tick = snap.tick;
+    
+    if (_chat && snap.messages) {
+        for (const auto& m : *snap.messages) _chat->add_message(m.text);
+    }
 
     if (!snap.entities) return;
     for (const auto& e : *snap.entities) {
@@ -162,6 +183,7 @@ void GameLoop::render() {
     render_objects();
     render_entities();
     render_obj_sup();
+    if (_chat) _chat->render(_window.GetWidth(), _window.GetHeight());
     _renderer.Present();
 }
 
@@ -311,5 +333,25 @@ void GameLoop::render_entities() {
                      e.sprite_id, dir,
                      screen_x, screen_y,
                      _current_tick, moving);
+    }
+}
+
+void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
+    if (!_command_queue) return;
+
+    // Convertir click a tile en el mundo
+    int world_x = mouse_x - _camera.tile_to_screen_x(0);
+    int world_y = mouse_y - _camera.tile_to_screen_y(0);
+    int tile_x = world_x / TILE_SIZE;
+    int tile_y = world_y / TILE_SIZE;
+
+    // Buscar entidad en ese tile (no a uno mismo)
+    for (const auto& e : _last_entities) {
+        if (e.entity_id == _my_entity_id) continue;
+        if (e.pos_x == tile_x && e.pos_y == tile_y) {
+            _command_queue->push(Command::attack(e.entity_id));
+            _chat->add_message("Atacando a " + (e.username.empty() ? std::string("#") + std::to_string(e.entity_id) : e.username));
+            return;
+        }
     }
 }
