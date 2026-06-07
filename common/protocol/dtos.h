@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include <memory>
 
 struct EntityDTO {
     uint16_t entity_id;
