@@ -266,11 +266,13 @@ void GameLoop::render_obj_sup() {
     int map_w = _map.width;
     int map_h = _map.height;
 
-    int margin = 6;
-    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / TILE_SIZE - margin);
-    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / TILE_SIZE - margin);
-    int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + margin * 2);
-    int last_y  = std::min(map_h - 1, first_y + screen_h / TILE_SIZE + margin * 2);
+    int margin_x = 8;
+    int margin_y_up   = 6;
+    int margin_y_down = 16;
+    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / TILE_SIZE - margin_x);
+    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / TILE_SIZE - margin_y_up);
+    int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + margin_x * 2);
+    int last_y  = std::min(map_h - 1, first_y + screen_h / TILE_SIZE + margin_y_up + margin_y_down);
 
     for (int ty = first_y; ty <= last_y; ty++) {
         for (int tx = first_x; tx <= last_x; tx++) {

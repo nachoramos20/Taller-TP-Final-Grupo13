@@ -31,7 +31,8 @@ static constexpr uint16_t F_CAM_NORTE        = 68;
 static constexpr uint16_t F_CAM_SUR          = 69;
 static constexpr uint16_t F_CAM_ESTE         = 70;
 static constexpr uint16_t F_CAM_OESTE        = 71;
-static constexpr uint16_t F_CAM_INTERSECCION = 72;
+static constexpr uint16_t F_CAM_INTERSECCION    = 72;
+static constexpr uint16_t F_CAM_INTER_VH        = 89;
 static constexpr uint16_t F_FRANJA_CIU_N    = 73;
 static constexpr uint16_t F_FRANJA_CIU_S    = 74;
 static constexpr uint16_t F_FRANJA_CIU_E    = 75;
@@ -79,6 +80,22 @@ static constexpr uint16_t O_ESTATUA_DER      = 32;
 static constexpr uint16_t O_COMERCIO_CIUDAD  = 33;
 static constexpr uint16_t O_CASA_CIUDAD_1    = 34;
 static constexpr uint16_t O_CASA_CIUDAD_2    = 35;
+// cementerio
+static constexpr uint16_t O_CASA_CEM        = 36;
+static constexpr uint16_t O_REJAS_CEM       = 37;
+static constexpr uint16_t O_LAPIDA_2        = 38;
+static constexpr uint16_t O_LAPIDA_3        = 39;
+static constexpr uint16_t O_LAPIDA_4        = 40;
+static constexpr uint16_t O_LAPIDA_5        = 41;
+static constexpr uint16_t O_LAPIDA_6        = 42;
+static constexpr uint16_t O_LINTERNA_CEM    = 43;
+static constexpr uint16_t O_PALA_1          = 44;
+static constexpr uint16_t O_PALA_2          = 45;
+static constexpr uint16_t O_TUMBA_1         = 46;
+static constexpr uint16_t O_TUMBA_2         = 47;
+static constexpr uint16_t O_TUMBA_3         = 48;
+static constexpr uint16_t O_TUMBA_4         = 49;
+static constexpr uint16_t O_TUMBA_5         = 50;
 
 // límites del mapa
 static constexpr int MAP_W = 100;
@@ -108,6 +125,7 @@ static constexpr int CEM_Y1 = 55, CEM_Y2 = 66;
 // caminos
 static constexpr int CAM_H_Y1 = 39, CAM_H_Y2 = 41;
 static constexpr int CAM_V_X1 = 38, CAM_V_X2 = 40;
+static constexpr int CAM_V2_X1 = 59;
 
 // costa
 static constexpr int FRANJA_X1 = 82;
@@ -232,22 +250,32 @@ void MapaBuilder::build_caminos(MapaDTO& mapa) {
         for (int x = CAM_V_X1; x <= CAM_V_X2; x++)
             get_tile(mapa, x, y).floor_id = F_PASTO_1X1;
 
+    for (int y = CAM_H_Y1 + 1; y <= CEM_Y1 - 2; y++)
+        for (int x = CAM_V2_X1; x <= CAM_V2_X1 + 2; x++)
+            get_tile(mapa, x, y).floor_id = F_PASTO_1X1;
+
     // Camino horizontal
     for (int x = 2; x <= FRANJA_X1 - 3; x += 3) {
-        if (x == CAM_V_X1) continue;
+        if (x == CAM_V_X1 || x == CAM_V2_X1) continue;
         get_tile(mapa, x, CAM_H_Y1).floor_id = F_CAM_H_BASE + (rand() % F_CAM_H_COUNT);
     }
     get_tile(mapa, 2,  CAM_H_Y1).floor_id = F_CAM_OESTE;
     get_tile(mapa, 77, CAM_H_Y1).floor_id = F_CAM_ESTE;
 
-    // Camino vertical debajo de la intersección
+    // Camino vertical (pueblo) debajo de la intersección
     for (int y = CAM_H_Y1 + 3; y < PUE_Y1 - 3; y += 3)
         get_tile(mapa, CAM_V_X1, y).floor_id = F_CAM_V_BASE + (rand() % F_CAM_V_COUNT);
     get_tile(mapa, CAM_V_X1, PUE_Y1 - 4).floor_id = F_CAM_SUR;
     get_tile(mapa, CAM_V_X1, CIU_Y2 + 2).floor_id = F_CAM_NORTE;
 
-    // Intersección
-    get_tile(mapa, CAM_V_X1, CAM_H_Y1).floor_id = F_CAM_INTERSECCION;
+    // Camino vertical (cementerio) desde la intersección hasta la franja norte
+    for (int y = CAM_H_Y1 + 3; y < CEM_Y1 - 3; y += 3)
+        get_tile(mapa, CAM_V2_X1, y).floor_id = F_CAM_V_BASE + (rand() % F_CAM_V_COUNT);
+    get_tile(mapa, CAM_V2_X1, CEM_Y1 - 4).floor_id = F_CAM_SUR; 
+
+    // Intersecciones con el camino horizontal
+    get_tile(mapa, CAM_V_X1,  CAM_H_Y1).floor_id = F_CAM_INTERSECCION;
+    get_tile(mapa, CAM_V2_X1, CAM_H_Y1).floor_id = F_CAM_INTER_VH;
 }
 
 void MapaBuilder::build_ciudad(MapaDTO& mapa) {
@@ -322,9 +350,54 @@ void MapaBuilder::build_pueblo(MapaDTO& mapa) {
 }
 
 void MapaBuilder::build_cementerio(MapaDTO& mapa) {
+    fill_rect(mapa, CEM_X1, CEM_Y1, CEM_X2, CEM_Y2, F_TIERRA_BASE);
+
+    // Franja pasto <-> tierra alrededor del cementerio
+    for (int x = CEM_X1; x <= CEM_X2; x++)
+        get_tile(mapa, x, CEM_Y1 - 1).floor_id = F_FRANJA_PUE_N;
+    for (int x = CEM_X1; x <= CEM_X2; x++)
+        get_tile(mapa, x, CEM_Y2 + 1).floor_id = F_FRANJA_PUE_S;
     for (int y = CEM_Y1; y <= CEM_Y2; y++)
-        for (int x = CEM_X1; x <= CEM_X2; x++)
-            get_tile(mapa, x, y).floor_id = F_TIERRA_BASE;
+        get_tile(mapa, CEM_X2 + 1, y).floor_id = F_FRANJA_PUE_E;
+    for (int y = CEM_Y1; y <= CEM_Y2; y++)
+        get_tile(mapa, CEM_X1 - 1, y).floor_id = F_FRANJA_PUE_W;
+    get_tile(mapa, CEM_X1 - 1, CEM_Y1 - 1).floor_id = F_FRANJA_PUE_NW;
+    get_tile(mapa, CEM_X2 + 1, CEM_Y1 - 1).floor_id = F_FRANJA_PUE_NE;
+    get_tile(mapa, CEM_X1 - 1, CEM_Y2 + 1).floor_id = F_FRANJA_PUE_SW;
+    get_tile(mapa, CEM_X2 + 1, CEM_Y2 + 1).floor_id = F_FRANJA_PUE_SE;
+
+    for (int x = CEM_X1 - 2; x <= CEM_X2 + 2; x++)
+        get_tile(mapa, x, CEM_Y1 - 2).floor_id = F_PASTO_1X1;
+    for (int y = CEM_Y1 - 2; y <= CEM_Y2 + 1; y++)
+        get_tile(mapa, CEM_X1 - 2, y).floor_id = F_PASTO_1X1;
+
+    // Rejas perimetrales completas
+    place_object_sup(mapa, 61, CEM_Y2, O_REJAS_CEM);
+
+    // Casa central
+    place_object_sup(mapa, 60, 61, O_CASA_CEM);
+
+    // Tumbas
+    place_object_sup(mapa, 57, 58, O_TUMBA_1);
+    place_object_sup(mapa, 57, 61, O_TUMBA_2);
+    place_object_sup(mapa, 64, 58, O_TUMBA_3);
+    place_object_sup(mapa, 64, 61, O_TUMBA_4);
+
+    // Lápidas
+    place_object_sup(mapa, 56, 57, O_LAPIDA_2);
+    place_object_sup(mapa, 56, 60, O_LAPIDA_3);
+    place_object_sup(mapa, 65, 57, O_LAPIDA_4);
+    place_object_sup(mapa, 65, 60, O_LAPIDA_5);
+
+    // Linternas
+    place_object_sup(mapa, 59, 62, O_LINTERNA_CEM);
+    place_object_sup(mapa, 62, 62, O_LINTERNA_CEM);
+
+    // Tumba, lápida y palas en el sector sur
+    place_object_sup(mapa, 56, 64, O_TUMBA_5);
+    place_object_sup(mapa, 63, 64, O_LAPIDA_6);
+    place_object_sup(mapa, 57, 66, O_PALA_1);
+    place_object_sup(mapa, 63, 66, O_PALA_2);
 }
 
 void MapaBuilder::build_costa(MapaDTO& mapa) {

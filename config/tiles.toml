@@ -165,6 +165,10 @@ tile_size = 3
 path = "assets/tiles/floor/camino_interseccion.png"
 tile_size = 3
 
+[floor.89]
+path = "assets/tiles/floor/interseccion_vertical_horizontal.png"
+tile_size = 3
+
 # Franjas de transición pasto <--> ciudad ------------------------------------
 [floor.73]
 path = "assets/tiles/floor/franja_pasto_piso_rocoso_n.png"

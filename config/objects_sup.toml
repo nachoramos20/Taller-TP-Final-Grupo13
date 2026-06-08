@@ -49,203 +49,219 @@ frames = [
 #  Árboles bosque ---------------------------------------------------
 [object_sup.4]
 size_tiles = 5
-frames = [
-    "assets/sprites/objects_sup/arboles/arbol_recto_1.png",
-]
+frames = ["assets/sprites/objects_sup/arboles/arbol_recto_1.png"]
 
 [object_sup.5]
 size_tiles = 5
-frames = [
-    "assets/sprites/objects_sup/arboles/arbol_recto_2.png",
-]
+frames = ["assets/sprites/objects_sup/arboles/arbol_recto_2.png"]
 
 [object_sup.6]
 size_tiles = 5
-frames = [
-    "assets/sprites/objects_sup/arboles/arbol_recto_3.png",
-]
+frames = ["assets/sprites/objects_sup/arboles/arbol_recto_3.png"]
 
 [object_sup.7]
 size_tiles = 5
-frames = [
-    "assets/sprites/objects_sup/arboles/pino_recto.png",
-]
+frames = ["assets/sprites/objects_sup/arboles/pino_recto.png"]
 
 [object_sup.8]
 size_tiles = 5
-frames = [
-    "assets/sprites/objects_sup/arboles/pino_recto_2.png",
-]
+frames = ["assets/sprites/objects_sup/arboles/pino_recto_2.png"]
 
 [object_sup.9]
 size_tiles = 5
-frames = [
-    "assets/sprites/objects_sup/arboles/pino_torcido.png",
-]
+frames = ["assets/sprites/objects_sup/arboles/pino_torcido.png"]
 
 [object_sup.10]
 size_tiles = 5
-frames = [
-    "assets/sprites/objects_sup/arboles/pino_torcido_izq.png",
-]
+frames = ["assets/sprites/objects_sup/arboles/pino_torcido_izq.png"]
 
 #  Mar -------------------------------------------------------------
 [object_sup.11]
 size_tiles = 5
-frames = [
-    "assets/sprites/objects_sup/mar/barco_hundido.png",
-]
+frames = ["assets/sprites/objects_sup/mar/barco_hundido.png"]
 
 [object_sup.12]
 size_tiles = 3
-frames = [
-    "assets/sprites/objects_sup/mar/canoa_hundida.png",
-]
+frames = ["assets/sprites/objects_sup/mar/canoa_hundida.png"]
 
 #  Flores ----------------------------------------------------------
 [object_sup.13]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/flores/flores_1.png",
-]
+frames = ["assets/sprites/objects_sup/flores/flores_1.png"]
 
 [object_sup.14]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/flores/flores_2.png",
-]
+frames = ["assets/sprites/objects_sup/flores/flores_2.png"]
 
 [object_sup.15]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/flores/flores_3.png",
-]
+frames = ["assets/sprites/objects_sup/flores/flores_3.png"]
 
 [object_sup.16]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/flores/flores_4.png",
-]
+frames = ["assets/sprites/objects_sup/flores/flores_4.png"]
 
 [object_sup.17]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/flores/flores_5.png",
-]
+frames = ["assets/sprites/objects_sup/flores/flores_5.png"]
 
 [object_sup.18]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/flores/flores_6.png",
-]
+frames = ["assets/sprites/objects_sup/flores/flores_6.png"]
 
 [object_sup.19]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/flores/flores_7.png",
-]
+frames = ["assets/sprites/objects_sup/flores/flores_7.png"]
 
 [object_sup.20]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/mar/barril_flotando_1.png",
-]
+frames = ["assets/sprites/objects_sup/mar/barril_flotando_1.png"]
 
 [object_sup.21]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/mar/cuernos_flotando_1.png",
-]
+frames = ["assets/sprites/objects_sup/mar/cuernos_flotando_1.png"]
 
 [object_sup.22]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/mar/esqueleto_flotando_1.png",
-]
+frames = ["assets/sprites/objects_sup/mar/esqueleto_flotando_1.png"]
 
 [object_sup.23]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/mar/esqueleto_flotando_2.png",
-]
+frames = ["assets/sprites/objects_sup/mar/esqueleto_flotando_2.png"]
 
 [object_sup.24]
 size_tiles = 1
-frames = [
-    "assets/sprites/objects_sup/mar/esqueleto_flotando_3.png",
-]
+frames = ["assets/sprites/objects_sup/mar/esqueleto_flotando_3.png"]
+
 #  Edificios ciudad/pueblo -------------------------------------------------
 [object_sup.25]
 size_tiles  = 12
 width_tiles = 8
-frames = [
-    "assets/sprites/objects_sup/edificios/iglesia_ciudad_1.png",
-]
+frames = ["assets/sprites/objects_sup/edificios/iglesia_ciudad_1.png"]
 
 [object_sup.26]
 size_tiles  = 10
 width_tiles = 7
-frames = [
-    "assets/sprites/objects_sup/edificios/iglesia_pueblo.png",
-]
+frames = ["assets/sprites/objects_sup/edificios/iglesia_pueblo.png"]
 
 [object_sup.27]
 size_tiles  = 6
 width_tiles = 8
-frames = [
-    "assets/sprites/objects_sup/edificios/banco_ciudad.png",
-]
+frames = ["assets/sprites/objects_sup/edificios/banco_ciudad.png"]
 
 [object_sup.28]
 size_tiles  = 7
 width_tiles = 6
-frames = [
-    "assets/sprites/objects_sup/edificios/comercio_pueblo.png",
-]
+frames = ["assets/sprites/objects_sup/edificios/comercio_pueblo.png"]
 
 [object_sup.29]
 size_tiles  = 5
 width_tiles = 5
-frames = [
-    "assets/sprites/objects_sup/edificios/casa_pueblo_1.png",
-]
+frames = ["assets/sprites/objects_sup/edificios/casa_pueblo_1.png"]
 
 [object_sup.30]
 size_tiles  = 5
 width_tiles = 5
-frames = [
-    "assets/sprites/objects_sup/edificios/casa_pueblo_2.png",
-]
+frames = ["assets/sprites/objects_sup/edificios/casa_pueblo_2.png"]
 
 [object_sup.31]
 size_tiles = 3
-frames = [
-    "assets/sprites/objects_sup/edificios/estatua_izq.png",
-]
+frames = ["assets/sprites/objects_sup/edificios/estatua_izq.png"]
 
 [object_sup.32]
 size_tiles = 3
-frames = [
-    "assets/sprites/objects_sup/edificios/estatua_der.png",
-]
+frames = ["assets/sprites/objects_sup/edificios/estatua_der.png"]
 
 [object_sup.33]
 size_tiles  = 9
 width_tiles = 7
-frames = [
-    "assets/sprites/objects_sup/edificios/comercio_ciudad.png",
-]
+frames = ["assets/sprites/objects_sup/edificios/comercio_ciudad.png"]
 
 [object_sup.34]
 size_tiles  = 7
 width_tiles = 6
-frames = [
-    "assets/sprites/objects_sup/edificios/casa_ciudad_1.png",
-]
+frames = ["assets/sprites/objects_sup/edificios/casa_ciudad_1.png"]
 
 [object_sup.35]
 size_tiles  = 7
 width_tiles = 6
-frames = [
-    "assets/sprites/objects_sup/edificios/casa_ciudad_2.png",
-]
+frames = ["assets/sprites/objects_sup/edificios/casa_ciudad_2.png"]
+
+#  Cementerio -------------------------------------------------------
+[object_sup.36]
+size_tiles  = 6
+width_tiles = 3
+offset_x=32
+frames = ["assets/sprites/objects_sup/cementerio/casa_cementerio.png"]
+
+[object_sup.37]
+size_tiles  = 14
+width_tiles = 12
+offset_x    = -32
+offset_y    = 28
+frames = ["assets/sprites/objects_sup/cementerio/rejas_cementerio.png"]
+
+[object_sup.38]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/lapida_2.png"]
+
+[object_sup.39]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/lapida_3.png"]
+
+[object_sup.40]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/lapida_4.png"]
+
+[object_sup.41]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/lapida_5.png"]
+
+[object_sup.42]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/lapida_6.png"]
+
+[object_sup.43]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/linterna_cementerio.png"]
+
+[object_sup.44]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/pala_cementerio_1.png"]
+
+[object_sup.45]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/pala_cementerio_2.png"]
+
+[object_sup.46]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/tumba_1.png"]
+
+[object_sup.47]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/tumba_2.png"]
+
+[object_sup.48]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/tumba_3.png"]
+
+[object_sup.49]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/tumba_4.png"]
+
+[object_sup.50]
+size_tiles  = 1
+width_tiles = 1
+frames = ["assets/sprites/objects_sup/cementerio/tumba_5.png"]
