@@ -39,7 +39,7 @@ void StatsPanel::update(uint16_t hp, uint16_t max_hp, uint16_t mp, uint16_t max_
 std::vector<StatsPanel::SpellInfo> StatsPanel::spells_for_class(uint8_t cls) const {
     switch (static_cast<Class>(cls)) {
         case Class::MAGE: return {
-            { (uint8_t)SpellId::BURST,                     "Explosión",                     9  },
+            { (uint8_t)SpellId::BURST,                     "Explosión",                     9 },
             { (uint8_t)SpellId::POISON_AREA,               "Area de veneno",               18 },
             { (uint8_t)SpellId::SKULL_EXPLOSION,           "Explosión calavérica",         32 },
         };
@@ -49,7 +49,7 @@ std::vector<StatsPanel::SpellInfo> StatsPanel::spells_for_class(uint8_t cls) con
             { (uint8_t)SpellId::THUNDERSTORM,              "Tormenta eléctrica",           38 },
         };
         case Class::PALADIN: return {
-            { (uint8_t)SpellId::ORB_OF_EMPTINESS,          "Orbe de vacío",                10  },
+            { (uint8_t)SpellId::ORB_OF_EMPTINESS,          "Orbe de vacío",                10 },
             { (uint8_t)SpellId::VACUUM_GAP,                "Brecha de vacío",              22 },
             { (uint8_t)SpellId::TORNADO_OF_DARKNESS,       "Tornado de oscuridad",         40 },
         };
