@@ -85,19 +85,19 @@ enum class NpcId : uint8_t {
 
 // Hechizos
 enum class SpellId : uint8_t {
-    NONE             = 0,
+    NONE                      = 0,
     // Mago
-    MAGIC_MISSILE    = 1,
-    FIREBALL         = 2,
-    LIGHTNING        = 3,
+    BURST                     = 1,
+    POISON_AREA               = 2,
+    SKULL_EXPLOSION           = 3,
     // Clérigo
-    DIVINE_SMITE     = 4,
-    HOLY_FLAME       = 5,
-    LIGHT_STORM      = 6,
+    ICE_ORB                   = 4,
+    GRAVITATIONAL_TORNAD      = 5,
+    THUNDERSTORM              = 6,
     // Paladín
-    SACRED_STRIKE    = 7,
-    FAITH_SPEAR      = 8,
-    JUDGEMENT        = 9,
+    ORB_OF_EMPTINESS          = 7,
+    VACUUM_GAP                = 8,
+    TORNADO_OF_DARKNESS       = 9,
 };
 
 // Devuelve true si el item habilita el lanzamiento de hechizos

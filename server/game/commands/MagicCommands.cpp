@@ -58,26 +58,18 @@ struct SpellDef {
 // El índice 0 es el placeholder NONE.
 static const SpellDef& spell_def(uint8_t id) {
     static const SpellDef defs[] = {
-        // 0 — NONE
-        { "Ninguno",          Class::MAGE,    0,    1.0f,  0,  1 },
-        // 1 — MAGIC_MISSILE
-        { "Misil Mágico",     Class::MAGE,    8,    2.0f, 10,  6 },
-        // 2 — FIREBALL
-        { "Bola de Fuego",    Class::MAGE,   20,    3.0f, 30,  6 },
-        // 3 — LIGHTNING
-        { "Rayo",             Class::MAGE,   35,    4.5f, 50,  8 },
-        // 4 — DIVINE_SMITE
-        { "Castigo Divino",   Class::CLERIC, 10,    2.0f,  8,  5 },
-        // 5 — HOLY_FLAME
-        { "Llama Sagrada",    Class::CLERIC, 22,    2.8f, 25,  5 },
-        // 6 — LIGHT_STORM
-        { "Tormenta de Luz",  Class::CLERIC, 40,    3.5f, 60,  6 },
-        // 7 — SACRED_STRIKE
-        { "Golpe Sagrado",    Class::PALADIN, 6,    1.8f,  6,  2 },
-        // 8 — FAITH_SPEAR
-        { "Lanza de Fe",      Class::PALADIN,15,    2.5f, 20,  4 },
-        // 9 — JUDGEMENT
-        { "Juicio",           Class::PALADIN,30,    3.2f, 45,  4 },
+        { "Ninguno",                  Class::MAGE,          0,     1.0f,      0,     1 },
+        { "Explosión",                Class::MAGE,          9,     4.5f,     50,     8 },
+        { "Area de veneno",           Class::MAGE,         18,     3.0f,     30,     6 },
+        { "Explosión calavérica",     Class::MAGE,         32,     2.0f,     10,     6 },
+
+        { "Orbe de hielo",            Class::CLERIC,        8,     2.8f,     25,     5 },
+        { "Tornado gravitatorio",     Class::CLERIC,       22,     2.0f,      8,     5 },
+        { "Tormenta eléctrica",       Class::CLERIC,       38,     3.5f,     60,     6 },
+
+        { "Orbe de vacío",            Class::PALADIN,      10,     2.5f,     20,     4 },
+        { "Brecha de vacío",          Class::PALADIN,      22,     3.2f,     45,     4 },
+        { "Tornado de oscuridad",     Class::PALADIN,      40,     1.8f,      6,     2 },
     };
     static constexpr int TABLE_SIZE = static_cast<int>(sizeof(defs)/sizeof(defs[0]));
     if (id == 0 || id >= TABLE_SIZE) return defs[0];
