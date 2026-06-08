@@ -7,9 +7,10 @@
 
 struct ObjectSupEntry {
     std::vector<std::string> frames;
-    int size_tiles = 1;
-    int offset_x   = 0;
-    int offset_y   = 0;
+    int size_tiles  = 1;  
+    int width_tiles = 1;  
+    int offset_x    = 0;
+    int offset_y    = 0;
 };
 
 class ObjectSupConfig {

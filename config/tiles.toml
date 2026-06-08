@@ -2,7 +2,7 @@
 
 #  Piedra ----------------------------------
 [floor.1]
-path = "assets/tiles/floor/piedra.png"
+path = "assets/tiles/floor/piso_rocoso.png"
 
 [floor.9]
 path = "assets/tiles/floor/pasto_1.png"
@@ -38,16 +38,7 @@ tile_size = 2
 
 #  Tierra (pueblo) -------------------------
 [floor.10]
-path = "assets/tiles/floor/tierra_1.png"
-
-[floor.11]
-path = "assets/tiles/floor/tierra_2.png"
-
-[floor.12]
-path = "assets/tiles/floor/tierra_3.png"
-
-[floor.13]
-path = "assets/tiles/floor/tierra_4.png"
+path = "assets/tiles/floor/tierra.png"
 
 #  Franja tierra-pasto ----------------------------------
 [floor.40]
@@ -173,3 +164,69 @@ tile_size = 3
 [floor.72]
 path = "assets/tiles/floor/camino_interseccion.png"
 tile_size = 3
+
+# Franjas de transición pasto <--> ciudad ------------------------------------
+[floor.73]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_n.png"
+tile_size = 1
+
+[floor.74]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_s.png"
+tile_size = 1
+
+[floor.75]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_e.png"
+tile_size = 1
+
+[floor.76]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_w.png"
+tile_size = 1
+
+[floor.77]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_nw.png"
+tile_size = 1
+
+[floor.78]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_ne.png"
+tile_size = 1
+
+[floor.79]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_sw.png"
+tile_size = 1
+
+[floor.80]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_se.png"
+tile_size = 1
+
+# Franjas de transición pasto ↔ pueblo (tierra) --------------------------
+[floor.81]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_n.png"
+tile_size = 1
+
+[floor.82]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_s.png"
+tile_size = 1
+
+[floor.83]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_e.png"
+tile_size = 1
+
+[floor.84]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_w.png"
+tile_size = 1
+
+[floor.85]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_nw.png"
+tile_size = 1
+
+[floor.86]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_ne.png"
+tile_size = 1
+
+[floor.87]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_sw.png"
+tile_size = 1
+
+[floor.88]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_se.png"
+tile_size = 1

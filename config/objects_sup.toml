@@ -174,3 +174,78 @@ size_tiles = 1
 frames = [
     "assets/sprites/objects_sup/mar/esqueleto_flotando_3.png",
 ]
+#  Edificios ciudad/pueblo -------------------------------------------------
+[object_sup.25]
+size_tiles  = 12
+width_tiles = 8
+frames = [
+    "assets/sprites/objects_sup/edificios/iglesia_ciudad_1.png",
+]
+
+[object_sup.26]
+size_tiles  = 10
+width_tiles = 7
+frames = [
+    "assets/sprites/objects_sup/edificios/iglesia_pueblo.png",
+]
+
+[object_sup.27]
+size_tiles  = 6
+width_tiles = 8
+frames = [
+    "assets/sprites/objects_sup/edificios/banco_ciudad.png",
+]
+
+[object_sup.28]
+size_tiles  = 7
+width_tiles = 6
+frames = [
+    "assets/sprites/objects_sup/edificios/comercio_pueblo.png",
+]
+
+[object_sup.29]
+size_tiles  = 5
+width_tiles = 5
+frames = [
+    "assets/sprites/objects_sup/edificios/casa_pueblo_1.png",
+]
+
+[object_sup.30]
+size_tiles  = 5
+width_tiles = 5
+frames = [
+    "assets/sprites/objects_sup/edificios/casa_pueblo_2.png",
+]
+
+[object_sup.31]
+size_tiles = 3
+frames = [
+    "assets/sprites/objects_sup/edificios/estatua_izq.png",
+]
+
+[object_sup.32]
+size_tiles = 3
+frames = [
+    "assets/sprites/objects_sup/edificios/estatua_der.png",
+]
+
+[object_sup.33]
+size_tiles  = 9
+width_tiles = 7
+frames = [
+    "assets/sprites/objects_sup/edificios/comercio_ciudad.png",
+]
+
+[object_sup.34]
+size_tiles  = 7
+width_tiles = 6
+frames = [
+    "assets/sprites/objects_sup/edificios/casa_ciudad_1.png",
+]
+
+[object_sup.35]
+size_tiles  = 7
+width_tiles = 6
+frames = [
+    "assets/sprites/objects_sup/edificios/casa_ciudad_2.png",
+]

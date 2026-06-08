@@ -283,16 +283,17 @@ void GameLoop::render_obj_sup() {
             int frame_idx = (_current_tick / OBJ_SUP_TICKS_PER_FRAME)
                             % static_cast<int>(entry.frames.size());
 
-            int obj_size = entry.size_tiles * TILE_SIZE;
+            int obj_h = entry.size_tiles  * TILE_SIZE;
+            int obj_w = entry.width_tiles * TILE_SIZE;
 
             int sx = _camera.tile_to_screen_x(tx);
             int sy = _camera.tile_to_screen_y(ty);
 
             SDL2pp::Rect dst(
-                sx - (obj_size - TILE_SIZE) / 2 + entry.offset_x,
-                sy - obj_size + TILE_SIZE + entry.offset_y,
-                obj_size,
-                obj_size
+                sx - (obj_w - TILE_SIZE) / 2 + entry.offset_x,
+                sy - obj_h + TILE_SIZE + entry.offset_y,
+                obj_w,
+                obj_h
             );
 
             _renderer.Copy(_assets.get(entry.frames[frame_idx]),
