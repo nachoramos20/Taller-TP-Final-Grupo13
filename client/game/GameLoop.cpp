@@ -193,11 +193,16 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
 
     // Actualizar StatsPanel
     if (_stats) {
+        uint8_t eq_weapon_item = 0;
+        if (snap.equipped_wpn != 0xFF && snap.equipped_wpn < SnapshotDTO::INVENTORY_SIZE)
+            eq_weapon_item = snap.inventory[snap.equipped_wpn];
         _stats->update(snap.hp, snap.max_hp,
-                       snap.mp, snap.max_mp,
-                       snap.gold, snap.level,
-                       snap.meditating != 0,
-                       snap.is_ghost   != 0);
+                    snap.mp, snap.max_mp,
+                    snap.gold, snap.level,
+                    snap.meditating != 0,
+                    snap.is_ghost   != 0,
+                    snap.cls,
+                    eq_weapon_item);
     }
 
     // Actualizar InventoryPanel
@@ -401,10 +406,18 @@ void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
     for (const auto& e : _last_entities) {
         if (e.entity_id == _my_entity_id) continue;
         if (e.pos_x == tile_x && e.pos_y == tile_y) {
-            _command_queue->push(Command::attack(e.entity_id));
-            _chat->add_message("Atacando a " + (e.username.empty()
-                ? std::string("#") + std::to_string(e.entity_id)
-                : e.username));
+            if (_stats && _stats->cast_mode_active() && _stats->selected_spell() != 0) {
+                _command_queue->push(Command::cast_spell(e.entity_id,
+                                                        _stats->selected_spell()));
+                _chat->add_message("Lanzando hechizo a " + (e.username.empty()
+                    ? std::string("#") + std::to_string(e.entity_id)
+                    : e.username));
+            } else {
+                _command_queue->push(Command::attack(e.entity_id));
+                _chat->add_message("Atacando a " + (e.username.empty()
+                    ? std::string("#") + std::to_string(e.entity_id)
+                    : e.username));
+            }
             return;
         }
     }

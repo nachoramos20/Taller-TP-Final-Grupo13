@@ -120,6 +120,7 @@ public:
         send_uint16(snap.max_mp);
         send_uint32(snap.exp);
         send_uint8(snap.level);
+        send_uint8(snap.cls);
         send_uint32(snap.gold);
         send_uint8(snap.is_ghost);
         send_uint8(snap.meditating);
@@ -151,6 +152,13 @@ public:
             send_str8(m.text);
         }
     }
+
+void send_cast_spell(uint16_t target_id, uint8_t spell_id) {
+    send_uint8(static_cast<uint8_t>(MsgType::CAST_SPELL));
+    send_uint16(target_id);
+    send_uint8(spell_id);
+}
+
 
 private:
     void send_uint8(uint8_t value) {

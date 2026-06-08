@@ -44,6 +44,7 @@ private:
     std::shared_ptr<LogoutCommand>      receive_logout(uint16_t client_id);
     std::shared_ptr<ChatCommand>        receive_chat_command(uint16_t client_id);
     std::shared_ptr<NpcInteractCommand> receive_npc_interact(uint16_t client_id);
+    std::shared_ptr<CastSpellCommand> receive_cast_spell(uint16_t client_id);
 
     uint8_t  recv_uint8();
     uint16_t recv_uint16();

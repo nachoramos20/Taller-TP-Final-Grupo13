@@ -49,6 +49,7 @@ public:
         s.max_mp         = recv_uint16();
         s.exp            = recv_uint32();
         s.level          = recv_uint8();
+        s.cls            = recv_uint8();
         s.gold           = recv_uint32();
         s.is_ghost       = recv_uint8();
         s.meditating     = recv_uint8();

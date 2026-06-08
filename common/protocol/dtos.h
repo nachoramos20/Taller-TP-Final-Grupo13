@@ -31,6 +31,7 @@ struct SnapshotDTO {
     uint16_t max_mp;
     uint32_t exp;
     uint8_t  level;
+    uint8_t  cls;
     uint32_t gold;
     uint8_t  is_ghost;
     uint8_t  meditating;

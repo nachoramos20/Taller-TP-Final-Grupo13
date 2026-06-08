@@ -27,6 +27,7 @@ std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_i
         case MsgType::LOGOUT:       return receive_logout(client_id);
         case MsgType::CHAT_COMMAND: return receive_chat_command(client_id);
         case MsgType::NPC_INTERACT: return receive_npc_interact(client_id);
+        case MsgType::CAST_SPELL:   return receive_cast_spell(client_id);
 
         default: return nullptr;
     }
@@ -42,6 +43,12 @@ std::shared_ptr<MoveCommand> ServerProtocol::receive_move_command(uint16_t clien
 std::shared_ptr<AttackCommand> ServerProtocol::receive_attack(uint16_t client_id) {
     uint16_t tn; socket.recvall(&tn, sizeof(tn));
     return std::make_shared<AttackCommand>(client_id, ntohs(tn));
+}
+
+std::shared_ptr<CastSpellCommand> ServerProtocol::receive_cast_spell(uint16_t client_id) {
+    uint16_t tn; socket.recvall(&tn, sizeof(tn));
+    uint8_t spell_id = recv_uint8();
+    return std::make_shared<CastSpellCommand>(client_id, ntohs(tn), spell_id);
 }
 
 std::shared_ptr<EquipCommand> ServerProtocol::receive_equip(uint16_t client_id) {
@@ -119,7 +126,9 @@ void ServerProtocol::send_snapshot(const SnapshotDTO& snap) {
     send_uint16(snap.self_entity_id);
     send_uint16(snap.hp); send_uint16(snap.max_hp);
     send_uint16(snap.mp); send_uint16(snap.max_mp);
-    send_uint32(snap.exp); send_uint8(snap.level); send_uint32(snap.gold);
+    send_uint32(snap.exp); send_uint8(snap.level);
+    send_uint8(snap.cls);
+    send_uint32(snap.gold);
     send_uint8(snap.is_ghost); send_uint8(snap.meditating);
 
     send_uint8((uint8_t)SnapshotDTO::INVENTORY_SIZE);

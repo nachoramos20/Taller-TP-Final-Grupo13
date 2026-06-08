@@ -18,6 +18,7 @@ enum class MsgType : uint8_t {
     USE_ITEM     = 0x0C,
     MEDITATE     = 0x0D,
     RESURRECT    = 0x0E,
+    CAST_SPELL   = 0x0F,
 
     // Servidor → Cliente
     LOGIN_OK     = 0x10,
@@ -48,7 +49,6 @@ enum class EquipSlot : uint8_t {
     WEAPON = 0, ARMOR = 1, HELMET = 2, SHIELD = 3,
 };
 
-// === IDs de items (sprite_id en EntityDTO cuando es ITEM_FLOOR / inventario) ===
 enum class ItemId : uint8_t {
     NONE              = 0,
     // Armas c/c
@@ -78,10 +78,27 @@ enum class ItemId : uint8_t {
 };
 
 enum class NpcId : uint8_t {
-    GOBLIN   = 1,
-    SKELETON = 2,
-    ZOMBIE   = 3,
-    SPIDER   = 4,
-    ORC      = 5,
-    GOLEM    = 6,
+    GOBLIN = 1, SKELETON = 2, ZOMBIE = 3, SPIDER = 4, ORC = 5, GOLEM = 6,
 };
+
+// Hechizos
+enum class SpellId : uint8_t {
+    NONE             = 0,
+    // Mago
+    MAGIC_MISSILE    = 1,
+    FIREBALL         = 2,
+    LIGHTNING        = 3,
+    // Clérigo
+    DIVINE_SMITE     = 4,
+    HOLY_FLAME       = 5,
+    LIGHT_STORM      = 6,
+    // Paladín
+    SACRED_STRIKE    = 7,
+    FAITH_SPEAR      = 8,
+    JUDGEMENT        = 9,
+};
+
+inline bool weapon_enables_spells(uint8_t item_id) {
+    return item_id == static_cast<uint8_t>(ItemId::ELVEN_FLUTE) ||
+           item_id == static_cast<uint8_t>(ItemId::GEMMED_STAFF);
+}
