@@ -125,7 +125,11 @@ bool InventoryPanel::handle_event(const SDL_Event& e, Queue<Command>* cmd_queue)
         if (_selected_slot >= 0 && _inventory[_selected_slot] != 0) {
             if (in(mx, my, _equip_btn)) {
                 if (cmd_queue) {
-                    if      (_selected_slot == _eq_wpn)  cmd_queue->push(Command::unequip(EquipSlot::WEAPON));
+                    uint8_t item_id = _inventory[_selected_slot];
+                    bool is_potion = (item_id == 40 || item_id == 41);
+                    if (is_potion) {
+                        cmd_queue->push(Command::use_item(static_cast<uint8_t>(_selected_slot)));
+                    } else if (_selected_slot == _eq_wpn)  cmd_queue->push(Command::unequip(EquipSlot::WEAPON));
                     else if (_selected_slot == _eq_arm)  cmd_queue->push(Command::unequip(EquipSlot::ARMOR));
                     else if (_selected_slot == _eq_helm) cmd_queue->push(Command::unequip(EquipSlot::HELMET));
                     else if (_selected_slot == _eq_shld) cmd_queue->push(Command::unequip(EquipSlot::SHIELD));
