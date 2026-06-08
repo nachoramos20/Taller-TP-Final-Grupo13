@@ -3,9 +3,11 @@
 
 static const char* CHAT_FONT_PATH = "assets/fonts/DejaVuSans.ttf";
 
+// Constructores
+
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
     : _window(window), _renderer(renderer),
-      _camera(window.GetWidth(), window.GetHeight()),
+      _camera(window.GetWidth(), window.GetHeight(), StatsPanel::PANEL_W),
       _running(false),
       _command_queue(nullptr), _snapshot_queue(nullptr),
       _map_queue(nullptr), _connected(nullptr),
@@ -16,7 +18,9 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
       _tile_config("config/tiles.toml", "floor"),
       _obj_sup_config("config/objects_sup.toml") {
     _anim.load();
-    _chat = std::make_unique<ChatWidget>(renderer, CHAT_FONT_PATH);
+    _chat      = std::make_unique<ChatWidget>(renderer, CHAT_FONT_PATH);
+    _stats     = std::make_unique<StatsPanel>(renderer, CHAT_FONT_PATH);
+    _inventory = std::make_unique<InventoryPanel>(renderer, CHAT_FONT_PATH);
     _chat->add_message("Bienvenido. Enter para chatear.");
 }
 
@@ -26,7 +30,7 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                    Queue<MapaDTO>* map_queue,
                    std::atomic<bool>* connected)
     : _window(window), _renderer(renderer),
-      _camera(window.GetWidth(), window.GetHeight()),
+      _camera(window.GetWidth(), window.GetHeight(), StatsPanel::PANEL_W),
       _running(false),
       _command_queue(command_queue),
       _snapshot_queue(snapshot_queue),
@@ -39,7 +43,10 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
       _tile_config("config/tiles.toml", "floor"),
       _obj_sup_config("config/objects_sup.toml") {
     _anim.load();
-    _chat = std::make_unique<ChatWidget>(renderer, CHAT_FONT_PATH);
+    _chat      = std::make_unique<ChatWidget>(renderer, CHAT_FONT_PATH);
+    _stats     = std::make_unique<StatsPanel>(renderer, CHAT_FONT_PATH);
+    _inventory = std::make_unique<InventoryPanel>(renderer, CHAT_FONT_PATH);
+
     _chat->add_message("Conectado. Enter para chatear. Click izq sobre enemigo para atacar.");
     _chat->on_submit([this](const std::string& text) {
         if (!_command_queue) return;
@@ -47,6 +54,8 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
         _chat->add_message("> " + text);
     });
 }
+
+// run / stop
 
 void GameLoop::run() {
     _running = true;
@@ -66,10 +75,25 @@ void GameLoop::run() {
 
 void GameLoop::stop() { _running = false; }
 
+// handle_events
+
 void GameLoop::handle_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) { _running = false; continue; }
+
+        // El inventario tiene prioridad (modal)
+        if (_inventory && _inventory->is_visible()) {
+            if (_inventory->handle_event(event, _command_queue)) continue;
+        }
+
+        // Panel de stats (botón inventario)
+        if (_stats && _stats->handle_event(event)) {
+            if (_stats->inventory_button_clicked() && _inventory) {
+                _inventory->toggle();
+            }
+            continue;
+        }
 
         if (_chat && _chat->handle_event(event)) continue;
 
@@ -77,7 +101,7 @@ void GameLoop::handle_events() {
             _running = false;
         } else if (event.type == SDL_WINDOWEVENT
                    && event.window.event == SDL_WINDOWEVENT_RESIZED) {
-            _camera.set_screen_size(event.window.data1, event.window.data2);
+            _camera.set_screen_size(event.window.data1, event.window.data2, StatsPanel::PANEL_W);
         } else if (event.type == SDL_MOUSEBUTTONDOWN
                    && event.button.button == SDL_BUTTON_LEFT) {
             handle_mouse_click(event.button.x, event.button.y);
@@ -85,8 +109,10 @@ void GameLoop::handle_events() {
     }
 }
 
+// handle_input
 
 void GameLoop::handle_input() {
+    if (_inventory && _inventory->is_visible()) return;
     if (_chat && _chat->input_active()) return;
     if (!_command_queue && _player.is_moving()) return;
 
@@ -126,6 +152,8 @@ void GameLoop::handle_input() {
     }
 }
 
+// update
+
 void GameLoop::update(float dt) {
     if (_connected && !(*_connected)) {
         _running = false;
@@ -158,9 +186,30 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
         _last_entities = *snap.entities;
     _my_entity_id = snap.self_entity_id;
     _current_tick = snap.tick;
-    
+
     if (_chat && snap.messages) {
         for (const auto& m : *snap.messages) _chat->add_message(m.text);
+    }
+
+    // Actualizar StatsPanel
+    if (_stats) {
+        uint8_t eq_weapon_item = 0;
+        if (snap.equipped_wpn != 0xFF && snap.equipped_wpn < SnapshotDTO::INVENTORY_SIZE)
+            eq_weapon_item = snap.inventory[snap.equipped_wpn];
+        _stats->update(snap.hp, snap.max_hp,
+                    snap.mp, snap.max_mp,
+                    snap.gold, snap.level,
+                    snap.meditating != 0,
+                    snap.is_ghost   != 0,
+                    snap.cls,
+                    eq_weapon_item);
+    }
+
+    // Actualizar InventoryPanel
+    if (_inventory) {
+        _inventory->update(snap.inventory,
+                           snap.equipped_wpn, snap.equipped_arm,
+                           snap.equipped_helm, snap.equipped_shld);
     }
 
     if (!snap.entities) return;
@@ -176,6 +225,8 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
     }
 }
 
+// render
+
 void GameLoop::render() {
     _renderer.SetDrawColor(0, 0, 0, 255);
     _renderer.Clear();
@@ -183,9 +234,18 @@ void GameLoop::render() {
     render_objects();
     render_entities();
     render_obj_sup();
-    if (_chat) _chat->render(_window.GetWidth(), _window.GetHeight());
+
+    int sw = _window.GetWidth();
+    int sh = _window.GetHeight();
+
+    if (_chat)      _chat->render(sw, sh);
+    if (_stats)     _stats->render(sw, sh);
+    if (_inventory) _inventory->render(sw, sh);
+
     _renderer.Present();
 }
+
+// ─── render_floor ────────────────────────────────────────────────────────────
 
 void GameLoop::render_floor() {
     int screen_w = _window.GetWidth();
@@ -199,7 +259,6 @@ void GameLoop::render_floor() {
     int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + margin * 2);
     int last_y  = std::min(map_h - 1, first_y + screen_h / TILE_SIZE + margin * 2);
 
-    // tiles normales
     for (int ty = first_y; ty <= last_y; ty++) {
         for (int tx = first_x; tx <= last_x; tx++) {
             uint16_t floor_id = 0;
@@ -207,7 +266,7 @@ void GameLoop::render_floor() {
                 floor_id = _map.tiles[ty * _map.width + tx].floor_id;
 
             const TileEntry& entry = _tile_config.get(floor_id);
-            if (entry.is_large()) continue;  // skip en pasada 1
+            if (entry.is_large()) continue;
 
             int sx = _camera.tile_to_screen_x(tx);
             int sy = _camera.tile_to_screen_y(ty);
@@ -231,7 +290,6 @@ void GameLoop::render_floor() {
         }
     }
 
-    // tiles grandes
     for (int ty = 0; ty < map_h; ty++) {
         int sy_raw = _camera.tile_to_screen_y(ty);
         if (sy_raw > screen_h + 384) continue;
@@ -246,8 +304,6 @@ void GameLoop::render_floor() {
             if (!entry.is_large()) continue;
 
             int sx = _camera.tile_to_screen_x(tx);
-
-            // Culling de columna con margen para offsets
             if (sx > screen_w + 384) continue;
             if (sx < -(384 + 384))   continue;
 
@@ -342,18 +398,29 @@ void GameLoop::render_entities() {
 void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
     if (!_command_queue) return;
 
-    // Convertir click a tile en el mundo
+    // El panel de stats ocupa el borde derecho; no procesar clicks ahí
+    if (mouse_x >= _window.GetWidth() - StatsPanel::PANEL_W) return;
+
     int world_x = mouse_x - _camera.tile_to_screen_x(0);
     int world_y = mouse_y - _camera.tile_to_screen_y(0);
     int tile_x = world_x / TILE_SIZE;
     int tile_y = world_y / TILE_SIZE;
 
-    // Buscar entidad en ese tile (no a uno mismo)
     for (const auto& e : _last_entities) {
         if (e.entity_id == _my_entity_id) continue;
         if (e.pos_x == tile_x && e.pos_y == tile_y) {
-            _command_queue->push(Command::attack(e.entity_id));
-            _chat->add_message("Atacando a " + (e.username.empty() ? std::string("#") + std::to_string(e.entity_id) : e.username));
+            if (_stats && _stats->cast_mode_active() && _stats->selected_spell() != 0) {
+                _command_queue->push(Command::cast_spell(e.entity_id,
+                                                        _stats->selected_spell()));
+                _chat->add_message("Lanzando hechizo a " + (e.username.empty()
+                    ? std::string("#") + std::to_string(e.entity_id)
+                    : e.username));
+            } else {
+                _command_queue->push(Command::attack(e.entity_id));
+                _chat->add_message("Atacando a " + (e.username.empty()
+                    ? std::string("#") + std::to_string(e.entity_id)
+                    : e.username));
+            }
             return;
         }
     }

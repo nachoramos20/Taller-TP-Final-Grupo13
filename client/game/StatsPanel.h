@@ -1,0 +1,62 @@
+#pragma once
+
+#include <SDL2pp/SDL2pp.hh>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <string>
+#include <cstdint>
+#include <vector>
+
+class StatsPanel {
+public:
+    StatsPanel(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size = 14);
+    ~StatsPanel();
+
+    void update(uint16_t hp, uint16_t max_hp, uint16_t mp, uint16_t max_mp,
+                uint32_t gold, uint8_t level, bool meditating, bool is_ghost,
+                uint8_t cls, uint8_t equipped_weapon_item_id);
+
+    bool handle_event(const SDL_Event& e);
+    void render(int screen_w, int screen_h);
+
+    bool inventory_button_clicked() const { return _inv_clicked; }
+
+    // Modo hechizo: si está activo, los clicks sobre enemigos lanzan _selected_spell.
+    bool    cast_mode_active() const { return _cast_mode; }
+    uint8_t selected_spell()  const { return _selected_spell; }
+
+    static constexpr int PANEL_W = 200;
+
+private:
+    void draw_text(const std::string& text, int x, int y, SDL_Color color);
+    void draw_bar(int x, int y, int w, int h, float fraction, SDL_Color fill, SDL_Color bg);
+    void draw_rounded_rect(int x, int y, int w, int h, SDL_Color color);
+
+    struct SpellInfo { uint8_t id; const char* label; uint16_t mana; };
+    std::vector<SpellInfo> spells_for_class(uint8_t cls) const;
+
+    SDL2pp::Renderer& _renderer;
+    TTF_Font*         _font      = nullptr;
+    int               _font_size;
+
+    uint16_t _hp = 0, _max_hp = 1;
+    uint16_t _mp = 0, _max_mp = 1;
+    uint32_t _gold = 0;
+    uint8_t  _level = 1;
+    bool     _meditating = false;
+    bool     _is_ghost   = false;
+    uint8_t  _cls = 3;              // por defecto guerrero (sin hechizos)
+    uint8_t  _eq_weapon_item = 0;   // item_id del arma equipada
+
+    SDL_Rect _inv_btn_rect {};
+    bool     _inv_clicked  = false;
+
+    // Hechizos
+    static constexpr int MAX_SPELL_BTNS = 3;
+    SDL_Rect _spell_btn_rect[MAX_SPELL_BTNS] {};
+    uint8_t  _spell_btn_id [MAX_SPELL_BTNS] { 0, 0, 0 };
+    int      _spell_btn_count = 0;
+
+    bool     _cast_mode      = false;
+    uint8_t  _selected_spell = 0;
+};

@@ -150,4 +150,14 @@ private:
     void handle_dejar_clan(World& world);
 };
 
+class CastSpellCommand : public ServerCommand {
+public:
+    CastSpellCommand(uint16_t client_id, uint16_t target_id, uint8_t spell_id);
+    void execute(World& world) override;
+private:
+    uint16_t client_id;
+    uint16_t target_id;
+    uint8_t  spell_id;
+};
+
 #endif // COMMANDS_H

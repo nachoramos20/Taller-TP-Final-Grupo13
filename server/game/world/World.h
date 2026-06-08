@@ -22,6 +22,7 @@
 #include "WorldClans.h"
 #include "WorldBank.h"
 #include "WorldNpcs.h"
+#include "WorldSpawner.h"
 #include "WorldSnapshot.h"
 
 // Façade del mundo. Mantiene la misma API pública que la versión monolítica
@@ -38,6 +39,7 @@ private:
     WorldClans      clans_;
     WorldBank       bank_;
     WorldNpcs       npcs_;
+    WorldSpawner    spawner_;
     WorldSnapshot   snapshot_;
 
 public:
@@ -106,6 +108,9 @@ public:
     void clear_broadcast_messages();
 
     const std::vector<NpcData>& get_npcs() const { return npcs_.all(); }
+
+    // ---- Spawner / Safe Zones ----
+    WorldSpawner& spawner() { return spawner_; }
 };
 
 #endif // WORLD_H

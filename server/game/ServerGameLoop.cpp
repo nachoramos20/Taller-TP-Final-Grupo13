@@ -19,12 +19,31 @@ void ServerGameLoop::run() {
     using clock = std::chrono::steady_clock;
     auto next_tick = clock::now();
 
-    // Spawnear algunos NPCs iniciales
-    world.spawn_npc(NpcId::GOBLIN,   20, 20);
-    world.spawn_npc(NpcId::SKELETON, 25, 25);
-    world.spawn_npc(NpcId::ZOMBIE,   30, 30);
-    world.spawn_npc(NpcId::SPIDER,   15, 35);
-    world.spawn_npc(NpcId::ORC,      40, 40);
+    // ── Configuración del spawner ──
+    auto& sp = world.spawner();
+    sp.set_global_cap(15);
+
+    // Bosque NO (x: 6..18, y: 6..45)
+    sp.add_zone(SpawnZone{
+        6, 6, 18, 45,
+        { NpcId::GOBLIN, NpcId::SPIDER, NpcId::SKELETON },
+        /*max_alive*/ 6, /*every*/ 30 * 6
+    });
+    // Bosque SO (x: 6..18, y: 55..93)
+    sp.add_zone(SpawnZone{
+        6, 55, 18, 93,
+        { NpcId::ZOMBIE, NpcId::SPIDER, NpcId::ORC },
+        /*max_alive*/ 6, /*every*/ 30 * 8
+    });
+    // Pueblo sur — bichos más fuertes
+    sp.add_zone(SpawnZone{
+        25, 60, 75, 95,
+        { NpcId::ORC, NpcId::GOLEM },
+        /*max_alive*/ 3, /*every*/ 30 * 12
+    });
+
+    // ── Zonas seguras (ciudad principal + plaza) ──
+    sp.add_safe_zone(SafeZone{ 25, 5, 75, 45 });  // ciudad
 
     while (should_keep_running()) {
         process_commands();
@@ -33,13 +52,12 @@ void ServerGameLoop::run() {
         world.clear_broadcast_messages();
 
         tick++;
-        if (tick % 60 == 0) {
-            save_players();
-        }
+        if (tick % 60 == 0) save_players();
         next_tick += std::chrono::milliseconds(SERVER_TICK_MS);
         std::this_thread::sleep_until(next_tick);
     }
 }
+
 
 void ServerGameLoop::stop() { Thread::stop(); }
 
@@ -86,7 +104,6 @@ void ServerGameLoop::update() {
     }
 
     world.tick_npcs();
-    cleanup_dead_npcs();
 }
 
 void ServerGameLoop::broadcast_snapshots() {
@@ -97,14 +114,6 @@ void ServerGameLoop::broadcast_snapshots() {
         SnapshotDTO snap = world.build_snapshot(client_id, tick, entities);
         queue_monitor.send_to(client_id, snap);
     }
-}
-
-void ServerGameLoop::cleanup_dead_npcs() {
-    auto& npcs = const_cast<std::vector<NpcData>&>(world.get_npcs());
-    npcs.erase(
-        std::remove_if(npcs.begin(), npcs.end(),
-            [](const NpcData& n){ return n.hp == 0; }),
-        npcs.end());
 }
 
 uint16_t ServerGameLoop::hp_regen_per_interval(const PlayerData& p) {

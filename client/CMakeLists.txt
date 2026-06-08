@@ -2,7 +2,10 @@ target_sources(argentum_grupo13_client
     PRIVATE
     main.cpp
     game/GameLoop.cpp
+    game/LoginScreen.cpp
     game/ChatWidget.cpp
+    game/StatsPanel.cpp
+    game/InventoryPanel.cpp
     render/Camera.cpp
     render/AssetManager.cpp
     render/AnimationSystem.cpp

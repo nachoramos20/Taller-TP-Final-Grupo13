@@ -8,6 +8,9 @@
 #include "../../common/MapaDTO.h"
 
 #include <atomic>
+#include <string>
+
+enum class HandshakeResult { PENDING, OK, ERROR };
 
 class ReceiverThread : public Thread {
 public:
@@ -21,10 +24,17 @@ public:
 
     uint16_t my_entity_id() const;
 
+    HandshakeResult wait_handshake(std::string& error_msg);
+
 private:
+    void game_loop_receive();
+
     Deserializer        _deserializer;
     Queue<SnapshotDTO>& _snapshot_queue;
     Queue<MapaDTO>&     _map_queue;
     std::atomic<bool>&  _connected;
     uint16_t            _my_entity_id;
+
+    Queue<std::string>  _login_ok_queue;    // contiene entity_id como string "OK:<id>"
+    Queue<std::string>  _login_error_queue; // contiene el mensaje de error
 };

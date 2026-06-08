@@ -18,7 +18,7 @@ int WorldNpcs::rand_range(int lo, int hi) {
     return std::uniform_int_distribution<int>(lo, hi)(rng);
 }
 
-void WorldNpcs::spawn(NpcId type, uint16_t x, uint16_t y) {
+void WorldNpcs::spawn_internal(NpcId type, uint16_t x, uint16_t y, uint8_t zone_id) {
     const NpcTemplate& tpl = Npcs::tpl(type);
     NpcData npc{};
     npc.entity_id    = id_alloc.allocate();
@@ -27,10 +27,13 @@ void WorldNpcs::spawn(NpcId type, uint16_t x, uint16_t y) {
     npc.pos_y        = y;
     npc.hp           = tpl.max_hp;
     npc.max_hp       = tpl.max_hp;
-    npc.move_timer   = 0;
-    npc.attack_timer = 0;
+    npc.zone_id      = zone_id;
     npcs.push_back(npc);
     collision.update(x, y, true);
+}
+
+void WorldNpcs::spawn(NpcId type, uint16_t x, uint16_t y) {
+    spawn_internal(type, x, y, 255);
 }
 
 NpcData* WorldNpcs::find(uint16_t id) {
@@ -39,15 +42,34 @@ NpcData* WorldNpcs::find(uint16_t id) {
     return nullptr;
 }
 
+void WorldNpcs::cleanup_dead() {
+    for (const auto& n : npcs) {
+        if (n.hp == 0) {
+            collision.update(n.pos_x, n.pos_y, false);
+            if (n.zone_id != 255 && n.zone_id < spawner.zones_mut().size()) {
+                auto& z = spawner.zones_mut()[n.zone_id];
+                if (z.alive_count > 0) z.alive_count--;
+            }
+        }
+    }
+    npcs.erase(
+        std::remove_if(npcs.begin(), npcs.end(),
+            [](const NpcData& n){ return n.hp == 0; }),
+        npcs.end());
+}
+
 void WorldNpcs::tick() {
+    // IA de cada NPC
     for (auto& npc : npcs) {
+        if (npc.hp == 0) continue;
         const NpcTemplate& tpl = Npcs::tpl(npc.type);
 
-        // Jugador vivo más cercano
+        // Jugador vivo más cercano (ignorando los que están en safe zone)
         PlayerData* nearest = nullptr;
         int best_dist = INT32_MAX;
         for (auto& [pid, player] : players.all_mutable()) {
             if (player.is_ghost) continue;
+            if (spawner.in_safe_zone(player.pos_x, player.pos_y)) continue; // no agro
             int dx = std::abs((int)npc.pos_x - (int)player.pos_x);
             int dy = std::abs((int)npc.pos_y - (int)player.pos_y);
             int dist = dx + dy;
@@ -56,7 +78,7 @@ void WorldNpcs::tick() {
 
         if (!nearest || best_dist > 15) continue;
 
-        // Ataque
+        // ── ATTACK ──
         if (npc.attack_timer == 0 && best_dist <= (int)tpl.attack_range + 1) {
             double dodge_roll = std::pow(
                 std::uniform_real_distribution<double>(0.0, 1.0)(rng),
@@ -71,21 +93,15 @@ void WorldNpcs::tick() {
                 dmg = std::max(1, dmg - def);
 
                 int armor_def = 0;
-                if (nearest->equipped_armor != 0 &&
-                        Items::exists(static_cast<ItemId>(nearest->equipped_armor))) {
-                    const auto& a = Items::get(static_cast<ItemId>(nearest->equipped_armor));
-                    armor_def += rand_range(a.min_value, a.max_value);
-                }
-                if (nearest->equipped_helmet != 0 &&
-                        Items::exists(static_cast<ItemId>(nearest->equipped_helmet))) {
-                    const auto& h = Items::get(static_cast<ItemId>(nearest->equipped_helmet));
-                    armor_def += rand_range(h.min_value, h.max_value);
-                }
-                if (nearest->equipped_shield != 0 &&
-                        Items::exists(static_cast<ItemId>(nearest->equipped_shield))) {
-                    const auto& s = Items::get(static_cast<ItemId>(nearest->equipped_shield));
-                    armor_def += rand_range(s.min_value, s.max_value);
-                }
+                auto add_armor = [&](uint8_t eq){
+                    if (eq != 0 && Items::exists(static_cast<ItemId>(eq))) {
+                        const auto& it = Items::get(static_cast<ItemId>(eq));
+                        armor_def += rand_range(it.min_value, it.max_value);
+                    }
+                };
+                add_armor(nearest->equipped_armor);
+                add_armor(nearest->equipped_helmet);
+                add_armor(nearest->equipped_shield);
                 dmg = std::max(1, dmg - armor_def);
 
                 chat.push_message(nearest->entity_id, 1,
@@ -109,7 +125,7 @@ void WorldNpcs::tick() {
             npc.attack_timer--;
         }
 
-        // Movimiento hacia el jugador
+        // CHASE (respeta safe zones)
         if (npc.move_timer == 0 && best_dist > 1) {
             int dx = (int)nearest->pos_x - (int)npc.pos_x;
             int dy = (int)nearest->pos_y - (int)npc.pos_y;
@@ -121,7 +137,12 @@ void WorldNpcs::tick() {
                 ny = npc.pos_y + (dy > 0 ? 1 : -1);
             }
 
-            if (collision.in_bounds(nx, ny) && !collision.is_occupied(nx, ny)) {
+            bool can_move =
+                collision.in_bounds(nx, ny) &&
+                !collision.is_occupied(nx, ny) &&
+                !spawner.in_safe_zone(nx, ny);
+
+            if (can_move) {
                 collision.update(npc.pos_x, npc.pos_y, false);
                 npc.pos_x = nx;
                 npc.pos_y = ny;
@@ -135,5 +156,13 @@ void WorldNpcs::tick() {
         } else if (npc.move_timer > 0) {
             npc.move_timer--;
         }
+    }
+
+    cleanup_dead();
+
+    // Spawner: pide spawns nuevos
+    auto pending = spawner.tick(static_cast<uint16_t>(npcs.size()));
+    for (const auto& s : pending) {
+        spawn_internal(s.type, s.x, s.y, s.zone_id);
     }
 }

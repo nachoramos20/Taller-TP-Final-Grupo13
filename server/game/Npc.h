@@ -33,6 +33,7 @@ struct NpcData {
     uint16_t max_hp;
     uint16_t move_timer = 0;
     uint16_t attack_timer = 0;
+    uint8_t  zone_id = 255;   // 255 = sin zona (spawn manual)
 };
 
 namespace Npcs {

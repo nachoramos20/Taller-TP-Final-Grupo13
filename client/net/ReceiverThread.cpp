@@ -1,4 +1,7 @@
+#include <SDL2/SDL.h>
 #include "ReceiverThread.h"
+#include <iostream>
+#include <string>
 
 ReceiverThread::ReceiverThread(Socket& socket,
                                Queue<SnapshotDTO>& snapshot_queue,
@@ -12,26 +15,67 @@ ReceiverThread::ReceiverThread(Socket& socket,
 
 void ReceiverThread::run() {
     try {
-        while (should_keep_running()) {
+        // ── Fase 1: handshake (LOGIN_OK / LOGIN_ERROR / MAPA) ────────────────
+        bool got_ok  = false;
+        bool got_map = false;
+
+        while (should_keep_running() && !(got_ok && got_map)) {
             MsgType opcode = _deserializer.recv_opcode();
             switch (opcode) {
-                case MsgType::LOGIN_OK:
-                    _my_entity_id = _deserializer.recv_login_ok();
+                case MsgType::LOGIN_OK: {
+                    uint16_t eid = _deserializer.recv_login_ok();
+                    _my_entity_id = eid;
+                    std::string msg = "OK:" + std::to_string(eid);
+                    _login_ok_queue.push(std::move(msg));
+                    got_ok = true;
                     break;
+                }
                 case MsgType::LOGIN_ERROR: {
                     std::string err = _deserializer.recv_login_error();
-                    std::cout << "Error de login: " << err << "\n";
-                    this->stop();
-                    break;
-}
+                    _login_error_queue.push(err);
+                    // No paramos: el servidor puede seguir aceptando reintentos
+                    // en el mismo socket (el ServerReceiverThread los soporta).
+                    // Esperamos un LOGIN_OK posterior.
+                    // Pero en la arquitectura actual un error cierra el flujo,
+                    // así que devolvemos error y el main manejará la reconexión.
+                    _connected = false;
+                    return;
+                }
                 case MsgType::MAPA: {
                     MapaDTO map = _deserializer.recv_map();
                     _map_queue.push(std::move(map));
+                    got_map = true;
                     break;
                 }
+                default:
+                    break;
+            }
+        }
+
+        if (!got_ok) { _connected = false; return; }
+
+        // ── Fase 2: game loop ─────────────────────────────────────────────────
+        game_loop_receive();
+
+    } catch (const ClosedQueue&) {
+    } catch (const std::exception&) {
+    }
+    _connected = false;
+}
+
+void ReceiverThread::game_loop_receive() {
+    try {
+        while (should_keep_running()) {
+            MsgType opcode = _deserializer.recv_opcode();
+            switch (opcode) {
                 case MsgType::SNAPSHOT: {
                     SnapshotDTO snap = _deserializer.recv_snapshot();
                     _snapshot_queue.push(std::move(snap));
+                    break;
+                }
+                case MsgType::MAPA: {
+                    MapaDTO map = _deserializer.recv_map();
+                    _map_queue.push(std::move(map));
                     break;
                 }
                 default:
@@ -41,9 +85,34 @@ void ReceiverThread::run() {
     } catch (const ClosedQueue&) {
     } catch (const std::exception&) {
     }
-    _connected = false;
 }
 
 void ReceiverThread::stop() { Thread::stop(); }
 
 uint16_t ReceiverThread::my_entity_id() const { return _my_entity_id; }
+
+// Bloquea hasta recibir el resultado del handshake.
+HandshakeResult ReceiverThread::wait_handshake(std::string& error_msg) {
+    // Intentar ok primero (timeout implícito: el pop bloquea)
+    // Usamos try_pop con pequeño spin para no bloquear indefinidamente si
+    // el servidor ya respondió error y el hilo terminó.
+    for (int attempts = 0; attempts < 3000; attempts++) {
+        std::string ok_msg;
+        if (_login_ok_queue.try_pop(ok_msg)) return HandshakeResult::OK;
+
+        std::string err_msg;
+        if (_login_error_queue.try_pop(err_msg)) {
+            error_msg = err_msg;
+            return HandshakeResult::ERROR;
+        }
+
+        if (!_connected) {
+            error_msg = "Conexion perdida con el servidor.";
+            return HandshakeResult::ERROR;
+        }
+
+        SDL_Delay(10);
+    }
+    error_msg = "Timeout esperando respuesta del servidor.";
+    return HandshakeResult::ERROR;
+}

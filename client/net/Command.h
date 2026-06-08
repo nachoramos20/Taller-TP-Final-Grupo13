@@ -15,6 +15,7 @@ struct Command {
     std::string text;
     uint8_t     race      = 0;
     uint8_t     cls       = 0;
+    uint8_t     spell_id = 0;
 
     static Command move(uint16_t x, uint16_t y) {
         Command c;
@@ -111,6 +112,14 @@ struct Command {
     static Command logout() {
         Command c;
         c.type = MsgType::LOGOUT;
+        return c;
+    }
+
+    static Command cast_spell(uint16_t target_id, uint8_t spell_id) {
+        Command c;
+        c.type      = MsgType::CAST_SPELL;
+        c.target_id = target_id;
+        c.spell_id  = spell_id;
         return c;
     }
 };

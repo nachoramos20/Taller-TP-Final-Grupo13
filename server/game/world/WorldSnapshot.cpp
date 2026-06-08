@@ -67,6 +67,7 @@ SnapshotDTO WorldSnapshot::build(uint16_t client_id,
         snap.exp            = p->exp;
         snap.level          = p->level;
         snap.gold           = p->gold;
+        snap.cls            = p->cls;
         snap.is_ghost       = p->is_ghost ? 1 : 0;
         snap.meditating     = p->meditating ? 1 : 0;
 

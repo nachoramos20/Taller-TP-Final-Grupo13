@@ -37,11 +37,10 @@ struct PlayerData {
     static constexpr int INVENTORY_SIZE = 16;
     std::array<uint8_t, INVENTORY_SIZE> inventory{};
     
-    uint8_t equipped_weapon = 0;
-    uint8_t equipped_armor  = 0;
-    uint8_t equipped_helmet = 0;
-    uint8_t equipped_shield = 0;
-
+    uint8_t equipped_weapon = 255;
+    uint8_t equipped_armor  = 255;
+    uint8_t equipped_helmet = 255;
+    uint8_t equipped_shield = 255;
     uint16_t attack_cooldown = 0;
 
     static void copy_username(char (&destination)[PlayerData::USERNAME_MAX_LENGTH + 1],
