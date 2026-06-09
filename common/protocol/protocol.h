@@ -55,16 +55,32 @@ enum class ItemId : uint8_t {
     SWORD             = 1,
     AXE               = 2,
     HAMMER            = 3,
+    DARK_SWORD        = 9,
+    EPIC_AXE          = 12,
+    EPIC_HAMMER       = 13,
+    LEGENDARY_HAMMER  = 14,
     // Armas a distancia físicas
     SIMPLE_BOW        = 4,
     COMPOUND_BOW      = 5,
+    AMETHYST_BOW      = 15,
+    INFERNAL_BOW      = 16,
     // Armas mágicas  (consumen mana en ataque básico Y habilitan hechizos)
     ELVEN_FLUTE       = 6,
     GEMMED_STAFF      = 7,
     ASH_STICK        = 8,   // vara mágica — nuevo
+    EGYPTIAN_STAFF    = 17,
+    SKELETAL_STAFF    = 18,
+    QUARTZ_STICK      = 19,
+    MISTLETOE_STICK   = 23,
     // Armaduras
     LEATHER_ARMOR     = 10,
     PLATE_ARMOR       = 11,
+    CLERIC_BLACK_ARMOR = 24,
+    MAGE_COMMON_ARMOR = 25,
+    MAGE_ROYAL_ARMOR  = 26,
+    WARRIOR_EPIC_ARMOR = 27,
+    PALADIN_MAGIC_ARMOR = 28,
+    PALADIN_ROYAL_ARMOR = 29,
     // Cascos
     HOOD              = 20,
     IRON_HELMET       = 21,
@@ -72,6 +88,7 @@ enum class ItemId : uint8_t {
     // Escudos
     TURTLE_SHIELD     = 30,
     IRON_SHIELD       = 31,
+    BOCA_SHIELD       = 32,
     // Pociones
     HEALTH_POTION     = 40,
     MANA_POTION       = 41,
@@ -107,7 +124,11 @@ enum class SpellId : uint8_t {
 inline bool weapon_enables_spells(uint8_t item_id) {
     return item_id == static_cast<uint8_t>(ItemId::ELVEN_FLUTE)  ||
            item_id == static_cast<uint8_t>(ItemId::GEMMED_STAFF) ||
-           item_id == static_cast<uint8_t>(ItemId::ASH_STICK);
+           item_id == static_cast<uint8_t>(ItemId::ASH_STICK) ||
+           item_id == static_cast<uint8_t>(ItemId::EGYPTIAN_STAFF) ||
+           item_id == static_cast<uint8_t>(ItemId::SKELETAL_STAFF) ||
+           item_id == static_cast<uint8_t>(ItemId::QUARTZ_STICK) ||
+           item_id == static_cast<uint8_t>(ItemId::MISTLETOE_STICK);
 }
 
 // Devuelve true si el item es un arma mágica que consume mana en ataque básico

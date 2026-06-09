@@ -6,18 +6,6 @@
 // Cantidad de variantes visuales por item_id
 static uint8_t sprite_variant_count(uint8_t item_id) {
     switch (item_id) {
-        case  1: return 2;  // espada: espada_comun, espada_oscura
-        case  2: return 2;  // hacha: hacha_hierro, hacha_epica
-        case  3: return 3;  // martillo: martillo_comun, martillo_epico, martillo_legendario
-        case  4: return 2;  // arco simple: arco_simple_madera, arco_simple_amatista
-        case  5: return 2;  // arco compuesto: arco_compuesto_oro, arco_compuesto_infernal
-        case  6: return 1;  // flauta
-        case  7: return 3;  // báculo: baculo_esmeralda, baculo_egipcio, baculo_esqueletico
-        case  8: return 3;  // vara: vara_fresno, vara_cuarzo, vara_muerdago
-        case 10: return 4;  // armadura liviana: clerigo_blanco, clerigo_negro, mago_comun, mago_real
-        case 11: return 4;  // armadura pesada: guerrero_ejecutor, guerrero_epico, paladin_magico, paladin_real
-        case 30: return 1;  // escudo tortuga
-        case 31: return 2;  // escudo: escudo_hierro, escudo_boca
         default: return 1;
     }
 }
@@ -63,12 +51,9 @@ void WorldItems::cleanup_expired(uint32_t current_tick) {
 }
 
 void WorldItems::drop_player_loot(PlayerData& dead) {
-    uint32_t oro_max = static_cast<uint32_t>(
-        100.0 * std::pow(static_cast<double>(dead.level), 1.1));
-    if (dead.gold > oro_max) {
-        uint32_t excess = dead.gold - oro_max;
-        dead.gold = oro_max;
-        add(static_cast<uint8_t>(ItemId::GOLD_PILE), dead.pos_x, dead.pos_y, excess);
+    if (dead.gold > 0) {
+        add(static_cast<uint8_t>(ItemId::GOLD_PILE), dead.pos_x, dead.pos_y, dead.gold);
+        dead.gold = 0;
     }
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i) {
         if (dead.inventory[i] != 0) {
@@ -76,4 +61,8 @@ void WorldItems::drop_player_loot(PlayerData& dead) {
             dead.inventory[i] = 0;
         }
     }
+    dead.equipped_weapon = 0xFF;
+    dead.equipped_armor  = 0xFF;
+    dead.equipped_helmet = 0xFF;
+    dead.equipped_shield = 0xFF;
 }
