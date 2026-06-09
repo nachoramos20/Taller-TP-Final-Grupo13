@@ -42,9 +42,52 @@ NpcData* WorldNpcs::find(uint16_t id) {
     return nullptr;
 }
 
+void WorldNpcs::drop_npc_loot(const NpcData& npc) {
+    const NpcTemplate& tpl = Npcs::tpl(npc.type);
+
+    // Tirada de probabilidad
+    double roll = std::uniform_real_distribution<double>(0.0, 1.0)(rng);
+
+    if (roll < 0.80) {
+        // 80% → nada
+        return;
+    } else if (roll < 0.88) {
+        // 8% → oro: rand(0.01, 0.2) * max_hp del NPC
+        double factor = std::uniform_real_distribution<double>(0.01, 0.20)(rng);
+        uint32_t gold = static_cast<uint32_t>(factor * tpl.max_hp);
+        if (gold < 1) gold = 1;
+        items.add(static_cast<uint8_t>(ItemId::GOLD_PILE), npc.pos_x, npc.pos_y, gold);
+    } else if (roll < 0.89) {
+        // 1% → poción de vida o mana al azar
+        uint8_t potion = (rng() % 2 == 0)
+            ? static_cast<uint8_t>(ItemId::HEALTH_POTION)
+            : static_cast<uint8_t>(ItemId::MANA_POTION);
+        items.add(potion, npc.pos_x, npc.pos_y, 0);
+    } else {
+        // 1% → arma o equipamiento al azar del drop_table del NPC,
+        //       o cualquier arma/equipo si la tabla está vacía
+        if (!tpl.drop_table.empty()) {
+            uint8_t item = tpl.drop_table[rng() % tpl.drop_table.size()];
+            items.add(item, npc.pos_x, npc.pos_y, 0);
+        } else {
+            // fallback: items equipables hardcodeados
+            static const std::vector<uint8_t> fallback = {
+                (uint8_t)ItemId::SWORD, (uint8_t)ItemId::AXE, (uint8_t)ItemId::HAMMER,
+                (uint8_t)ItemId::SIMPLE_BOW, (uint8_t)ItemId::LEATHER_ARMOR,
+                (uint8_t)ItemId::IRON_HELMET, (uint8_t)ItemId::TURTLE_SHIELD,
+            };
+            items.add(fallback[rng() % fallback.size()], npc.pos_x, npc.pos_y, 0);
+        }
+    }
+}
+
 void WorldNpcs::cleanup_dead() {
     for (const auto& n : npcs) {
         if (n.hp == 0) {
+            drop_npc_loot(n);
+            // mancha de sangre durante 5 segundos
+            items.add(static_cast<uint8_t>(ItemId::BLOOD_STAIN),
+                      n.pos_x, n.pos_y, 0, current_tick);
             collision.update(n.pos_x, n.pos_y, false);
             if (n.zone_id != 255 && n.zone_id < spawner.zones_mut().size()) {
                 auto& z = spawner.zones_mut()[n.zone_id];
@@ -58,7 +101,8 @@ void WorldNpcs::cleanup_dead() {
         npcs.end());
 }
 
-void WorldNpcs::tick() {
+void WorldNpcs::tick(uint32_t ct) {
+    current_tick = ct;
     // IA de cada NPC
     for (auto& npc : npcs) {
         if (npc.hp == 0) continue;
@@ -113,6 +157,9 @@ void WorldNpcs::tick() {
                     nearest->meditating = false;
                     collision.update(nearest->pos_x, nearest->pos_y, false);
                     items.drop_player_loot(*nearest);
+                    // sangre al morir el jugador
+                    items.add(static_cast<uint8_t>(ItemId::BLOOD_STAIN),
+                              nearest->pos_x, nearest->pos_y, 0, current_tick);
                     chat.push_message(nearest->entity_id, 1, "Has muerto! Eres un fantasma.");
                     clans.notify_attack(nearest->entity_id);
                 } else {

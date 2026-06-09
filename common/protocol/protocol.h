@@ -77,6 +77,8 @@ enum class ItemId : uint8_t {
     MANA_POTION       = 41,
     // Oro
     GOLD_PILE         = 50,
+    // Efectos de suelo (no recogibles)
+    BLOOD_STAIN       = 60,
 };
 
 enum class NpcId : uint8_t {

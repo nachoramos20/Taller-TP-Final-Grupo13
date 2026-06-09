@@ -66,15 +66,17 @@ public:
     void revisar_colisiones();
 
     // ---- Items en el suelo ----
-    void add_floor_item(uint8_t item_id, uint16_t x, uint16_t y, uint32_t gold = 0);
+    void add_floor_item(uint8_t item_id, uint16_t x, uint16_t y,
+                        uint32_t gold = 0, uint32_t spawn_tick = 0);
     uint8_t pick_floor_item(uint16_t x, uint16_t y, uint32_t& gold_out);
+    void cleanup_items(uint32_t current_tick);
 
     // ---- Muerte de jugador ----
-    void drop_player_loot(PlayerData& dead);
+    void drop_player_loot(PlayerData& dead, uint32_t spawn_tick = 0);
 
     // ---- NPCs ----
     void spawn_npc(NpcId type, uint16_t x, uint16_t y);
-    void tick_npcs();
+    void tick_npcs(uint32_t current_tick);
     NpcData* find_npc(uint16_t id);
 
     // ---- Mensajes / Chat ----

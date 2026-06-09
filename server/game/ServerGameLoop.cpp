@@ -103,7 +103,8 @@ void ServerGameLoop::update() {
         }
     }
 
-    world.tick_npcs();
+    world.tick_npcs(tick);
+    world.cleanup_items(tick);
 }
 
 void ServerGameLoop::broadcast_snapshots() {
