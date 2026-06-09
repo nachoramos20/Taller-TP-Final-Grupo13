@@ -63,7 +63,6 @@ public:
 
     // ---- Colisiones ----
     void update_occupied(const std::pair<uint16_t, uint16_t>& pos, bool occupied);
-    void revisar_colisiones();
 
     // ---- Items en el suelo ----
     void add_floor_item(uint8_t item_id, uint16_t x, uint16_t y, uint32_t gold = 0);
@@ -108,10 +107,10 @@ public:
     int rand_range(int lo, int hi);
     void clear_broadcast_messages();
 
-    const std::vector<NpcData>& get_npcs() const { return npcs_.all(); }
+    const std::vector<NpcData>& get_npcs() const;
 
     // ---- Spawner / Safe Zones ----
-    WorldSpawner& spawner() { return spawner_; }
+    WorldSpawner& spawner();
 };
 
 #endif // WORLD_H
