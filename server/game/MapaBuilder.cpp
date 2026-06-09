@@ -133,6 +133,10 @@ static constexpr int ARENA_X1  = 84, ARENA_X2  = 85;
 static constexpr int OLAS_X1   = 86, OLAS_X2   = 87;
 static constexpr int AGUA_X1   = 88, AGUA_X2   = 99;
 
+MapaBuilder::MapaBuilder() {
+    collision_map.resize(MAP_W * MAP_H, 0);
+}
+
 // HELPERS
 
 TileDTO& MapaBuilder::get_tile(MapaDTO& mapa, uint16_t x, uint16_t y) {
@@ -189,6 +193,7 @@ void MapaBuilder::build_acantilados(MapaDTO& mapa) {
         get_tile(mapa, x, 0 ).floor_id = F_AC_NORTE;
         get_tile(mapa, x, 99).floor_id = F_AC_SUR;
     }
+    mark_collision_rect(0, 0, 99, 0);   // borde norte
 
     // esquinas este
     get_tile(mapa, 76, 0 ).floor_id = F_AC_NE;
@@ -229,12 +234,17 @@ void MapaBuilder::build_pasto(MapaDTO& mapa) {
 void MapaBuilder::build_bosque(MapaDTO& mapa) {
     // árboles cada 4 tiles
     for (int y = BOS_NO_Y1; y <= BOS_NO_Y2; y += 4)
-        for (int x = BOS_X1; x <= BOS_X2; x += 4)
+        for (int x = BOS_X1; x <= BOS_X2; x += 4) {
+            mark_collision_rect(x, y, x, y);
             place_object_sup(mapa, x, y, arbol_bosque_random());
+        }
 
     for (int y = BOS_SO_Y1; y <= BOS_SO_Y2; y += 4)
         for (int x = BOS_X1; x <= BOS_X2; x += 4)
+        {
+            mark_collision_rect(x, y, x, y);
             place_object_sup(mapa, x, y, arbol_bosque_random());
+        }
 
     // flores dispersas entre el bosque y la ciudad
     for (int y = ZJ_Y1; y <= ZJ_Y2; y += 6)
@@ -303,17 +313,33 @@ void MapaBuilder::build_ciudad(MapaDTO& mapa) {
         get_tile(mapa, CIU_X1 - 2, y).floor_id = F_PASTO_1X1;
 
     place_object_sup(mapa, 41,  13, O_IGLESIA_CIUDAD); 
-    place_object_sup(mapa, 50,  15, O_BANCO);       
-    place_object_sup(mapa, 40, 20, O_FUENTE);          
+    mark_collision_rect(38, 7, 43, 12); // iglesia
+    place_object_sup(mapa, 50,  15, O_BANCO);
+    mark_collision_rect(46, 11, 54, 14); // banco
+    mark_collision_rect(48,15, 52, 15); // banco entrada     
+    place_object_sup(mapa, 40, 20, O_FUENTE);    
+    mark_collision_rect(39, 17, 41, 17); // fuente parte superior
+    mark_collision_rect(39, 20, 41, 20); // fuente parte inferior 
+    mark_collision_rect(38, 18, 38, 19); // fuente parte izquierda
+    mark_collision_rect(42, 18, 42, 19); // fuente parte derecha
     place_object_sup(mapa, 30, 17, O_COMERCIO_CIUDAD);
-    place_object_sup(mapa, 29, 26, O_CASA_CIUDAD_1); 
+    mark_collision_rect(28, 12, 31, 17); // comercio
+    mark_collision_rect(32, 14, 32, 15); // comercio casita derecja
+    mark_collision_rect(27, 15, 27, 16); // comercio casita izquierda
+    place_object_sup(mapa, 29, 26, O_CASA_CIUDAD_1);
+    mark_collision_rect(27, 23, 30, 26); // casa ciudad 1
     place_object_sup(mapa, 34, 34, O_CASA_CIUDAD_2);
+    mark_collision_rect(32, 31, 35, 34); // casa ciudad 2
     place_object_sup(mapa, 44, 34, O_CASA_CIUDAD_2);
-    place_object_sup(mapa, 52, 26, O_CASA_CIUDAD_1);
+    mark_collision_rect(42, 31, 45, 34); // casa ciudad 2
+    place_object_sup(mapa, 52, 26, O_CASA_CIUDAD_1); 
+    mark_collision_rect(50, 23, 53, 26); // casa ciudad 1
 
-    // Estatuas 
+    // Estatuas
     place_object_sup(mapa, 36, 37, O_ESTATUA_IZQ);
+    mark_collision_rect(35, 37, 37, 37); // estatua izquierda
     place_object_sup(mapa, 42, 37, O_ESTATUA_DER);
+    mark_collision_rect(42, 37, 43, 37); // estatua derecha
 }
 
 void MapaBuilder::build_pueblo(MapaDTO& mapa) {
@@ -343,10 +369,18 @@ void MapaBuilder::build_pueblo(MapaDTO& mapa) {
         get_tile(mapa, PUE_X1 - 2, y).floor_id = F_PASTO_1X1;
 
     // Edificios pueblo
-    place_object_sup(mapa, 40, 67, O_IGLESIA_PUEBLO);  
-    place_object_sup(mapa, 46, 69, O_COMERCIO);        
-    place_object_sup(mapa, 32, 69, O_CASA_1);          
-    place_object_sup(mapa, 32, 62, O_CASA_2);        
+    place_object_sup(mapa, 40, 67, O_IGLESIA_PUEBLO);
+    mark_collision_rect(38, 62, 41, 67); // iglesia
+    mark_collision_rect(42, 67, 42, 67); // iglesia pared derecha inferior
+    mark_collision_rect(37, 67, 37, 67); // iglesia pared izquierda inferior
+    mark_collision_rect(37, 62, 37, 62); // iglesia pared izquierda superior
+    mark_collision_rect(42, 62, 42, 62); // iglesia pared derecha superior
+    place_object_sup(mapa, 46, 69, O_COMERCIO);
+    mark_collision_rect(44, 66, 47, 69); // comercio        
+    place_object_sup(mapa, 32, 69, O_CASA_1);
+    mark_collision_rect(30, 66, 34, 69); // casa 1       
+    place_object_sup(mapa, 32, 62, O_CASA_2);
+    mark_collision_rect(30, 59, 34, 62); // casa 2
 }
 
 void MapaBuilder::build_cementerio(MapaDTO& mapa) {
@@ -371,23 +405,48 @@ void MapaBuilder::build_cementerio(MapaDTO& mapa) {
     for (int y = CEM_Y1 - 2; y <= CEM_Y2 + 1; y++)
         get_tile(mapa, CEM_X1 - 2, y).floor_id = F_PASTO_1X1;
 
+    mark_collision_rect(59, 66, 59, 66); // porton inf izq
+    mark_collision_rect(62, 66, 62, 66); // porton inf derecho
+    mark_collision_rect(59, 54, 59, 54); // porton sup izq
+    mark_collision_rect(62, 54, 62, 54); // porton sup derecho
     // Rejas perimetrales completas
     place_object_sup(mapa, 61, CEM_Y2, O_REJAS_CEM);
 
+    mark_collision_rect(55, 55, 58, 55); // reja superior horizontal izquierda
+    mark_collision_rect(63, 55, 66, 55); // reja superior horizontal derecha
+
+    mark_collision_rect(54, 55, 54, 66); // reja vertical izquierda
+    mark_collision_rect(67, 55, 67, 66); // reja vertical derecha
+
+    mark_collision_rect(55, 67, 58, 67); // reja inferior izquierda
+    mark_collision_rect(63, 67, 66, 67); // reja inferior derecha
+
+
+
+
     // Casa central
     place_object_sup(mapa, 60, 61, O_CASA_CEM);
+    mark_collision_rect(60,58,62,61); // casa cementerio
 
     // Tumbas
     place_object_sup(mapa, 57, 58, O_TUMBA_1);
+    mark_collision_rect(57, 58, 57, 58); // tumba 1
     place_object_sup(mapa, 57, 61, O_TUMBA_2);
+    mark_collision_rect(57, 61, 57, 61); // tumba 2
     place_object_sup(mapa, 64, 58, O_TUMBA_3);
+    mark_collision_rect(64, 58, 64, 58); // tumba 3
     place_object_sup(mapa, 64, 61, O_TUMBA_4);
+    mark_collision_rect(64, 61, 64, 61); // tumba 4
 
     // Lápidas
     place_object_sup(mapa, 56, 57, O_LAPIDA_2);
+    mark_collision_rect(56, 57, 56, 57); // lapida 2
     place_object_sup(mapa, 56, 60, O_LAPIDA_3);
+    mark_collision_rect(56, 60, 56, 60); // lapida 3
     place_object_sup(mapa, 65, 57, O_LAPIDA_4);
+    mark_collision_rect(65, 57, 65, 57); // lapida 4
     place_object_sup(mapa, 65, 60, O_LAPIDA_5);
+    mark_collision_rect(65, 60, 65, 60); // lapida 5
 
     // Linternas
     place_object_sup(mapa, 59, 62, O_LINTERNA_CEM);
@@ -395,12 +454,15 @@ void MapaBuilder::build_cementerio(MapaDTO& mapa) {
 
     // Tumba, lápida y palas en el sector sur
     place_object_sup(mapa, 56, 64, O_TUMBA_5);
+    mark_collision_rect(56, 64, 56, 64); // tumba 5
     place_object_sup(mapa, 63, 64, O_LAPIDA_6);
+    mark_collision_rect(63, 64, 63, 64); // lapida 6
     place_object_sup(mapa, 57, 66, O_PALA_1);
     place_object_sup(mapa, 63, 66, O_PALA_2);
 }
 
 void MapaBuilder::build_costa(MapaDTO& mapa) {
+    mark_collision_rect(OLAS_X1, 0, MAP_W - 1, MAP_H - 1); // a partir de las olas no se puede caminar mas
     // franja pasto->arena
     for (int y = 1; y <= 99; y += 2)
         get_tile(mapa, FRANJA_X1, y).floor_id = F_ARENA_FRANJA;
@@ -441,6 +503,21 @@ void MapaBuilder::build_objetos(MapaDTO& mapa) {
     place_object_sup(mapa, 94, 80, O_ESQUELETO_2);
     place_object_sup(mapa, 97, 45, O_ESQUELETO_3);
     place_object_sup(mapa, 96, 75, O_ESQUELETO_1);
+}
+
+size_t MapaBuilder::get_index(uint16_t x, uint16_t y) const {
+    return static_cast<size_t>(y) * MAP_W + x;
+}
+
+void MapaBuilder::mark_collision_rect(uint16_t x1, uint16_t y1,
+                                       uint16_t x2, uint16_t y2) {
+    for (uint16_t y = y1; y <= y2; y++)
+        for (uint16_t x = x1; x <= x2; x++)
+            collision_map[get_index(x, y)] = 1;
+}
+
+std::vector<uint8_t> MapaBuilder::take_collision() {
+    return std::move(collision_map);
 }
 
 // ENTRY POINT

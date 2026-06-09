@@ -43,7 +43,7 @@ private:
     WorldSnapshot   snapshot_;
 
 public:
-    World(uint16_t width, uint16_t height);
+    World(uint16_t width, uint16_t height, std::vector<uint8_t> collision_map);
 
     // ---- Players ----
     void add_player(const PlayerData& player_data);

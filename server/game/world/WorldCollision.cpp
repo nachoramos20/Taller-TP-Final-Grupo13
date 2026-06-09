@@ -1,9 +1,7 @@
 #include "WorldCollision.h"
 
-WorldCollision::WorldCollision(uint16_t w, uint16_t h)
-    : width(w), height(h) {
-    occupied.resize(static_cast<size_t>(width) * height, 0);
-}
+WorldCollision::WorldCollision(uint16_t w, uint16_t h, std::vector<uint8_t> occ)
+    : width(w), height(h), occupied(std::move(occ)) {}
 
 size_t WorldCollision::index(uint16_t x, uint16_t y) const {
     return static_cast<size_t>(y) * width + x;

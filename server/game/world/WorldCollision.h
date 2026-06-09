@@ -14,7 +14,7 @@ private:
     size_t index(uint16_t x, uint16_t y) const;
 
 public:
-    WorldCollision(uint16_t w, uint16_t h);
+    WorldCollision(uint16_t w, uint16_t h, std::vector<uint8_t> occ);
 
     uint16_t get_width() const;
     uint16_t get_height() const;

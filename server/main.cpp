@@ -1,11 +1,13 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include "net/Acceptor.h"
 #include "game/ServerGameLoop.h"
 #include "game/QueueMonitor.h"
 #include "game/PersistenceMonitor.h"
 #include "../common/queue.h"
 #include "game/PersistenceThread.h"
+#include "game/MapaBuilder.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -21,8 +23,12 @@ int main(int argc, char* argv[]) {
         Queue<PlayerData> save_queue;
         PersistenceMonitor persistence_monitor(save_queue);
 
-        Acceptor       acceptor(port, command_queue, queue_monitor, persistence_monitor);
-        ServerGameLoop game_loop(command_queue, queue_monitor, save_queue);
+        MapaBuilder mapa_builder;
+        MapaDTO mapa = mapa_builder.build_mapa_inicial();
+        std::vector<uint8_t> collision_map = mapa_builder.take_collision();
+
+        Acceptor       acceptor(port, command_queue, queue_monitor, persistence_monitor, mapa);
+        ServerGameLoop game_loop(command_queue, queue_monitor, save_queue, std::move(collision_map));
         PersistenceThread persistence_thread(save_queue, persistence_monitor);
 
         std::cout << "Servidor escuchando en puerto " << port << "\n";

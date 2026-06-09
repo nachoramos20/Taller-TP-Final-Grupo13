@@ -1,9 +1,9 @@
 #include "World.h"
 
-World::World(uint16_t width, uint16_t height)
+World::World(uint16_t width, uint16_t height, std::vector<uint8_t> collision_map)
     : id_alloc(10000),
       rng(std::random_device{}()),
-      collision_(width, height),
+      collision_(width, height, std::move(collision_map)),
       chat_(),
       players_(collision_),
       items_(id_alloc),
