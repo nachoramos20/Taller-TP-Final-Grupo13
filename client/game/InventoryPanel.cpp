@@ -8,23 +8,57 @@
 
 const char* InventoryPanel::item_name(uint8_t id) {
     switch (id) {
-        case  1: return "Espada";
-        case  2: return "Hacha";
-        case  3: return "Martillo";
-        case  4: return "Arco simple";
-        case  5: return "Arco compuesto";
-        case  6: return "Flauta élfica";
-        case  7: return "Báculo engarzado";
-        case 10: return "Arm. de cuero";
-        case 11: return "Arm. de placas";
-        case 20: return "Capucha";
-        case 21: return "Casco de hierro";
-        case 22: return "Sombrero mágico";
-        case 30: return "Esc. tortuga";
-        case 31: return "Esc. de hierro";
-        case 40: return "Poción de vida";
-        case 41: return "Poción de maná";
-        case 50: return "Monedas de oro";
+        // Armas cuerpo a cuerpo
+        case static_cast<uint8_t>(ItemId::SWORD):              return "Espada";
+        case static_cast<uint8_t>(ItemId::DARK_SWORD):         return "Espada Oscura";
+        case static_cast<uint8_t>(ItemId::AXE):                return "Hacha";
+        case static_cast<uint8_t>(ItemId::EPIC_AXE):           return "Hacha Épica";
+        case static_cast<uint8_t>(ItemId::HAMMER):             return "Martillo";
+        case static_cast<uint8_t>(ItemId::EPIC_HAMMER):        return "Martillo Épico";
+        case static_cast<uint8_t>(ItemId::LEGENDARY_HAMMER):   return "Martillo Legendario";
+        
+        // Armas a distancia
+        case static_cast<uint8_t>(ItemId::SIMPLE_BOW):         return "Arco Simple";
+        case static_cast<uint8_t>(ItemId::AMETHYST_BOW):       return "Arco Amatista";
+        case static_cast<uint8_t>(ItemId::COMPOUND_BOW):       return "Arco Compuesto";
+        case static_cast<uint8_t>(ItemId::INFERNAL_BOW):       return "Arco Infernal";
+        
+        // Armas mágicas
+        case static_cast<uint8_t>(ItemId::ELVEN_FLUTE):        return "Flauta Élfica";
+        case static_cast<uint8_t>(ItemId::ASH_STICK):          return "Vara de Fresno";
+        case static_cast<uint8_t>(ItemId::QUARTZ_STICK):       return "Vara de Cuarzo";
+        case static_cast<uint8_t>(ItemId::MISTLETOE_STICK):    return "Vara de Muérdago";
+        case static_cast<uint8_t>(ItemId::GEMMED_STAFF):       return "Báculo Engarzado";
+        case static_cast<uint8_t>(ItemId::EGYPTIAN_STAFF):     return "Báculo Egipcio";
+        case static_cast<uint8_t>(ItemId::SKELETAL_STAFF):     return "Báculo Esquelético";
+        
+        // Armaduras
+        case static_cast<uint8_t>(ItemId::LEATHER_ARMOR):      return "Túnica de Clérigo";
+        case static_cast<uint8_t>(ItemId::CLERIC_BLACK_ARMOR): return "Túnica Negra";
+        case static_cast<uint8_t>(ItemId::MAGE_COMMON_ARMOR):  return "Ropa de Mago";
+        case static_cast<uint8_t>(ItemId::MAGE_ROYAL_ARMOR):   return "Mago Real";
+        case static_cast<uint8_t>(ItemId::PLATE_ARMOR):        return "Guerrero Ejecutor";
+        case static_cast<uint8_t>(ItemId::WARRIOR_EPIC_ARMOR): return "Guerrero Épico";
+        case static_cast<uint8_t>(ItemId::PALADIN_MAGIC_ARMOR): return "Paladín Mágico";
+        case static_cast<uint8_t>(ItemId::PALADIN_ROYAL_ARMOR): return "Paladín Real";
+        
+        // Cascos
+        case static_cast<uint8_t>(ItemId::HOOD):               return "Capucha";
+        case static_cast<uint8_t>(ItemId::IRON_HELMET):        return "Casco de Hierro";
+        case static_cast<uint8_t>(ItemId::MAGIC_HAT):          return "Sombrero Mágico";
+        
+        // Escudos
+        case static_cast<uint8_t>(ItemId::TURTLE_SHIELD):      return "Escudo Tortuga";
+        case static_cast<uint8_t>(ItemId::IRON_SHIELD):        return "Escudo de Hierro";
+        case static_cast<uint8_t>(ItemId::BOCA_SHIELD):        return "Escudo Boca";
+        
+        // Pociones
+        case static_cast<uint8_t>(ItemId::HEALTH_POTION):      return "Poción de Vida";
+        case static_cast<uint8_t>(ItemId::MANA_POTION):        return "Poción de Maná";
+        
+        // Oro
+        case static_cast<uint8_t>(ItemId::GOLD_PILE):          return "Monedas de Oro";
+        
         default: return nullptr;
     }
 }
@@ -32,34 +66,106 @@ const char* InventoryPanel::item_name(uint8_t id) {
 // Abreviatura de 3-4 letras para mostrar dentro del slot cuadrado
 const char* InventoryPanel::item_abbr(uint8_t id) {
     switch (id) {
-        case  1: return "ESP";
-        case  2: return "HAC";
-        case  3: return "MAR";
-        case  4: return "ARC";
-        case  5: return "A.C";
-        case  6: return "FLA";
-        case  7: return "BAC";
-        case 10: return "ACU";
-        case 11: return "APL";
-        case 20: return "CAP";
-        case 21: return "CHI";
-        case 22: return "SOM";
-        case 30: return "TOR";
-        case 31: return "ESC";
-        case 40: return "PVI";
-        case 41: return "PMA";
-        case 50: return "ORO";
+        // Armas cuerpo a cuerpo
+        case static_cast<uint8_t>(ItemId::SWORD):              return "ESP";
+        case static_cast<uint8_t>(ItemId::DARK_SWORD):         return "EOS";
+        case static_cast<uint8_t>(ItemId::AXE):                return "HAC";
+        case static_cast<uint8_t>(ItemId::EPIC_AXE):           return "HAE";
+        case static_cast<uint8_t>(ItemId::HAMMER):             return "MAR";
+        case static_cast<uint8_t>(ItemId::EPIC_HAMMER):        return "MAE";
+        case static_cast<uint8_t>(ItemId::LEGENDARY_HAMMER):   return "MAL";
+        
+        // Armas a distancia
+        case static_cast<uint8_t>(ItemId::SIMPLE_BOW):         return "ARS";
+        case static_cast<uint8_t>(ItemId::AMETHYST_BOW):       return "ARA";
+        case static_cast<uint8_t>(ItemId::COMPOUND_BOW):       return "ARC";
+        case static_cast<uint8_t>(ItemId::INFERNAL_BOW):       return "ARI";
+        
+        // Armas mágicas
+        case static_cast<uint8_t>(ItemId::ELVEN_FLUTE):        return "FLA";
+        case static_cast<uint8_t>(ItemId::ASH_STICK):          return "VFR";
+        case static_cast<uint8_t>(ItemId::QUARTZ_STICK):       return "VCU";
+        case static_cast<uint8_t>(ItemId::MISTLETOE_STICK):    return "VMU";
+        case static_cast<uint8_t>(ItemId::GEMMED_STAFF):       return "BAE";
+        case static_cast<uint8_t>(ItemId::EGYPTIAN_STAFF):     return "BAG";
+        case static_cast<uint8_t>(ItemId::SKELETAL_STAFF):     return "BES";
+        
+        // Armaduras
+        case static_cast<uint8_t>(ItemId::LEATHER_ARMOR):      return "TCL";
+        case static_cast<uint8_t>(ItemId::CLERIC_BLACK_ARMOR): return "TNE";
+        case static_cast<uint8_t>(ItemId::MAGE_COMMON_ARMOR):  return "RMA";
+        case static_cast<uint8_t>(ItemId::MAGE_ROYAL_ARMOR):   return "RMR";
+        case static_cast<uint8_t>(ItemId::PLATE_ARMOR):        return "GEJ";
+        case static_cast<uint8_t>(ItemId::WARRIOR_EPIC_ARMOR): return "GEP";
+        case static_cast<uint8_t>(ItemId::PALADIN_MAGIC_ARMOR): return "PMA";
+        case static_cast<uint8_t>(ItemId::PALADIN_ROYAL_ARMOR): return "PRE";
+        
+        // Cascos
+        case static_cast<uint8_t>(ItemId::HOOD):               return "CAP";
+        case static_cast<uint8_t>(ItemId::IRON_HELMET):        return "CHI";
+        case static_cast<uint8_t>(ItemId::MAGIC_HAT):          return "SOM";
+        
+        // Escudos
+        case static_cast<uint8_t>(ItemId::TURTLE_SHIELD):      return "EST";
+        case static_cast<uint8_t>(ItemId::IRON_SHIELD):        return "ESI";
+        case static_cast<uint8_t>(ItemId::BOCA_SHIELD):        return "ESB";
+        
+        // Pociones
+        case static_cast<uint8_t>(ItemId::HEALTH_POTION):      return "PVI";
+        case static_cast<uint8_t>(ItemId::MANA_POTION):        return "PMA";
+        
+        // Oro
+        case static_cast<uint8_t>(ItemId::GOLD_PILE):          return "ORO";
+        
         default: return "???";
     }
 }
 
 const char* InventoryPanel::item_kind(uint8_t id) {
-    if (id == 0)  return nullptr;
-    if (id <= 7)  return "Arma";
-    if (id <= 11) return "Armadura";
-    if (id <= 22) return "Casco";
-    if (id <= 31) return "Escudo";
-    if (id <= 41) return "Pocion";
+    if (id == 0) return nullptr;
+    
+    uint8_t item_enum = id;
+    
+    // Clasificar por tipo de item según Items.h
+    // WEAPON_MELEE: 1-7
+    if (item_enum >= static_cast<uint8_t>(ItemId::SWORD) && 
+        item_enum <= static_cast<uint8_t>(ItemId::LEGENDARY_HAMMER))
+        return "Arma Melee";
+    
+    // WEAPON_RANGED: 8-11
+    if (item_enum >= static_cast<uint8_t>(ItemId::SIMPLE_BOW) && 
+        item_enum <= static_cast<uint8_t>(ItemId::INFERNAL_BOW))
+        return "Arma Ranged";
+    
+    // WEAPON_MAGIC: 12-18
+    if (item_enum >= static_cast<uint8_t>(ItemId::ELVEN_FLUTE) && 
+        item_enum <= static_cast<uint8_t>(ItemId::SKELETAL_STAFF))
+        return "Arma Mágica";
+    
+    // ARMOR: 19-26
+    if (item_enum >= static_cast<uint8_t>(ItemId::LEATHER_ARMOR) && 
+        item_enum <= static_cast<uint8_t>(ItemId::PALADIN_ROYAL_ARMOR))
+        return "Armadura";
+    
+    // HELMET: 27-29
+    if (item_enum >= static_cast<uint8_t>(ItemId::HOOD) && 
+        item_enum <= static_cast<uint8_t>(ItemId::MAGIC_HAT))
+        return "Casco";
+    
+    // SHIELD: 30-32
+    if (item_enum >= static_cast<uint8_t>(ItemId::TURTLE_SHIELD) && 
+        item_enum <= static_cast<uint8_t>(ItemId::BOCA_SHIELD))
+        return "Escudo";
+    
+    // POTION: 33-34
+    if (item_enum >= static_cast<uint8_t>(ItemId::HEALTH_POTION) && 
+        item_enum <= static_cast<uint8_t>(ItemId::MANA_POTION))
+        return "Poción";
+    
+    // GOLD: 35
+    if (item_enum == static_cast<uint8_t>(ItemId::GOLD_PILE))
+        return "Oro";
+    
     return nullptr;
 }
 

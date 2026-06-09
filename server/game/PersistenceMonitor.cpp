@@ -37,13 +37,13 @@ static void apply_initial_equipment(PlayerData& p) {
     // Arma
     switch (cls) {
         case Class::WARRIOR:
-            give_item(p, static_cast<uint8_t>(I::SWORD),       p.equipped_weapon, true);
+            give_item(p, static_cast<uint8_t>(I::DARK_SWORD),       p.equipped_weapon, true);
             break;
         case Class::PALADIN:
-            give_item(p, static_cast<uint8_t>(I::GEMMED_STAFF),      p.equipped_weapon, true);
+            give_item(p, static_cast<uint8_t>(I::INFERNAL_BOW),      p.equipped_weapon, true);
             break;
         case Class::CLERIC:
-            give_item(p, static_cast<uint8_t>(I::ELVEN_FLUTE), p.equipped_weapon, true);
+            give_item(p, static_cast<uint8_t>(I::SKELETAL_STAFF), p.equipped_weapon, true);
             break;
         case Class::MAGE:
             give_item(p, static_cast<uint8_t>(I::GEMMED_STAFF),p.equipped_weapon, true);
@@ -53,11 +53,13 @@ static void apply_initial_equipment(PlayerData& p) {
     // Armadura
     switch (cls) {
         case Class::WARRIOR:
+            give_item(p, static_cast<uint8_t>(I::WARRIOR_EPIC_ARMOR), p.equipped_armor, true);
+            break;
         case Class::PALADIN:
-            give_item(p, static_cast<uint8_t>(I::PLATE_ARMOR),  p.equipped_armor, true);
+            give_item(p, static_cast<uint8_t>(I::MAGE_ROYAL_ARMOR),  p.equipped_armor, true);
             break;
         case Class::CLERIC:
-            give_item(p, static_cast<uint8_t>(I::LEATHER_ARMOR),p.equipped_armor, true);
+            give_item(p, static_cast<uint8_t>(I::CLERIC_BLACK_ARMOR),p.equipped_armor, true);
             break;
         case Class::MAGE:
             give_item(p, static_cast<uint8_t>(I::LEATHER_ARMOR),p.equipped_armor, true);

@@ -122,7 +122,20 @@ void AnimationSystem::render(SDL2pp::Renderer& renderer,
         renderer.Copy(assets.get(equip->helmet_path), helm_src, helm_dst);
     }
 
-    // Pasada 5: arma en mano
+    // Pasada 5: escudo en lado izquierdo
+    if (equip && !equip->shield_path.empty()) {
+        static constexpr int SHIELD_W = 24;
+        static constexpr int SHIELD_H = 32;
+        
+        int sx = body_dst.x - SHIELD_W - 2;
+        int sy = body_dst.y + body_dst.h - SHIELD_H;
+        
+        SDL2pp::Rect shield_src(0, 0, SHIELD_W, SHIELD_H);
+        SDL2pp::Rect shield_dst(sx, sy, SHIELD_W, SHIELD_H);
+        renderer.Copy(assets.get(equip->shield_path), shield_src, shield_dst);
+    }
+
+    // Pasada 6: arma en mano
     if (equip)
         render_weapon(renderer, assets, equip->weapon_path, dir_idx, frame, body_dst);
 }

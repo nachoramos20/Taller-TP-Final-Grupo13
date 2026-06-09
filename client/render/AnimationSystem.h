@@ -36,6 +36,7 @@ struct EquipVisual {
     int         helmet_src_w = 0;
     int         helmet_src_h = 0;
     std::string weapon_path;
+    std::string shield_path;
 };
 
 class AnimationSystem {
