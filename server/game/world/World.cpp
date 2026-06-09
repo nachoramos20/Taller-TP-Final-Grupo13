@@ -16,6 +16,7 @@ World::World(uint16_t width, uint16_t height)
 
 // ---- Players ----
 void World::add_player(const PlayerData& p) {
+    players_.kick_by_username(p.username);  // saca sesión duplicada si existe
     players_.add(p);
     restore_clan_membership(p);
     clans_.notify_login(p.entity_id, true);

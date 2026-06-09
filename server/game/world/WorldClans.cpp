@@ -216,7 +216,9 @@ bool WorldClans::same_clan(uint16_t a, uint16_t b) const {
 void WorldClans::restore_membership(uint16_t player_id, const std::string& clan_name, bool is_founder) {
     Clan& clan = clans_by_name[clan_name];
     clan.name = clan_name;
-    clan.members.push_back(player_id);
+    if (!clan.is_member(player_id)) {
+        clan.members.push_back(player_id);
+    }
     if (is_founder) {
         clan.founder_id = player_id;
     }

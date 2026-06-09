@@ -28,6 +28,7 @@ public:
     const PlayerData* find(uint16_t client_id) const;
     PlayerData* find_mutable(uint16_t client_id);
 
+    bool kick_by_username(const std::string& name);
     uint16_t find_by_name(const std::string& name) const;
 };
 

@@ -56,6 +56,17 @@ PlayerData* WorldPlayers::find_mutable(uint16_t client_id) {
     return it == players_map.end() ? nullptr : &it->second;
 }
 
+bool WorldPlayers::kick_by_username(const std::string& name) {
+    for (auto it = players_map.begin(); it != players_map.end(); ++it) {
+        if (std::string(it->second.username) == name) {
+            collision.update(it->second.pos_x, it->second.pos_y, false);
+            players_map.erase(it);
+            return true;
+        }
+    }
+    return false;
+}
+
 uint16_t WorldPlayers::find_by_name(const std::string& name) const {
     for (const auto& [id, p] : players_map)
         if (std::string(p.username) == name) return id;
