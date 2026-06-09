@@ -73,14 +73,6 @@ void PickCommand::execute(World& world) {
     PlayerData* p = world.get_player_mutable(client_id);
     if (!p || p->is_ghost) return;
 
-    int free_slot = -1;
-    for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i)
-        if (p->inventory[i] == 0) { free_slot = i; break; }
-    if (free_slot == -1) {
-        world.push_message(client_id, 0, "Inventario lleno.");
-        return;
-    }
-
     uint32_t gold_out = 0;
     uint8_t  item_id  = world.pick_floor_item(p->pos_x, p->pos_y, gold_out);
 
@@ -93,6 +85,16 @@ void PickCommand::execute(World& world) {
         world.push_message(client_id, 0, "No hay nada aquí.");
         return;
     }
+
+    int free_slot = -1;
+    for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i)
+        if (p->inventory[i] == 0) { free_slot = i; break; }
+    if (free_slot == -1) {
+        world.add_floor_item(item_id, p->pos_x, p->pos_y, 0);
+        world.push_message(client_id, 0, "Inventario lleno.");
+        return;
+    }
+
     p->inventory[free_slot] = item_id;
     if (Items::exists(static_cast<ItemId>(item_id)))
         world.push_message(client_id, 0, "Recogiste: " + Items::get(static_cast<ItemId>(item_id)).name);
