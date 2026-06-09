@@ -148,6 +148,18 @@ private:
     void handle_clan_ban(World& world, const std::string& nick);
     void handle_clan_kick(World& world, const std::string& nick);
     void handle_dejar_clan(World& world);
+
+    // -- Cheats --
+    void handle_set_nivel(World& world, const std::string& args);
+    void handle_set_vida(World& world, const std::string& args);
+    void handle_set_fuerza(World& world, const std::string& args);
+    void handle_set_agilidad(World& world, const std::string& args);
+    void handle_set_inteligencia(World& world, const std::string& args);
+    void handle_set_constitucion(World& world, const std::string& args);
+    void handle_morir_instantaneo(World& world);
+    void handle_revivir_instantaneo(World& world);
+    void handle_obtener_objeto(World& world, const std::string& args);
+    void handle_set_oro(World& world, const std::string& args);
 };
 
 class CastSpellCommand : public ServerCommand {
