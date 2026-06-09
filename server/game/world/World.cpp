@@ -17,6 +17,7 @@ World::World(uint16_t width, uint16_t height)
 // ---- Players ----
 void World::add_player(const PlayerData& p) {
     players_.add(p);
+    restore_clan_membership(p);
     clans_.notify_login(p.entity_id, true);
 }
 void World::remove_player(uint16_t id) {
@@ -86,6 +87,11 @@ bool World::clan_ban(uint16_t f, const std::string& n) { return clans_.ban(f, n)
 bool World::clan_kick(uint16_t f, const std::string& n) { return clans_.kick(f, n); }
 bool World::clan_leave(uint16_t p) { return clans_.leave(p); }
 bool World::same_clan(uint16_t a, uint16_t b) const { return clans_.same_clan(a, b); }
+void World::restore_clan_membership(const PlayerData& p) {
+    if (p.clan_name[0] != '\0') {
+        clans_.restore_membership(p.entity_id, std::string(p.clan_name), p.is_clan_founder);
+    }
+}
 void World::clan_notify_login(uint16_t p, bool online) { clans_.notify_login(p, online); }
 void World::clan_notify_attack(uint16_t a) { clans_.notify_attack(a); }
 

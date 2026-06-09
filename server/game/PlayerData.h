@@ -28,6 +28,10 @@ struct PlayerData {
     uint32_t gold        = 0;
     bool     is_ghost    = false;
     bool     meditating  = false;
+
+    static constexpr std::size_t CLAN_NAME_MAX_LENGTH = 32;
+    char clan_name[CLAN_NAME_MAX_LENGTH + 1]{};  // vacío = sin clan
+    bool is_clan_founder = false;
     
     uint16_t strength    = 18;
     uint16_t agility     = 18;

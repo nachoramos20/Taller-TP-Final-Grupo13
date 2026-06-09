@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstring>
 #include "WorldClans.h"
 #include "WorldPlayers.h"
 #include "WorldChat.h"
@@ -28,6 +29,12 @@ bool WorldClans::found(uint16_t founder_id, const std::string& clan_name) {
     clan.members.push_back(founder_id);
     clans_by_name[clan_name] = clan;
     player_clan[founder_id]  = clan_name;
+
+    PlayerData* pd = players.find_mutable(founder_id);
+    if (pd) {
+        PlayerData::copy_username(pd->clan_name, clan_name);
+        pd->is_clan_founder = true;
+    }
 
     chat.push_message(founder_id, 0, "Fundaste el clan \"" + clan_name + "\"!");
     return true;
@@ -96,6 +103,14 @@ bool WorldClans::accept(uint16_t founder_id, const std::string& nick) {
         clan.remove_pending(target);
         clan.members.push_back(target);
         player_clan[target] = name;
+
+        // Persistir en PlayerData
+        PlayerData* pd = players.find_mutable(target);
+        if (pd) {
+            PlayerData::copy_username(pd->clan_name, name);
+            pd->is_clan_founder = false;
+        }
+
         chat.push_message(target, 0, "¡Fuiste aceptado en el clan \"" + name + "\"!");
         chat.push_message(founder_id, 0, nick + " fue aceptado en el clan.");
         return true;
@@ -120,7 +135,17 @@ bool WorldClans::ban(uint16_t founder_id, const std::string& nick) {
     for (auto& [name, clan] : clans_by_name) {
         if (clan.founder_id != founder_id) continue;
         clan.remove_pending(target);
+        clan.remove_member(target);
         clan.banned.insert(target);
+        player_clan.erase(target);
+
+        // Limpiar PlayerData
+        PlayerData* pd = players.find_mutable(target);
+        if (pd) {
+            std::memset(pd->clan_name, 0, sizeof(pd->clan_name));
+            pd->is_clan_founder = false;
+        }
+
         chat.push_message(target, 0, "Fuiste baneado del clan \"" + name + "\".");
         chat.push_message(founder_id, 0, "Baneaste a " + nick + " del clan.");
         return true;
@@ -143,6 +168,13 @@ bool WorldClans::kick(uint16_t founder_id, const std::string& nick) {
         }
         clan.remove_member(target);
         player_clan.erase(target);
+
+        PlayerData* pd = players.find_mutable(target);
+        if (pd) {
+            std::memset(pd->clan_name, 0, sizeof(pd->clan_name));
+            pd->is_clan_founder = false;
+        }
+
         chat.push_message(target, 0, "Fuiste expulsado del clan \"" + name + "\".");
         chat.push_message(founder_id, 0, "Expulsaste a " + nick + " del clan.");
         return true;
@@ -163,6 +195,13 @@ bool WorldClans::leave(uint16_t player_id) {
     }
     clan.remove_member(player_id);
     player_clan.erase(player_id);
+
+    PlayerData* pd = players.find_mutable(player_id);
+    if (pd) {
+        std::memset(pd->clan_name, 0, sizeof(pd->clan_name));
+        pd->is_clan_founder = false;
+    }
+
     chat.push_message(player_id, 0, "Abandonaste el clan.");
     return true;
 }
@@ -172,6 +211,16 @@ bool WorldClans::same_clan(uint16_t a, uint16_t b) const {
     auto ib = player_clan.find(b);
     if (ia == player_clan.end() || ib == player_clan.end()) return false;
     return ia->second == ib->second;
+}
+
+void WorldClans::restore_membership(uint16_t player_id, const std::string& clan_name, bool is_founder) {
+    Clan& clan = clans_by_name[clan_name];
+    clan.name = clan_name;
+    clan.members.push_back(player_id);
+    if (is_founder) {
+        clan.founder_id = player_id;
+    }
+    player_clan[player_id] = clan_name;
 }
 
 void WorldClans::notify_login(uint16_t player_id, bool online) {

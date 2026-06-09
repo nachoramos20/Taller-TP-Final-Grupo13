@@ -99,6 +99,7 @@ public:
     bool clan_kick(uint16_t founder_id, const std::string& nick);
     bool clan_leave(uint16_t player_id);
     bool same_clan(uint16_t a, uint16_t b) const;
+    void restore_clan_membership(const PlayerData& p);
     void clan_notify_login(uint16_t player_id, bool online);
     void clan_notify_attack(uint16_t attacked_id);
 
