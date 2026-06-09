@@ -80,7 +80,7 @@ private:
     void render_weapon(SDL2pp::Renderer& renderer,
                        AssetManager& assets,
                        const std::string& weapon_path,
-                       int dir_idx,
+                       int dir_idx, int frame,
                        const SDL2pp::Rect& body_dst);
 
     Animation    _body_anims[4];

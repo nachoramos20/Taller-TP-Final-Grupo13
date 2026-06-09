@@ -298,7 +298,11 @@ void InventoryPanel::draw_slot(int x, int y, int size, int idx) {
     if (it != _item_textures.end() && it->second) {
         int img_size = size - 10;
         SDL_Rect dst{ x + 5, y + 5, img_size, img_size };
-        SDL_RenderCopy(_renderer.Get(), it->second, nullptr, &dst);
+        int tex_w = 0, tex_h = 0;
+        SDL_QueryTexture(it->second, nullptr, nullptr, &tex_w, &tex_h);
+        SDL_Rect icon_src{ 0, 192, 48, 64 };
+        SDL_Rect* src = (tex_w == 256 && tex_h == 256) ? &icon_src : nullptr;
+        SDL_RenderCopy(_renderer.Get(), it->second, src, &dst);
     } else {
         const char* abbr = item_abbr(item);
         if (abbr) {

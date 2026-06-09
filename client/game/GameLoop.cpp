@@ -575,7 +575,11 @@ void GameLoop::render_entities() {
             }
 
             SDL2pp::Rect dst(screen_x, screen_y, TILE_SIZE, TILE_SIZE);
-            _renderer.Copy(_assets.get(path), SDL2pp::NullOpt, dst);
+            SDL2pp::Texture& tex = _assets.get(path);
+            if (tex.GetWidth() == 256 && tex.GetHeight() == 256)
+                _renderer.Copy(tex, SDL2pp::Rect(0, 192, 48, 64), dst);
+            else
+                _renderer.Copy(tex, SDL2pp::NullOpt, dst);
             continue;
         }
 

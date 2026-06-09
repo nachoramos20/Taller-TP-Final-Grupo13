@@ -35,9 +35,13 @@ int AnimationSystem::direction_to_index(Direction dir) const {
 void AnimationSystem::render_weapon(SDL2pp::Renderer& renderer,
                                     AssetManager& assets,
                                     const std::string& weapon_path,
-                                    int dir_idx,
+                                    int dir_idx, int frame,
                                     const SDL2pp::Rect& body_dst) {
     if (weapon_path.empty()) return;
+
+    static constexpr int WPN_ROW_H = 48;
+    SDL2pp::Rect wpn_src(frame * BodyLayout::FRAME_W, dir_idx * WPN_ROW_H,
+                         BodyLayout::FRAME_W, WPN_ROW_H);
 
     static constexpr int WPN_SIZE = 24;
     int wx, wy;
@@ -52,7 +56,7 @@ void AnimationSystem::render_weapon(SDL2pp::Renderer& renderer,
             break;
     }
     SDL2pp::Rect wpn_dst(wx, wy, WPN_SIZE, WPN_SIZE);
-    renderer.Copy(assets.get(weapon_path), SDL2pp::NullOpt, wpn_dst);
+    renderer.Copy(assets.get(weapon_path), wpn_src, wpn_dst);
 }
 
 void AnimationSystem::render(SDL2pp::Renderer& renderer,
@@ -119,7 +123,7 @@ void AnimationSystem::render(SDL2pp::Renderer& renderer,
 
     // Pasada 5: arma en mano
     if (equip)
-        render_weapon(renderer, assets, equip->weapon_path, dir_idx, body_dst);
+        render_weapon(renderer, assets, equip->weapon_path, dir_idx, frame, body_dst);
 }
 
 void AnimationSystem::render_npc(SDL2pp::Renderer& renderer,
