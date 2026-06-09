@@ -16,6 +16,8 @@ PositionLabel::~PositionLabel() {
     if (_font) TTF_CloseFont(_font);
 }
 
+void PositionLabel::toggle_visibility() { _visible = !_visible; }
+
 void PositionLabel::update(int tile_x, int tile_y) {
     _tile_x = tile_x;
     _tile_y = tile_y;
@@ -33,6 +35,8 @@ void PositionLabel::draw_text(const std::string& text, int x, int y, SDL_Color c
 }
 
 void PositionLabel::render(int /*screen_w*/, int /*screen_h*/) {
+    if (!_visible) return;
+
     std::string text = "X = " + std::to_string(_tile_x) + "  Y = " + std::to_string(_tile_y);
 
     // Calcular dimensiones del texto primero para saber el tamaño del fondo

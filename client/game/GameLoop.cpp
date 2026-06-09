@@ -99,6 +99,13 @@ void GameLoop::handle_events() {
 
         if (_chat && _chat->handle_event(event)) continue;
 
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_x &&
+            !(_inventory && _inventory->is_visible()) &&
+            !(_chat && _chat->input_active())) {
+            _pos_label->toggle_visibility();
+            continue;
+        }
+
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
             _running = false;
         } else if (event.type == SDL_WINDOWEVENT
