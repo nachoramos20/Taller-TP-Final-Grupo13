@@ -10,6 +10,7 @@
 #include "../game/ChatWidget.h"
 #include "../game/StatsPanel.h"
 #include "../game/InventoryPanel.h"
+#include "../game/PositionLabel.h"
 #include "../render/Camera.h"
 #include "../render/AssetManager.h"
 #include "../render/AnimationSystem.h"
@@ -76,7 +77,8 @@ private:
     TileConfig       _tile_config;
     ObjectSupConfig  _obj_sup_config;
 
-    std::unique_ptr<ChatWidget>      _chat;
-    std::unique_ptr<StatsPanel>      _stats;
-    std::unique_ptr<InventoryPanel>  _inventory;
+    std::unique_ptr<ChatWidget>        _chat;
+    std::unique_ptr<StatsPanel>        _stats;
+    std::unique_ptr<InventoryPanel>    _inventory;
+    std::unique_ptr<PositionLabel>     _pos_label;
 };

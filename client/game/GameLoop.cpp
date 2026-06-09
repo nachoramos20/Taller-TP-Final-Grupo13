@@ -22,6 +22,7 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
     _stats     = std::make_unique<StatsPanel>(renderer, CHAT_FONT_PATH);
     _inventory = std::make_unique<InventoryPanel>(renderer, CHAT_FONT_PATH);
     _chat->add_message("Bienvenido. Enter para chatear.");
+    _pos_label = std::make_unique<PositionLabel>(renderer, CHAT_FONT_PATH);
 }
 
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
@@ -48,6 +49,7 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
     _inventory = std::make_unique<InventoryPanel>(renderer, CHAT_FONT_PATH);
 
     _chat->add_message("Conectado. Enter para chatear. Click izq sobre enemigo para atacar.");
+    _pos_label = std::make_unique<PositionLabel>(renderer, CHAT_FONT_PATH);
     _chat->on_submit([this](const std::string& text) {
         if (!_command_queue) return;
         _command_queue->push(Command::chat(text));
@@ -174,6 +176,7 @@ void GameLoop::update(float dt) {
 
     _player.update(dt);
     _camera.follow(_player);
+    _pos_label->update(_player.tile_x, _player.tile_y);
 }
 
 void GameLoop::apply_map(const MapaDTO& map) {
@@ -241,6 +244,7 @@ void GameLoop::render() {
     if (_chat)      _chat->render(sw, sh);
     if (_stats)     _stats->render(sw, sh);
     if (_inventory) _inventory->render(sw, sh);
+    if (_pos_label) _pos_label->render(sw, sh);
 
     _renderer.Present();
 }

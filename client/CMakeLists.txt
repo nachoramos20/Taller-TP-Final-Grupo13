@@ -6,6 +6,7 @@ target_sources(argentum_grupo13_client
     game/ChatWidget.cpp
     game/StatsPanel.cpp
     game/InventoryPanel.cpp
+    game/PositionLabel.cpp
     render/Camera.cpp
     render/AssetManager.cpp
     render/AnimationSystem.cpp
