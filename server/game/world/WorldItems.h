@@ -17,8 +17,12 @@ public:
 
     const std::vector<FloorItem>& all() const { return items; }
 
-    void add(uint8_t item_id, uint16_t x, uint16_t y, uint32_t gold = 0);
+    void add(uint8_t item_id, uint16_t x, uint16_t y,
+             uint32_t gold = 0, uint32_t spawn_tick = 0);
     uint8_t pick(uint16_t x, uint16_t y, uint32_t& gold_out);
+
+    // Elimina manchas de sangre que ya expiraron
+    void cleanup_expired(uint32_t current_tick);
 
     // Droppea oro excedente + inventario al morir el jugador.
     void drop_player_loot(PlayerData& dead);

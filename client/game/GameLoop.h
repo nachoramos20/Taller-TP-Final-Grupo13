@@ -25,6 +25,18 @@ static constexpr int MAP_SIZE        = 100;
 static constexpr int OBJ_SUP_TILES   = 6;
 static constexpr int OBJ_SUP_SIZE    = OBJ_SUP_TILES * TILE_SIZE;
 static constexpr int OBJ_SUP_TICKS_PER_FRAME = 8;
+static constexpr int SPELL_TICKS_PER_FRAME   = 4;
+
+// Efecto visual de hechizo (solo cliente)
+struct SpellEffect {
+    uint8_t  spell_id;
+    uint16_t pos_x, pos_y;   // posición del caster en tiles
+    uint32_t start_tick;
+    int      sheet_cols;
+    int      frame_w, frame_h;
+    std::vector<int> frame_indices;
+    std::string path;
+};
 
 class GameLoop {
 public:
@@ -51,6 +63,9 @@ private:
     void render_objects();
     void render_entities();
     void render_obj_sup();
+    void render_spells();
+    void load_item_textures();
+    void spawn_spell_effect(uint8_t spell_id, uint16_t pos_x, uint16_t pos_y);
 
     SDL2pp::Window&     _window;
     SDL2pp::Renderer&   _renderer;
@@ -67,6 +82,16 @@ private:
     uint16_t               _my_entity_id;
     Uint32                 _last_move_tick;
     uint32_t               _current_tick;
+
+    // Equipo del jugador propio (slots de inventario, 0xFF = vacío)
+    uint8_t _inv[SnapshotDTO::INVENTORY_SIZE] {};
+    uint8_t _eq_wpn  = 0xFF;
+    uint8_t _eq_arm  = 0xFF;
+    uint8_t _eq_helm = 0xFF;
+    uint8_t _eq_shld = 0xFF;
+
+    // Efectos visuales de hechizos (solo cliente)
+    std::vector<SpellEffect> _spell_effects;
 
     MapaDTO   _map;
     bool      _map_loaded;

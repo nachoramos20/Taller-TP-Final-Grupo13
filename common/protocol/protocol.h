@@ -55,11 +55,13 @@ enum class ItemId : uint8_t {
     SWORD             = 1,
     AXE               = 2,
     HAMMER            = 3,
-    // Armas a distancia
+    // Armas a distancia físicas
     SIMPLE_BOW        = 4,
     COMPOUND_BOW      = 5,
+    // Armas mágicas  (consumen mana en ataque básico Y habilitan hechizos)
     ELVEN_FLUTE       = 6,
     GEMMED_STAFF      = 7,
+    ASH_STICK        = 8,   // vara mágica — nuevo
     // Armaduras
     LEATHER_ARMOR     = 10,
     PLATE_ARMOR       = 11,
@@ -73,8 +75,10 @@ enum class ItemId : uint8_t {
     // Pociones
     HEALTH_POTION     = 40,
     MANA_POTION       = 41,
-    // Oro (en el suelo se modela como item especial)
+    // Oro
     GOLD_PILE         = 50,
+    // Efectos de suelo (no recogibles)
+    BLOOD_STAIN       = 60,
 };
 
 enum class NpcId : uint8_t {
@@ -83,22 +87,30 @@ enum class NpcId : uint8_t {
 
 // Hechizos
 enum class SpellId : uint8_t {
-    NONE             = 0,
+    NONE                      = 0,
     // Mago
-    MAGIC_MISSILE    = 1,
-    FIREBALL         = 2,
-    LIGHTNING        = 3,
+    BURST                     = 1,
+    POISON_AREA               = 2,
+    SKULL_EXPLOSION           = 3,
     // Clérigo
-    DIVINE_SMITE     = 4,
-    HOLY_FLAME       = 5,
-    LIGHT_STORM      = 6,
+    ICE_ORB                   = 4,
+    GRAVITATIONAL_TORNAD      = 5,
+    THUNDERSTORM              = 6,
     // Paladín
-    SACRED_STRIKE    = 7,
-    FAITH_SPEAR      = 8,
-    JUDGEMENT        = 9,
+    ORB_OF_EMPTINESS          = 7,
+    VACUUM_GAP                = 8,
+    TORNADO_OF_DARKNESS       = 9,
 };
 
+// Devuelve true si el item habilita el lanzamiento de hechizos
+// (flauta, báculo o vara mágica)
 inline bool weapon_enables_spells(uint8_t item_id) {
-    return item_id == static_cast<uint8_t>(ItemId::ELVEN_FLUTE) ||
-           item_id == static_cast<uint8_t>(ItemId::GEMMED_STAFF);
+    return item_id == static_cast<uint8_t>(ItemId::ELVEN_FLUTE)  ||
+           item_id == static_cast<uint8_t>(ItemId::GEMMED_STAFF) ||
+           item_id == static_cast<uint8_t>(ItemId::ASH_STICK);
+}
+
+// Devuelve true si el item es un arma mágica que consume mana en ataque básico
+inline bool weapon_is_magic(uint8_t item_id) {
+    return weapon_enables_spells(item_id);
 }

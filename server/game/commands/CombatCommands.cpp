@@ -5,6 +5,8 @@
 #include <cmath>
 #include <random>
 
+// RNG local
+
 static std::mt19937& local_rng() {
     static std::mt19937 r(std::random_device{}());
     return r;
@@ -15,6 +17,8 @@ static int rand_range(int lo, int hi) {
     return std::uniform_int_distribution<int>(lo, hi)(local_rng());
 }
 
+// Helpers de geometría y fair-play
+
 static int manhattan(uint16_t ax, uint16_t ay, uint16_t bx, uint16_t by) {
     return std::abs((int)ax - (int)bx) + std::abs((int)ay - (int)by);
 }
@@ -24,53 +28,56 @@ static bool fair_play_ok(const PlayerData& a, const PlayerData& b) {
     return std::abs((int)a.level - (int)b.level) <= 10;
 }
 
-static uint16_t calc_weapon_damage(const PlayerData& attacker) {
-    uint8_t slot = attacker.equipped_weapon;
-    
-    // Daño base por defecto "a puño limpio" (Unarmed)
-    int dmin = 1;
-    int dmax = 3;
+// Helpers de combate
 
-    if (slot != 0xFF && slot < PlayerData::INVENTORY_SIZE) {
-        uint8_t item_id = attacker.inventory[slot];
-        
-        if (item_id != 0 && Items::exists(static_cast<ItemId>(item_id))) {
-            const ItemDef& def = Items::get(static_cast<ItemId>(item_id));
-            dmin = def.min_value;
-            dmax = def.max_value;
-        }
-    }
+// Estructura que describe el arma actualmente equipada.
+// Se usa para centralizar la lectura del slot de arma.
+struct WeaponInfo {
+    ItemKind  kind      = ItemKind::NONE;
+    uint16_t  mana_cost = 0;
+    int       range     = 1;
+    int       dmin      = 1;
+    int       dmax      = 3;
+    bool      valid     = false; // false → "a puño limpio"
+};
 
-    int raw = attacker.strength * rand_range(dmin, dmax);
+static WeaponInfo read_weapon(const PlayerData& p) {
+    WeaponInfo w;
+    uint8_t slot = p.equipped_weapon;
+    if (slot == 0xFF || slot >= PlayerData::INVENTORY_SIZE) return w;
+
+    uint8_t item_id = p.inventory[slot];
+    if (item_id == 0 || !Items::exists(static_cast<ItemId>(item_id))) return w;
+
+    const ItemDef& def = Items::get(static_cast<ItemId>(item_id));
+    w.kind      = def.kind;
+    w.mana_cost = def.mana_cost;
+    w.range     = (def.range_tiles > 0) ? def.range_tiles : 1;
+    w.dmin      = def.min_value;
+    w.dmax      = def.max_value;
+    w.valid     = true;
+    return w;
+}
+
+static uint16_t calc_weapon_damage(const PlayerData& attacker, const WeaponInfo& w) {
+    int raw = attacker.strength * rand_range(w.dmin, w.dmax);
     return static_cast<uint16_t>(raw);
 }
 
 static uint16_t calc_defense(const PlayerData& defender) {
     int def = 0;
 
-    if (defender.equipped_armor != 0xFF && defender.equipped_armor < PlayerData::INVENTORY_SIZE) {
-        uint8_t item_id = defender.inventory[defender.equipped_armor];
-        if (item_id != 0 && Items::exists(static_cast<ItemId>(item_id))) {
-            const auto& a = Items::get(static_cast<ItemId>(item_id));
-            def += rand_range(a.min_value, a.max_value);
-        }
-    }
+    auto add_piece = [&](uint8_t slot) {
+        if (slot == 0xFF || slot >= PlayerData::INVENTORY_SIZE) return;
+        uint8_t item_id = defender.inventory[slot];
+        if (item_id == 0 || !Items::exists(static_cast<ItemId>(item_id))) return;
+        const auto& d = Items::get(static_cast<ItemId>(item_id));
+        def += rand_range(d.min_value, d.max_value);
+    };
 
-    if (defender.equipped_helmet != 0xFF && defender.equipped_helmet < PlayerData::INVENTORY_SIZE) {
-        uint8_t item_id = defender.inventory[defender.equipped_helmet];
-        if (item_id != 0 && Items::exists(static_cast<ItemId>(item_id))) {
-            const auto& h = Items::get(static_cast<ItemId>(item_id));
-            def += rand_range(h.min_value, h.max_value);
-        }
-    }
-
-    if (defender.equipped_shield != 0xFF && defender.equipped_shield < PlayerData::INVENTORY_SIZE) {
-        uint8_t item_id = defender.inventory[defender.equipped_shield];
-        if (item_id != 0 && Items::exists(static_cast<ItemId>(item_id))) {
-            const auto& s = Items::get(static_cast<ItemId>(item_id));
-            def += rand_range(s.min_value, s.max_value);
-        }
-    }
+    add_piece(defender.equipped_armor);
+    add_piece(defender.equipped_helmet);
+    add_piece(defender.equipped_shield);
     return static_cast<uint16_t>(def);
 }
 
@@ -112,7 +119,6 @@ static void check_level_up(PlayerData& p, World& world) {
         } else {
             p.max_mp = Stats::initial_max_mp(p.race, p.cls) * p.level;
         }
-
         p.hp = std::min(p.hp, p.max_hp);
         p.mp = std::min(p.mp, p.max_mp);
         if (p.level != orig_level)
@@ -141,9 +147,10 @@ static void npc_drop(const NpcData& npc, const NpcTemplate& tpl, World& world) {
             int idx = rand_range(0, (int)tpl.drop_table.size() - 1);
             world.add_floor_item(tpl.drop_table[idx], npc.pos_x, npc.pos_y, 0);
         }
-        return;
     }
 }
+
+// AttackCommand (PvP)
 
 AttackCommand::AttackCommand(uint16_t c, uint16_t t)
     : client_id(c), target_id(t) {}
@@ -161,6 +168,7 @@ void AttackCommand::execute(World& world) {
         }
         return;
     }
+
     if (attacker->is_ghost || target->is_ghost) return;
     if (attacker->attack_cooldown > 0) return;
 
@@ -175,12 +183,21 @@ void AttackCommand::execute(World& world) {
 
     attacker->meditating = false;
 
-    bool ranged = false;
-    if (attacker->equipped_weapon != 0 && Items::exists(static_cast<ItemId>(attacker->equipped_weapon))) {
-        ranged = (Items::get(static_cast<ItemId>(attacker->equipped_weapon)).kind == ItemKind::WEAPON_RANGED);
+    WeaponInfo w = read_weapon(*attacker);
+
+    // Verificar mana para armas mágicas
+    if (w.kind == ItemKind::WEAPON_MAGIC) {
+        if (attacker->mp < w.mana_cost) {
+            world.push_message(client_id, 0,
+                "No tenés maná suficiente para disparar el arma mágica.");
+            return;
+        }
     }
-    int dist = manhattan(attacker->pos_x, attacker->pos_y, target->pos_x, target->pos_y);
-    int max_dist = ranged ? 8 : 1;
+
+    // Verificar rango
+    bool is_ranged = (w.kind == ItemKind::WEAPON_RANGED || w.kind == ItemKind::WEAPON_MAGIC);
+    int  dist      = manhattan(attacker->pos_x, attacker->pos_y, target->pos_x, target->pos_y);
+    int  max_dist  = is_ranged ? w.range : 1;
     if (dist > max_dist) {
         world.push_message(client_id, 0, "Objetivo demasiado lejos.");
         return;
@@ -189,13 +206,20 @@ void AttackCommand::execute(World& world) {
     bool crit = is_critical();
 
     if (!crit && try_dodge(target->agility)) {
-        world.push_message(client_id, 0, "¡" + std::string(target->username) + " esquivó tu ataque!");
-        world.push_message(target_id, 1, "Esquivaste el ataque de " + std::string(attacker->username) + "!");
+        world.push_message(client_id, 0,
+            "¡" + std::string(target->username) + " esquivó tu ataque!");
+        world.push_message(target_id, 1,
+            "Esquivaste el ataque de " + std::string(attacker->username) + "!");
         attacker->attack_cooldown = 10;
         return;
     }
 
-    uint16_t damage = calc_weapon_damage(*attacker);
+    // Consumir mana del arma mágica
+    if (w.kind == ItemKind::WEAPON_MAGIC) {
+        attacker->mp -= w.mana_cost;
+    }
+
+    uint16_t damage = calc_weapon_damage(*attacker, w);
     if (crit) damage *= 2;
 
     if (!crit) {
@@ -208,15 +232,17 @@ void AttackCommand::execute(World& world) {
     check_level_up(*attacker, world);
 
     std::string crit_str = crit ? " [CRITICO]" : "";
-    world.push_message(client_id, 1, "Hiciste " + std::to_string(damage) + " de daño" + crit_str + ".");
-    world.push_message(target_id, 1, "Recibiste " + std::to_string(damage) + " de daño de " +
+    world.push_message(client_id, 1,
+        "Hiciste " + std::to_string(damage) + " de daño" + crit_str + ".");
+    world.push_message(target_id, 1,
+        "Recibiste " + std::to_string(damage) + " de daño de " +
         std::string(attacker->username) + crit_str + ".");
 
     world.clan_notify_attack(target_id);
 
     if (target->hp <= damage) {
-        target->hp       = 0;
-        target->is_ghost = true;
+        target->hp         = 0;
+        target->is_ghost   = true;
         target->meditating = false;
         world.update_occupied({target->pos_x, target->pos_y}, false);
         world.drop_player_loot(*target);
@@ -224,8 +250,8 @@ void AttackCommand::execute(World& world) {
         attacker->exp += exp_on_kill(target->max_hp, attacker->level, target->level);
         check_level_up(*attacker, world);
 
-        world.push_message(target_id, 1, "Moriste! Eres un fantasma.");
-        world.push_message(client_id, 1, "Mataste a " + std::string(target->username) + "!");
+        world.push_message(target_id, 1, "¡Moriste! Eres un fantasma.");
+        world.push_message(client_id, 1, "¡Mataste a " + std::string(target->username) + "!");
     } else {
         target->hp -= damage;
     }
@@ -233,12 +259,14 @@ void AttackCommand::execute(World& world) {
     attacker->attack_cooldown = 10;
 }
 
+// AttackNpcCommand
+
 AttackNpcCommand::AttackNpcCommand(uint16_t c, uint16_t n)
     : client_id(c), npc_id(n) {}
 
 void AttackNpcCommand::execute(World& world) {
     PlayerData* attacker = world.get_player_mutable(client_id);
-    NpcData* npc      = world.find_npc(npc_id);
+    NpcData*    npc      = world.find_npc(npc_id);
 
     if (!attacker || !npc) return;
     if (attacker->is_ghost) return;
@@ -248,12 +276,19 @@ void AttackNpcCommand::execute(World& world) {
 
     const NpcTemplate& tpl = Npcs::tpl(npc->type);
 
-    bool ranged = false;
-    if (attacker->equipped_weapon != 0 && Items::exists(static_cast<ItemId>(attacker->equipped_weapon)))
-        ranged = (Items::get(static_cast<ItemId>(attacker->equipped_weapon)).kind == ItemKind::WEAPON_RANGED);
+    WeaponInfo w = read_weapon(*attacker);
 
-    int dist     = manhattan(attacker->pos_x, attacker->pos_y, npc->pos_x, npc->pos_y);
-    int max_dist = ranged ? 8 : 1;
+    if (w.kind == ItemKind::WEAPON_MAGIC) {
+        if (attacker->mp < w.mana_cost) {
+            world.push_message(client_id, 0,
+                "No tenés maná suficiente para disparar el arma mágica.");
+            return;
+        }
+    }
+
+    bool is_ranged = (w.kind == ItemKind::WEAPON_RANGED || w.kind == ItemKind::WEAPON_MAGIC);
+    int  dist      = manhattan(attacker->pos_x, attacker->pos_y, npc->pos_x, npc->pos_y);
+    int  max_dist  = is_ranged ? w.range : 1;
     if (dist > max_dist) {
         world.push_message(client_id, 0, "El NPC está demasiado lejos.");
         return;
@@ -262,12 +297,16 @@ void AttackNpcCommand::execute(World& world) {
     bool crit = is_critical();
 
     if (!crit && try_dodge(10)) {
-        world.push_message(client_id, 1, "El NPC esquivó tu ataque!");
+        world.push_message(client_id, 1, "¡El NPC esquivó tu ataque!");
         attacker->attack_cooldown = 10;
         return;
     }
 
-    uint16_t damage = calc_weapon_damage(*attacker);
+    if (w.kind == ItemKind::WEAPON_MAGIC) {
+        attacker->mp -= w.mana_cost;
+    }
+
+    uint16_t damage = calc_weapon_damage(*attacker, w);
     if (crit) damage *= 2;
 
     if (!crit) {
@@ -294,7 +333,7 @@ void AttackNpcCommand::execute(World& world) {
         npc_drop(*npc, tpl, world);
 
         world.push_message(client_id, 1,
-            "Mataste al " + tpl.name + "! +" + std::to_string(gold) + " oro.");
+            "¡Mataste al " + tpl.name + "! +" + std::to_string(gold) + " oro.");
 
         world.update_occupied({npc->pos_x, npc->pos_y}, false);
         npc->hp = 0;

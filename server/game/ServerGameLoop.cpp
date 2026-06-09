@@ -23,29 +23,39 @@ void ServerGameLoop::run() {
 
     // ── Configuración del spawner ──
     auto& sp = world.spawner();
-    sp.set_global_cap(15);
+    sp.set_global_cap(20);
 
-    // Bosque NO (x: 6..18, y: 6..45)
+    // Bosque NO: orcos y zombies entre los arboles del oeste.
     sp.add_zone(SpawnZone{
-        6, 6, 18, 45,
-        { NpcId::GOBLIN, NpcId::SPIDER, NpcId::SKELETON },
-        /*max_alive*/ 6, /*every*/ 30 * 6
+        6, 6, 22, 34,
+        { NpcId::ORC, NpcId::ZOMBIE },
+        /*max_alive*/ 5, /*every*/ 30 * 7
     });
-    // Bosque SO (x: 6..18, y: 55..93)
+
+    // Bosque SO: misma fauna, un poco mas denso por estar lejos de la ciudad.
     sp.add_zone(SpawnZone{
-        6, 55, 18, 93,
-        { NpcId::ZOMBIE, NpcId::SPIDER, NpcId::ORC },
-        /*max_alive*/ 6, /*every*/ 30 * 8
+        6, 55, 22, 93,
+        { NpcId::ORC, NpcId::ZOMBIE },
+        /*max_alive*/ 6, /*every*/ 30 * 7
     });
-    // Pueblo sur — bichos más fuertes
+
+    // Cementerio: no-muertos y criaturas chicas entre tumbas.
     sp.add_zone(SpawnZone{
-        25, 60, 75, 95,
-        { NpcId::ORC, NpcId::GOLEM },
+        55, 55, 66, 66,
+        { NpcId::SKELETON, NpcId::SPIDER },
+        /*max_alive*/ 5, /*every*/ 30 * 8
+    });
+
+    // Costa rocosa NE: golems como guardianes pesados lejos de los asentamientos.
+    sp.add_zone(SpawnZone{
+        70, 6, 82, 34,
+        { NpcId::GOLEM },
         /*max_alive*/ 3, /*every*/ 30 * 12
     });
 
-    // ── Zonas seguras (ciudad principal + plaza) ──
-    sp.add_safe_zone(SafeZone{ 25, 5, 75, 45 });  // ciudad
+    // ── Zonas seguras (asentamientos) ──
+    sp.add_safe_zone(SafeZone{ 24, 4, 56, 36 });  // ciudad principal
+    sp.add_safe_zone(SafeZone{ 29, 53, 49, 71 }); // pueblo sur
 
     while (should_keep_running()) {
         process_commands();
@@ -105,7 +115,8 @@ void ServerGameLoop::update() {
         }
     }
 
-    world.tick_npcs();
+    world.tick_npcs(tick);
+    world.cleanup_items(tick);
 }
 
 void ServerGameLoop::broadcast_snapshots() {
