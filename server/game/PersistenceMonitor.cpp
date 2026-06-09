@@ -40,7 +40,7 @@ static void apply_initial_equipment(PlayerData& p) {
             give_item(p, static_cast<uint8_t>(I::SWORD),       p.equipped_weapon, true);
             break;
         case Class::PALADIN:
-            give_item(p, static_cast<uint8_t>(I::HAMMER),      p.equipped_weapon, true);
+            give_item(p, static_cast<uint8_t>(I::GEMMED_STAFF),      p.equipped_weapon, true);
             break;
         case Class::CLERIC:
             give_item(p, static_cast<uint8_t>(I::ELVEN_FLUTE), p.equipped_weapon, true);
@@ -97,8 +97,8 @@ make_initial_player(const std::string& username, uint8_t race, uint8_t cls) {
     data.entity_id = 0;
     data.race = race;
     data.cls  = cls;
-    data.pos_x = 50;
-    data.pos_y = 50;
+    data.pos_x = 40;
+    data.pos_y = 25;
     data.direction = 0;
     data.exp   = 0;
     data.level = 1;

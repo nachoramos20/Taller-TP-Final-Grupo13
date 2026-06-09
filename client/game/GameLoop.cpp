@@ -61,20 +61,36 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
     load_item_textures();
 }
 
-// load_item_textures
-
 void GameLoop::spawn_spell_effect(uint8_t spell_id, uint16_t pos_x, uint16_t pos_y) {
-    struct SpellInfo { const char* path; int cols; int rows; };
+    struct SpellInfo {
+        const char* path;
+        int sheet_cols;
+        int frame_w;
+        int frame_h;
+        std::vector<int> frame_indices;
+    };
     static const std::unordered_map<uint8_t, SpellInfo> spell_info = {
-        { 1, { "assets/sprites/spells/explosion.png",            5, 3 }},
-        { 2, { "assets/sprites/spells/area_veneno.png",          4, 4 }},
-        { 3, { "assets/sprites/spells/explosion_calaverica.png", 4, 4 }},
-        { 4, { "assets/sprites/spells/orbe_hielo.png",           5, 4 }},
-        { 5, { "assets/sprites/spells/tornado_gravitatorio.png", 5, 2 }},
-        { 6, { "assets/sprites/spells/tormenta_electrica.png",   4, 4 }},
-        { 7, { "assets/sprites/spells/orbe_vacio.png",           5, 4 }},
-        { 8, { "assets/sprites/spells/brecha_vacio.png",         5, 4 }},
-        { 9, { "assets/sprites/spells/tornado_oscuridad.png",    5, 2 }},
+        { 1, { "assets/sprites/spells/explosion.png",            5, 192, 192,
+               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 } }},
+        { 2, { "assets/sprites/spells/area_veneno.png",          4, 128, 128,
+               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } }},
+        { 3, { "assets/sprites/spells/explosion_calaverica.png", 3, 145, 145,
+               { 0, 1, 2, 3, 4, 5, 6 } }},
+        { 4, { "assets/sprites/spells/orbe_hielo.png",           8, 128, 128,
+               { 0, 1, 2, 3, 4, 8, 9, 10, 11, 12, 16, 17, 18, 19, 20,
+                 24, 25, 26, 27, 28, 32, 33, 34, 35, 36, 40, 41, 42, 43, 44 } }},
+        { 5, { "assets/sprites/spells/tornado_gravitatorio.png", 5, 120, 255,
+               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } }},
+        { 6, { "assets/sprites/spells/tormenta_electrica.png",   4, 128, 128,
+               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } }},
+        { 7, { "assets/sprites/spells/orbe_vacio.png",           6, 112, 112,
+               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } }},
+        { 8, { "assets/sprites/spells/brecha_vacio.png",         7, 146, 146,
+               { 0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 15, 16, 17, 18,
+                 21, 22, 23, 24, 25 } }},
+        { 9, { "assets/sprites/spells/tornado_oscuridad.png",    5, 120, 255,
+               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } }},
     };
     auto it = spell_info.find(spell_id);
     if (it == spell_info.end()) return;
@@ -84,50 +100,82 @@ void GameLoop::spawn_spell_effect(uint8_t spell_id, uint16_t pos_x, uint16_t pos
     fx.pos_x      = pos_x;
     fx.pos_y      = pos_y;
     fx.start_tick = _current_tick;
-    fx.cols       = it->second.cols;
-    fx.rows       = it->second.rows;
+    fx.sheet_cols = it->second.sheet_cols;
+    fx.frame_w    = it->second.frame_w;
+    fx.frame_h    = it->second.frame_h;
+    fx.frame_indices = it->second.frame_indices;
     fx.path       = it->second.path;
     _spell_effects.push_back(fx);
 }
 
 void GameLoop::render_spells() {
-    // Limpiar efectos terminados
     _spell_effects.erase(
         std::remove_if(_spell_effects.begin(), _spell_effects.end(),
             [&](const SpellEffect& fx) {
-                int total = fx.cols * fx.rows;
+                int total = static_cast<int>(fx.frame_indices.size());
                 uint32_t elapsed = _current_tick - fx.start_tick;
                 return static_cast<int>(elapsed / SPELL_TICKS_PER_FRAME) >= total;
             }),
         _spell_effects.end());
 
-    for (const auto& fx : _spell_effects) {
-        int total   = fx.cols * fx.rows;
-        uint32_t elapsed = _current_tick - fx.start_tick;
-        int frame   = static_cast<int>(elapsed / SPELL_TICKS_PER_FRAME) % total;
+    struct SpellRenderInfo {
+        int display_w;
+        int display_h;
+        int offset_x;
+        int offset_y;
+    };
+    static const std::unordered_map<uint8_t, SpellRenderInfo> spell_render = {
+        { 1, { 150, 150, -75, -124 } },
+        { 2, {  96,  96, -48,  -80 } },
+        { 3, { 120, 120, -60, -104 } },
+        { 4, {  96,  96, -48,  -80 } },
+        { 5, {  80, 170, -40, -144 } },
+        { 6, {  96,  96, -48,  -80 } },
+        { 7, {  96,  96, -48,  -80 } },
+        { 8, { 120, 120, -60, -104 } },
+        { 9, {  80, 170, -40, -144 } },
+    };
 
-        int col = frame % fx.cols;
-        int row = frame / fx.cols;
+    for (const auto& fx : _spell_effects) {
+        int total = static_cast<int>(fx.frame_indices.size());
+        if (total == 0 || fx.sheet_cols <= 0 || fx.frame_w <= 0 || fx.frame_h <= 0) continue;
+
+        uint32_t elapsed = _current_tick - fx.start_tick;
+        int frame = static_cast<int>(elapsed / SPELL_TICKS_PER_FRAME) % total;
+        int sheet_frame = fx.frame_indices[frame];
+
+        int col = sheet_frame % fx.sheet_cols;
+        int row = sheet_frame / fx.sheet_cols;
 
         SDL2pp::Texture& tex = _assets.get(fx.path);
-        int tw = tex.GetWidth()  / fx.cols;
-        int th = tex.GetHeight() / fx.rows;
+        SDL2pp::Rect src(col * fx.frame_w, row * fx.frame_h, fx.frame_w, fx.frame_h);
 
-        SDL2pp::Rect src(col * tw, row * th, tw, th);
+        // Calcular posición en pantalla centrada sobre el tile del objetivo
+        int center_x = _camera.world_to_screen_x(static_cast<float>(fx.pos_x * TILE_SIZE))
+                       + TILE_SIZE / 2;
+        int center_y = _camera.world_to_screen_y(static_cast<float>(fx.pos_y * TILE_SIZE))
+                       + TILE_SIZE / 2;
 
-        // Escalar a 3×3 tiles centrado en la posición del caster
-        int size_px = TILE_SIZE * 3;
-        int sx = _camera.world_to_screen_x(static_cast<float>(fx.pos_x * TILE_SIZE))
-                 - size_px / 2 + TILE_SIZE / 2;
-        int sy = _camera.world_to_screen_y(static_cast<float>(fx.pos_y * TILE_SIZE))
-                 - size_px / 2 + TILE_SIZE / 2;
+        // Obtener dimensiones hardcodeadas para este hechizo
+        auto rit = spell_render.find(fx.spell_id);
+        int dw, dh, ox, oy;
+        if (rit != spell_render.end()) {
+            dw = rit->second.display_w;
+            dh = rit->second.display_h;
+            ox = rit->second.offset_x;
+            oy = rit->second.offset_y;
+        } else {
+            // fallback genérico
+            dw = TILE_SIZE * 2;
+            dh = TILE_SIZE * 2;
+            ox = -TILE_SIZE / 2;
+            oy = -TILE_SIZE;
+        }
 
-        SDL2pp::Rect dst(sx, sy, size_px, size_px);
+        SDL2pp::Rect dst(center_x + ox, center_y + oy, dw, dh);
         _renderer.Copy(tex, src, dst);
     }
 }
-
-// load_item_textures
 
 void GameLoop::load_item_textures() {
     if (!_inventory) return;
@@ -148,8 +196,8 @@ void GameLoop::load_item_textures() {
         { 7,  "assets/sprites/weapons/staff/baculo_esmeralda.png" },
         { 8,  "assets/sprites/weapons/stick/vara_fresno.png" },
         // Armaduras
-        { 10, "assets/sprites/equipment/armor/guerrero_ejecutor.png" },
-        { 11, "assets/sprites/equipment/armor/paladin_real.png" },
+        { 10, "assets/sprites/equipment/armor/clerigo_blanco.png" },
+        { 11, "assets/sprites/equipment/armor/guerrero_ejecutor.png" },
         // Cascos
         { 20, "assets/sprites/equipment/helmet/cascos.png" },
         { 21, "assets/sprites/equipment/helmet/cascos.png" },
@@ -688,8 +736,8 @@ void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
                 _command_queue->push(Command::cast_spell(e.entity_id, spell));
                 // Efecto visual inmediato en posición del caster
                 spawn_spell_effect(spell,
-                    static_cast<uint16_t>(_player.tile_x),
-                    static_cast<uint16_t>(_player.tile_y));
+                                            e.pos_x,
+                                            e.pos_y);
                 _chat->add_message("Lanzando hechizo a " + (e.username.empty()
                     ? std::string("#") + std::to_string(e.entity_id)
                     : e.username));

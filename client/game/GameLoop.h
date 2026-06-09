@@ -31,7 +31,9 @@ struct SpellEffect {
     uint8_t  spell_id;
     uint16_t pos_x, pos_y;   // posición del caster en tiles
     uint32_t start_tick;
-    int      cols, rows;
+    int      sheet_cols;
+    int      frame_w, frame_h;
+    std::vector<int> frame_indices;
     std::string path;
 };
 

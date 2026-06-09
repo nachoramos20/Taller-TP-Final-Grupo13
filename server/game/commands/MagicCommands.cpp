@@ -31,14 +31,14 @@ void ResurrectCommand::execute(World& world) {
     if (!p || !p->is_ghost) return;
 
     world.update_occupied({p->pos_x, p->pos_y}, false);
-    p->pos_x      = 5;
-    p->pos_y      = 5;
+    p->pos_x      = 40;
+    p->pos_y      = 25;
     p->is_ghost   = false;
     p->meditating = false;
     p->hp         = p->max_hp / 4;
     p->mp         = 0;
     world.update_occupied({p->pos_x, p->pos_y}, true);
-    world.push_message(client_id, 0, "Resucitaste junto al sanador.");
+    world.push_message(client_id, 0, "Resucitaste junto al sanador en la ciudad.");
 }
 
 // Hechizos
