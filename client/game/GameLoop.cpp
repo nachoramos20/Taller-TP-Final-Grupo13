@@ -655,9 +655,9 @@ void GameLoop::render_entities() {
                     { "assets/npcs/skeleton/esqueleto_oscuro.png", 7, 3, 24, 32 },
                 }},
                 { 3, { // ZOMBIE
-                    { "assets/npcs/zombie/zombie_comun.png",   4, 4,  64,  64 },
-                    { "assets/npcs/zombie/zombie_magico.png",  4, 4,  64,  64 },
-                    { "assets/npcs/zombie/zombie_poseido.png", 5, 4,  85, 100 },
+                    { "assets/npcs/zombie/zombie_comun.png",   5, 4,  24,  50 },
+                    { "assets/npcs/zombie/zombie_magico.png",  5, 4,  27,  50 },
+                    { "assets/npcs/zombie/zombie_poseido.png", 4, 4,  89, 106 },
                 }},
                 { 4, { // SPIDER
                     { "assets/npcs/spider/araña_comun.png",       8, 4,  64,  64 },
