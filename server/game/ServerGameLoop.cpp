@@ -8,11 +8,13 @@
 #include <vector>
 
 ServerGameLoop::ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_queue,
-                               QueueMonitor& queue_monitor, Queue<PlayerData>& save_queue)
+                               QueueMonitor& queue_monitor,
+                               Queue<PlayerData>& save_queue,
+                               std::vector<uint8_t> collision_map)
     : command_queue(command_queue),
       queue_monitor(queue_monitor),
       save_queue(save_queue),
-      world(100, 100), tick(0),
+      world(100, 100, std::move(collision_map)), tick(0),
       regen_ticks(0) {}
 
 void ServerGameLoop::run() {

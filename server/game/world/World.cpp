@@ -1,9 +1,9 @@
 #include "World.h"
 
-World::World(uint16_t width, uint16_t height)
+World::World(uint16_t width, uint16_t height, std::vector<uint8_t> collision_map)
     : id_alloc(10000),
       rng(std::random_device{}()),
-      collision_(width, height),
+      collision_(width, height, std::move(collision_map)),
       chat_(),
       players_(collision_),
       items_(id_alloc),
@@ -43,7 +43,6 @@ std::shared_ptr<std::vector<EntityDTO>> World::get_entities() const { return sna
 void World::update_occupied(const std::pair<uint16_t, uint16_t>& pos, bool occupied) {
     collision_.update_occupied(pos, occupied);
 }
-void World::revisar_colisiones() { collision_.revisar(players_, npcs_); }
 
 // ---- Items ----
 void World::add_floor_item(uint8_t item_id, uint16_t x, uint16_t y, uint32_t gold) {
@@ -95,6 +94,16 @@ void World::restore_clan_membership(const PlayerData& p) {
 }
 void World::clan_notify_login(uint16_t p, bool online) { clans_.notify_login(p, online); }
 void World::clan_notify_attack(uint16_t a) { clans_.notify_attack(a); }
+
+// ---- NPCs ----
+const std::vector<NpcData>& World::get_npcs() const {
+    return npcs_.all();
+}
+
+// ---- Spawner ----
+WorldSpawner& World::spawner() {
+    return spawner_;
+}
 
 // ---- Helpers ----
 uint16_t World::find_player_by_name(const std::string& name) const {
