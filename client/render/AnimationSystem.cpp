@@ -1,4 +1,5 @@
 #include "AnimationSystem.h"
+#include <algorithm>
 
 AnimationSystem::AnimationSystem()
     : _last_sprite_id(-1),
@@ -18,9 +19,8 @@ void AnimationSystem::load() {
     }
 }
 
-int AnimationSystem::frame_for_tick(uint32_t tick, int dir_idx) const {
-    int n = static_cast<int>(_body_anims[dir_idx].frames.size());
-    return (tick / TICKS_PER_FRAME) % n;
+int AnimationSystem::frame_for_tick(uint32_t tick, int n_frames) const {
+    return (tick / TICKS_PER_FRAME) % n_frames;
 }
 
 int AnimationSystem::direction_to_index(Direction dir) const {
@@ -33,6 +33,33 @@ int AnimationSystem::direction_to_index(Direction dir) const {
     }
 }
 
+void AnimationSystem::render_weapon(SDL2pp::Renderer& renderer,
+                                    AssetManager& assets,
+                                    const std::string& weapon_path,
+                                    int dir_idx, int frame,
+                                    const SDL2pp::Rect& body_dst) {
+    if (weapon_path.empty()) return;
+
+    static constexpr int WPN_ROW_H = 48;
+    SDL2pp::Rect wpn_src(frame * BodyLayout::FRAME_W, dir_idx * WPN_ROW_H,
+                         BodyLayout::FRAME_W, WPN_ROW_H);
+
+    static constexpr int WPN_SIZE = 24;
+    int wx, wy;
+    switch (dir_idx) {
+        case DIR_WEST:
+            wx = body_dst.x - WPN_SIZE;
+            wy = body_dst.y + body_dst.h - WPN_SIZE;
+            break;
+        default:
+            wx = body_dst.x + body_dst.w;
+            wy = body_dst.y + body_dst.h - WPN_SIZE;
+            break;
+    }
+    SDL2pp::Rect wpn_dst(wx, wy, WPN_SIZE, WPN_SIZE);
+    renderer.Copy(assets.get(weapon_path), wpn_src, wpn_dst);
+}
+
 void AnimationSystem::render(SDL2pp::Renderer& renderer,
                              AssetManager& assets,
                              const std::string& body_path,
@@ -41,11 +68,12 @@ void AnimationSystem::render(SDL2pp::Renderer& renderer,
                              Direction dir,
                              int screen_x, int screen_y,
                              uint32_t tick,
-                             bool is_moving) {
+                             bool is_moving,
+                             const EquipVisual* equip) {
     int dir_idx = direction_to_index(dir);
-    int frame   = is_moving ? frame_for_tick(tick, dir_idx) : 0;
+    int n = static_cast<int>(_body_anims[dir_idx].frames.size());
+    int frame = is_moving ? frame_for_tick(tick, n) : 0;
 
-    // Recalcular head rects y overlaps si cambió el sprite_id
     if (sprite_id != static_cast<uint8_t>(_last_sprite_id)) {
         HeadLayout hl = HeadLayout::for_sprite(sprite_id);
         for (int d = 0; d < 4; d++) {
@@ -58,15 +86,12 @@ void AnimationSystem::render(SDL2pp::Renderer& renderer,
     const SDL2pp::Rect& body_src = _body_anims[dir_idx].frames[frame];
     const SDL2pp::Rect& head_src = _head_rects[dir_idx];
 
-    // Body: centrado en el tile, pies abajo
     SDL2pp::Rect body_dst(
         screen_x - BodyLayout::FRAME_W / 2 + TILE_SIZE / 2,
         screen_y - body_src.h + TILE_SIZE,
         BodyLayout::FRAME_W,
         body_src.h
     );
-
-    // Head: encima del body con overlap por dirección y sprite
     SDL2pp::Rect head_dst(
         body_dst.x + (BodyLayout::FRAME_W - head_src.w) / 2,
         body_dst.y - head_src.h + _head_overlaps[dir_idx],
@@ -74,6 +99,57 @@ void AnimationSystem::render(SDL2pp::Renderer& renderer,
         head_src.h
     );
 
+    // Pasada 1: body base
     renderer.Copy(assets.get(body_path), body_src, body_dst);
+
+    // Pasada 2: armadura superpuesta
+    if (equip && !equip->armor_path.empty())
+        renderer.Copy(assets.get(equip->armor_path), body_src, body_dst);
+
+    // Pasada 3: cabeza
     renderer.Copy(assets.get(head_path), head_src, head_dst);
+
+    // Pasada 4: casco
+    if (equip && !equip->helmet_path.empty() && equip->helmet_src_w > 0) {
+        SDL2pp::Rect helm_src(equip->helmet_src_x, equip->helmet_src_y,
+                              equip->helmet_src_w, equip->helmet_src_h);
+        SDL2pp::Rect helm_dst(
+            head_dst.x + (head_dst.w - equip->helmet_src_w) / 2,
+            head_dst.y,
+            equip->helmet_src_w,
+            equip->helmet_src_h
+        );
+        renderer.Copy(assets.get(equip->helmet_path), helm_src, helm_dst);
+    }
+
+    // Pasada 5: arma en mano
+    if (equip)
+        render_weapon(renderer, assets, equip->weapon_path, dir_idx, frame, body_dst);
+}
+
+void AnimationSystem::render_npc(SDL2pp::Renderer& renderer,
+                                  AssetManager& assets,
+                                  const std::string& sheet_path,
+                                  int cols, int rows,
+                                  int frame_w, int frame_h,
+                                  Direction dir,
+                                  int screen_x, int screen_y,
+                                  uint32_t tick,
+                                  bool is_moving) {
+    int dir_idx = std::min(direction_to_index(dir), rows - 1);
+    int frame   = is_moving ? frame_for_tick(tick, cols) : 0;
+
+    SDL2pp::Rect src(frame * frame_w, dir_idx * frame_h, frame_w, frame_h);
+
+    int dst_h = static_cast<int>(TILE_SIZE * 1.5f);
+    int dst_w = (frame_h > 0) ? (dst_h * frame_w / frame_h) : dst_h;
+
+    SDL2pp::Rect dst(
+        screen_x + (TILE_SIZE - dst_w) / 2,
+        screen_y + TILE_SIZE - dst_h,
+        dst_w,
+        dst_h
+    );
+
+    renderer.Copy(assets.get(sheet_path), src, dst);
 }

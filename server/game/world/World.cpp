@@ -45,17 +45,26 @@ void World::update_occupied(const std::pair<uint16_t, uint16_t>& pos, bool occup
 }
 
 // ---- Items ----
-void World::add_floor_item(uint8_t item_id, uint16_t x, uint16_t y, uint32_t gold) {
-    items_.add(item_id, x, y, gold);
+void World::add_floor_item(uint8_t item_id, uint16_t x, uint16_t y,
+                           uint32_t gold, uint32_t spawn_tick) {
+    items_.add(item_id, x, y, gold, spawn_tick);
 }
 uint8_t World::pick_floor_item(uint16_t x, uint16_t y, uint32_t& gold_out) {
     return items_.pick(x, y, gold_out);
 }
-void World::drop_player_loot(PlayerData& dead) { items_.drop_player_loot(dead); }
+void World::cleanup_items(uint32_t current_tick) {
+    items_.cleanup_expired(current_tick);
+}
+void World::drop_player_loot(PlayerData& dead, uint32_t spawn_tick) {
+    items_.drop_player_loot(dead);
+    // sangre al morir el jugador
+    items_.add(static_cast<uint8_t>(ItemId::BLOOD_STAIN),
+               dead.pos_x, dead.pos_y, 0, spawn_tick);
+}
 
 // ---- NPCs ----
 void World::spawn_npc(NpcId type, uint16_t x, uint16_t y) { npcs_.spawn(type, x, y); }
-void World::tick_npcs() { npcs_.tick(); }
+void World::tick_npcs(uint32_t current_tick) { npcs_.tick(current_tick); }
 NpcData* World::find_npc(uint16_t id) { return npcs_.find(id); }
 
 // ---- Chat ----

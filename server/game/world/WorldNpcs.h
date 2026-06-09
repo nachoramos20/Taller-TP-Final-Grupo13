@@ -30,6 +30,8 @@ private:
 
     int rand_range(int lo, int hi);
     void spawn_internal(NpcId type, uint16_t x, uint16_t y, uint8_t zone_id);
+    void drop_npc_loot(const NpcData& npc);
+    uint32_t current_tick = 0;
 
 public:
     WorldNpcs(WorldCollision& c, WorldPlayers& p, WorldItems& i,
@@ -42,7 +44,7 @@ public:
     std::vector<NpcData>&       all_mutable() { return npcs; }
 
     void spawn(NpcId type, uint16_t x, uint16_t y);  // legacy/manual
-    void tick();
+    void tick(uint32_t current_tick);
     NpcData* find(uint16_t id);
     void cleanup_dead();
 };

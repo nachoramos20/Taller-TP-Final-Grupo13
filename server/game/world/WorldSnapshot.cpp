@@ -46,6 +46,7 @@ std::shared_ptr<std::vector<EntityDTO>> WorldSnapshot::get_entities() const {
         e.pos_x       = fi.pos_x;
         e.pos_y       = fi.pos_y;
         e.sprite_id   = fi.item_id;
+        e.direction   = fi.sprite_variant;  // variante visual
         entities->push_back(e);
     }
 

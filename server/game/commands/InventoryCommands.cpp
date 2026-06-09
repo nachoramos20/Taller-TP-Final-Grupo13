@@ -84,7 +84,7 @@ void PickCommand::execute(World& world) {
     uint32_t gold_out = 0;
     uint8_t  item_id  = world.pick_floor_item(p->pos_x, p->pos_y, gold_out);
 
-    if (item_id == static_cast<uint8_t>(ItemId::GOLD_PILE) && gold_out > 0) {
+    if (item_id == static_cast<uint8_t>(ItemId::GOLD_PILE)) {
         p->gold += gold_out;
         world.push_message(client_id, 0, "Recogiste " + std::to_string(gold_out) + " de oro.");
         return;
