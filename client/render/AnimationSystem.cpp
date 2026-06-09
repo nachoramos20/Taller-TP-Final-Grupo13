@@ -1,4 +1,5 @@
 #include "AnimationSystem.h"
+#include <algorithm>
 
 AnimationSystem::AnimationSystem()
     : _last_sprite_id(-1),
@@ -129,21 +130,19 @@ void AnimationSystem::render(SDL2pp::Renderer& renderer,
 void AnimationSystem::render_npc(SDL2pp::Renderer& renderer,
                                   AssetManager& assets,
                                   const std::string& sheet_path,
-                                  int sheet_w, int sheet_h,
                                   int cols, int rows,
+                                  int frame_w, int frame_h,
                                   Direction dir,
                                   int screen_x, int screen_y,
                                   uint32_t tick,
                                   bool is_moving) {
-    NpcLayout layout = NpcLayout::from_sheet(sheet_w, sheet_h, cols, rows);
-    int dir_idx = direction_to_index(dir);
+    int dir_idx = std::min(direction_to_index(dir), rows - 1);
     int frame   = is_moving ? frame_for_tick(tick, cols) : 0;
 
-    SDL2pp::Rect src = layout.src_rect(dir_idx, frame);
+    SDL2pp::Rect src(frame * frame_w, dir_idx * frame_h, frame_w, frame_h);
 
-    // Escalar el NPC para que quepa en ~1.5 tiles de alto
     int dst_h = static_cast<int>(TILE_SIZE * 1.5f);
-    int dst_w = dst_h * layout.frame_w / layout.frame_h;
+    int dst_w = (frame_h > 0) ? (dst_h * frame_w / frame_h) : dst_h;
 
     SDL2pp::Rect dst(
         screen_x + (TILE_SIZE - dst_w) / 2,

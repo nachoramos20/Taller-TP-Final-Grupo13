@@ -593,37 +593,36 @@ void GameLoop::render_entities() {
             moving = _player.is_moving();
         }
 
-        // ── NPC: spritesheet propio con apariencia random por entidad ──
+        // ── NPC ──
         if (e.entity_type == static_cast<uint8_t>(EntityType::NPC)) {
-            // {path, sheet_w, sheet_h, cols, rows}
-            struct NpcSheet { std::string path; int w, h, cols, rows; };
+            struct NpcSheet { std::string path; int cols, rows, frame_w, frame_h; };
             static const std::unordered_map<uint8_t, std::vector<NpcSheet>> npc_sheets = {
                 { 1, { // GOBLIN
-                    { "assets/npcs/goblin/duende_ladron.png",      256,  256, 6, 4 },
-                    { "assets/npcs/goblin/duende_zombie_real.png",  512,  512, 5, 4 },
+                    { "assets/npcs/goblin/duende_ladron.png",      7, 4,  25,  32 },
+                    { "assets/npcs/goblin/duende_zombie_real.png", 8, 4,  64,  67 },
                 }},
                 { 2, { // SKELETON
-                    { "assets/npcs/skeleton/esqueleto_magico.png", 256, 256, 6, 4 },
-                    { "assets/npcs/skeleton/esqueleto_muerte.png", 256, 256, 6, 4 },
-                    { "assets/npcs/skeleton/esqueleto_oscuro.png", 256, 256, 6, 4 },
+                    { "assets/npcs/skeleton/esqueleto_magico.png", 4, 4, 64, 64 },
+                    { "assets/npcs/skeleton/esqueleto_muerte.png", 5, 3, 25, 50 },
+                    { "assets/npcs/skeleton/esqueleto_oscuro.png", 7, 3, 24, 32 },
                 }},
                 { 3, { // ZOMBIE
-                    { "assets/npcs/zombie/zombie_comun.png",   256,  256, 4, 4 },
-                    { "assets/npcs/zombie/zombie_magico.png",  256,  256, 4, 4 },
-                    { "assets/npcs/zombie/zombie_poseido.png", 512,  512, 5, 4 },
+                    { "assets/npcs/zombie/zombie_comun.png",   4, 4,  64,  64 },
+                    { "assets/npcs/zombie/zombie_magico.png",  4, 4,  64,  64 },
+                    { "assets/npcs/zombie/zombie_poseido.png", 5, 4,  85, 100 },
                 }},
                 { 4, { // SPIDER
-                    { "assets/npcs/spider/araña_comun.png",      512,  512, 7, 4 },
-                    { "assets/npcs/spider/araña_endurecida.png", 1024, 1024, 5, 4 },
+                    { "assets/npcs/spider/araña_comun.png",       8, 4,  64,  64 },
+                    { "assets/npcs/spider/araña_endurecida.png",  5, 4, 192, 192 },
                 }},
                 { 5, { // ORC
-                    { "assets/npcs/orc/orco_errante.png", 512, 512, 6, 4 },
-                    { "assets/npcs/orc/orco_fuego.png",   512, 512, 5, 4 },
+                    { "assets/npcs/orc/orco_errante.png", 6, 4,  56, 100 },
+                    { "assets/npcs/orc/orco_fuego.png",   5, 4,  57,  99 },
                 }},
                 { 6, { // GOLEM
-                    { "assets/npcs/golem/golem_moribundo.png", 296,  202, 4, 4 },
-                    { "assets/npcs/golem/golem_reforzado.png", 512,  512, 6, 4 },
-                    { "assets/npcs/golem/golem_tierra.png",   1024, 1024, 6, 4 },
+                    { "assets/npcs/golem/golem_moribundo.png",  4, 4,  74,  50 },
+                    { "assets/npcs/golem/golem_reforzado.png",  6, 4,  79, 128 },
+                    { "assets/npcs/golem/golem_tierra.png",     6, 4, 140, 180 },
                 }},
             };
 
@@ -632,7 +631,7 @@ void GameLoop::render_entities() {
                 const auto& sheets = sit->second;
                 const NpcSheet& s = sheets[e.entity_id % sheets.size()];
                 _anim.render_npc(_renderer, _assets,
-                                 s.path, s.w, s.h, s.cols, s.rows,
+                                 s.path, s.cols, s.rows, s.frame_w, s.frame_h,
                                  dir, screen_x, screen_y,
                                  _current_tick, moving);
             }
