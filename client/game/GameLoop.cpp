@@ -741,6 +741,15 @@ void GameLoop::render_entities() {
                     { "assets/npcs/golem/golem_reforzado.png",  6, 4,  79, 128 },
                     { "assets/npcs/golem/golem_tierra.png",     6, 4, 140, 180 },
                 }},
+                { 7, { // MERCHANT — reutiliza el sprite de humano con ropa de mercader
+                    { "assets/sprites/skins/humano.png", 9, 4, 32, 48 },
+                }},
+                { 8, { // BANKER — sprite de humano
+                    { "assets/sprites/skins/humano.png", 9, 4, 32, 48 },
+                }},
+                { 9, { // PRIEST — sprite de humano
+                    { "assets/sprites/skins/humano.png", 9, 4, 32, 48 },
+                }},
             };
 
             auto sit = npc_sheets.find(e.sprite_id);
@@ -801,35 +810,35 @@ void GameLoop::render_entities() {
 
 void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
     if (!_command_queue) return;
-
-    // El panel de stats ocupa el borde derecho; no procesar clicks ahí
     if (mouse_x >= _window.GetWidth() - StatsPanel::PANEL_W) return;
 
     int world_x = mouse_x - _camera.tile_to_screen_x(0);
     int world_y = mouse_y - _camera.tile_to_screen_y(0);
-    int tile_x = world_x / TILE_SIZE;
-    int tile_y = world_y / TILE_SIZE;
+    int tile_x  = world_x / TILE_SIZE;
+    int tile_y  = world_y / TILE_SIZE;
 
     for (const auto& e : _last_entities) {
         if (e.entity_id == _my_entity_id) continue;
-        if (e.pos_x == tile_x && e.pos_y == tile_y) {
-            if (_stats && _stats->cast_mode_active() && _stats->selected_spell() != 0) {
-                uint8_t spell = _stats->selected_spell();
-                _command_queue->push(Command::cast_spell(e.entity_id, spell));
-                // Efecto visual inmediato en posición del caster
-                spawn_spell_effect(spell,
-                                            e.pos_x,
-                                            e.pos_y);
-                _chat->add_message("Lanzando hechizo a " + (e.username.empty()
-                    ? std::string("#") + std::to_string(e.entity_id)
-                    : e.username));
-            } else {
-                _command_queue->push(Command::attack(e.entity_id));
-                _chat->add_message("Atacando a " + (e.username.empty()
-                    ? std::string("#") + std::to_string(e.entity_id)
-                    : e.username));
-            }
-            return;
+        if (e.pos_x != tile_x || e.pos_y != tile_y) continue;
+
+        bool is_service_npc = (e.entity_type == static_cast<uint8_t>(EntityType::NPC))
+                              && (e.sprite_id >= 7);  // MERCHANT=7, BANKER=8, PRIEST=9
+
+        if (is_service_npc) {
+            // Interactuar con NPC de servicio
+            _command_queue->push(Command::npc_interact(e.entity_id));
+            _chat->add_message("Hablando con " + e.username + "...");
+        } else if (_stats && _stats->cast_mode_active() && _stats->selected_spell() != 0) {
+            uint8_t spell = _stats->selected_spell();
+            _command_queue->push(Command::cast_spell(e.entity_id, spell));
+            spawn_spell_effect(spell, e.pos_x, e.pos_y);
+            _chat->add_message("Lanzando hechizo a " + (e.username.empty()
+                ? std::string("#") + std::to_string(e.entity_id) : e.username));
+        } else {
+            _command_queue->push(Command::attack(e.entity_id));
+            _chat->add_message("Atacando a " + (e.username.empty()
+                ? std::string("#") + std::to_string(e.entity_id) : e.username));
         }
+        return;
     }
 }

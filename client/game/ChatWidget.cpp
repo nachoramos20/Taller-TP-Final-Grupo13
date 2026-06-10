@@ -1,5 +1,11 @@
 #include "ChatWidget.h"
 #include <stdexcept>
+#include <sstream>
+
+// Ancho del chat en pixels
+static constexpr int CHAT_W     = 620;
+static constexpr int CHAT_PAD   = 8;
+static constexpr int TEXT_MAX_W = CHAT_W - CHAT_PAD * 2;
 
 ChatWidget::ChatWidget(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size)
     : _renderer(renderer), _font_size(font_size) {
@@ -44,7 +50,7 @@ bool ChatWidget::handle_event(const SDL_Event& e) {
             _input_buffer.pop_back();
             return true;
         }
-        return true; // consumo todas las teclas para que no muevan al player
+        return true;
     }
     if (e.type == SDL_TEXTINPUT) {
         _input_buffer += e.text.text;
@@ -54,8 +60,147 @@ bool ChatWidget::handle_event(const SDL_Event& e) {
 }
 
 void ChatWidget::add_message(const std::string& text) {
-    _messages.push_back(text);
-    while (_messages.size() > 8) _messages.pop_front();
+    Uint32 now = SDL_GetTicks();
+    std::istringstream ss(text);
+    std::string line;
+    while (std::getline(ss, line, '\n')) {
+        _messages.push_back({ line, now });
+    }
+    while (_messages.size() > 60) _messages.pop_front();
+}
+
+void ChatWidget::render(int screen_w, int screen_h) {
+    const int line_h = _font_size + 4;
+    const int x      = CHAT_PAD;
+    const int y      = CHAT_PAD;
+    const int max_lines = (screen_h / 3) / line_h;  // máximo 1/3 de pantalla
+
+    Uint32 now = SDL_GetTicks();
+
+    // Eliminar mensajes vencidos (solo si el input no está activo)
+    if (!_input_active) {
+        while (!_messages.empty() &&
+               now - _messages.front().born_ms > MSG_LIFETIME_MS) {
+            _messages.pop_front();
+        }
+    }
+
+    // Calcular líneas wrapeadas solo de mensajes vigentes
+    std::vector<std::pair<std::vector<std::string>, float>> all_wrapped;
+    int total_lines = 0;
+    for (const auto& msg : _messages) {
+        auto wrapped = wrap_text(msg.text);
+        if (wrapped.empty()) wrapped.push_back("");
+
+        // Calcular alpha según tiempo de vida (fade-out en el último segundo)
+        float elapsed = static_cast<float>(now - msg.born_ms);
+        float alpha   = 1.0f;
+        float fade_start = static_cast<float>(MSG_LIFETIME_MS) - 1000.0f;
+        if (elapsed > fade_start)
+            alpha = 1.0f - (elapsed - fade_start) / 1000.0f;
+        alpha = std::max(0.0f, std::min(1.0f, alpha));
+
+        total_lines += static_cast<int>(wrapped.size());
+        all_wrapped.push_back({ std::move(wrapped), alpha });
+    }
+
+    // Si no hay mensajes y el input no está activo, solo mostrar el hint pequeño
+    bool has_content = !_messages.empty() || _input_active;
+
+    if (has_content) {
+        int lines_to_skip = std::max(0, total_lines - max_lines);
+        int visible_lines = std::min(total_lines, max_lines);
+        const int box_h   = line_h * visible_lines + (_input_active ? line_h + 6 : 0) + CHAT_PAD * 2;
+
+        SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
+        SDL_SetRenderDrawColor(_renderer.Get(), 0, 0, 0, 120);
+        SDL_Rect bg{ x - CHAT_PAD, y - CHAT_PAD, CHAT_W, box_h };
+        SDL_RenderFillRect(_renderer.Get(), &bg);
+
+        int cy    = y;
+        int skipped = 0;
+        for (const auto& [lines, alpha] : all_wrapped) {
+            uint8_t a = static_cast<uint8_t>(255 * alpha);
+            SDL_Color col{ 255, 255, 255, a };
+            for (const auto& line : lines) {
+                if (skipped < lines_to_skip) { skipped++; continue; }
+                draw_text(line, x, cy, col);
+                cy += line_h;
+            }
+        }
+
+        if (_input_active) {
+            SDL_Color yellow{ 255, 220, 120, 255 };
+            draw_text("> " + _input_buffer + "_", x, cy + 4, yellow);
+        }
+    }
+
+    // Hint siempre visible abajo del área (pequeño, sin fondo)
+    if (!_input_active) {
+        int hint_y = has_content
+            ? y + std::min(total_lines, max_lines) * line_h + CHAT_PAD + 4
+            : y;
+        SDL_Color gray{ 140, 140, 140, 160 };
+        draw_text("[Enter] para chatear", x, hint_y, gray);
+        (void)screen_w;
+    }
+}
+
+// Word-wrap
+// Divide 'text' en líneas que entren en TEXT_MAX_W pixels.
+// Respeta '\n' como salto de línea forzado.
+std::vector<std::string> ChatWidget::wrap_text(const std::string& text) const {
+    std::vector<std::string> lines;
+    if (!_font || text.empty()) return lines;
+
+    // Primero dividir por '\n' explícitos
+    std::vector<std::string> paragraphs;
+    std::istringstream ss(text);
+    std::string para;
+    while (std::getline(ss, para, '\n'))
+        paragraphs.push_back(para);
+
+    for (const auto& paragraph : paragraphs) {
+        if (paragraph.empty()) { lines.push_back(""); continue; }
+
+        std::string current;
+        std::istringstream words(paragraph);
+        std::string word;
+
+        while (words >> word) {
+            std::string candidate = current.empty() ? word : current + " " + word;
+            int w = 0, h = 0;
+            TTF_SizeUTF8(_font, candidate.c_str(), &w, &h);
+            if (w <= TEXT_MAX_W) {
+                current = candidate;
+            } else {
+                // La palabra no entra — guardar línea actual y empezar nueva
+                if (!current.empty()) lines.push_back(current);
+
+                // Si la palabra sola es más ancha que el ancho, cortarla por caracteres
+                int ww = 0;
+                TTF_SizeUTF8(_font, word.c_str(), &ww, &h);
+                if (ww > TEXT_MAX_W) {
+                    std::string chunk;
+                    for (char c : word) {
+                        std::string test = chunk + c;
+                        TTF_SizeUTF8(_font, test.c_str(), &ww, &h);
+                        if (ww > TEXT_MAX_W) {
+                            lines.push_back(chunk);
+                            chunk = std::string(1, c);
+                        } else {
+                            chunk = test;
+                        }
+                    }
+                    current = chunk;
+                } else {
+                    current = word;
+                }
+            }
+        }
+        if (!current.empty()) lines.push_back(current);
+    }
+    return lines;
 }
 
 void ChatWidget::draw_text(const std::string& text, int x, int y, SDL_Color color) {
@@ -67,36 +212,4 @@ void ChatWidget::draw_text(const std::string& text, int x, int y, SDL_Color colo
     SDL_RenderCopy(_renderer.Get(), tex, nullptr, &dst);
     SDL_DestroyTexture(tex);
     SDL_FreeSurface(surf);
-}
-
-void ChatWidget::render(int screen_w, int /*screen_h*/) {
-    const int chat_w = 480;
-    const int line_h = _font_size + 4;
-    const int box_h  = line_h * (int)_messages.size() + (_input_active ? line_h + 6 : 0) + 8;
-    const int x = 8;
-    const int y = 8;
-
-    if (box_h > 8) {
-        SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
-        SDL_SetRenderDrawColor(_renderer.Get(), 0, 0, 0, 140);
-        SDL_Rect bg{ x - 4, y - 4, chat_w, box_h };
-        SDL_RenderFillRect(_renderer.Get(), &bg);
-    }
-
-    SDL_Color white{ 255, 255, 255, 255 };
-    int cy = y;
-    for (const auto& m : _messages) {
-        draw_text(m, x, cy, white);
-        cy += line_h;
-    }
-
-    if (_input_active) {
-        SDL_Color yellow{ 255, 220, 120, 255 };
-        std::string prompt = "> " + _input_buffer + "_";
-        draw_text(prompt, x, cy + 4, yellow);
-    } else {
-        SDL_Color gray{ 180, 180, 180, 255 };
-        draw_text("[Enter] para chatear  (ej: /meditar, /tomar, @nick hola)", x, cy + 4, gray);
-        (void)screen_w;
-    }
 }

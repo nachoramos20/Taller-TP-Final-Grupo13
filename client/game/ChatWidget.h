@@ -7,6 +7,11 @@
 #include <string>
 #include <functional>
 
+struct ChatLine {
+    std::string text;
+    Uint32      born_ms;
+};
+
 class ChatWidget {
 public:
     ChatWidget(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size = 14);
@@ -28,11 +33,15 @@ private:
     TTF_Font*          _font = nullptr;
     int                _font_size;
 
-    std::deque<std::string> _messages;
+    std::deque<ChatLine> _messages;
+
+    static constexpr Uint32 MSG_LIFETIME_MS = 6000;  // 6 segundos por mensaje
     std::string             _input_buffer;
     bool                    _input_active = false;
 
     std::function<void(const std::string&)> _on_submit;
 
     void draw_text(const std::string& text, int x, int y, SDL_Color color);
+
+    std::vector<std::string> wrap_text(const std::string& text) const;
 };

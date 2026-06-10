@@ -100,6 +100,10 @@ enum class ItemId : uint8_t {
 
 enum class NpcId : uint8_t {
     GOBLIN = 1, SKELETON = 2, ZOMBIE = 3, SPIDER = 4, ORC = 5, GOLEM = 6,
+
+    MERCHANT = 7,
+    BANKER   = 8,
+    PRIEST   = 9,
 };
 
 // Hechizos
@@ -118,6 +122,10 @@ enum class SpellId : uint8_t {
     VACUUM_GAP                = 8,
     TORNADO_OF_DARKNESS       = 9,
 };
+
+inline bool npc_is_service(NpcId id) {
+    return id == NpcId::MERCHANT || id == NpcId::BANKER || id == NpcId::PRIEST;
+}
 
 // Devuelve true si el item habilita el lanzamiento de hechizos
 // (flauta, báculo o vara mágica)

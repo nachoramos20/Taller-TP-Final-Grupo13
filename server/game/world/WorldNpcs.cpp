@@ -108,6 +108,8 @@ void WorldNpcs::tick(uint32_t ct) {
         if (npc.hp == 0) continue;
         const NpcTemplate& tpl = Npcs::tpl(npc.type);
 
+        if (tpl.is_service) continue;
+
         // Jugador vivo más cercano (ignorando los que están en safe zone)
         PlayerData* nearest = nullptr;
         int best_dist = INT32_MAX;

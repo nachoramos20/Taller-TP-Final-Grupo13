@@ -122,3 +122,27 @@ int World::rand_range(int lo, int hi) {
     if (lo >= hi) return lo;
     return std::uniform_int_distribution<int>(lo, hi)(rng);
 }
+
+void World::set_selected_npc(uint16_t client_id, NpcId type) {
+    selected_service_npc_[client_id] = type;
+}
+
+NpcId World::get_selected_npc(uint16_t client_id) const {
+    auto it = selected_service_npc_.find(client_id);
+    return (it != selected_service_npc_.end()) ? it->second : NpcId::GOBLIN; // GOBLIN = "ninguno"
+}
+
+void World::clear_selected_npc(uint16_t client_id) {
+    selected_service_npc_.erase(client_id);
+}
+
+bool World::player_near_service_npc(uint16_t client_id, NpcId required_type) const {
+    const PlayerData* p = find_player(client_id);
+    if (!p) return false;
+    for (const auto& npc : get_npcs()) {
+        if (npc.type != required_type) continue;
+        int dist = std::abs(p->pos_x - npc.pos_x) + std::abs(p->pos_y - npc.pos_y);
+        if (dist <= 2) return true;
+    }
+    return false;
+}

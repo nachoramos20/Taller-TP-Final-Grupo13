@@ -66,18 +66,39 @@ void ChatCommand::handle_resucitar(World& world) {
 void ChatCommand::handle_curar(World& world) {
     PlayerData* p = world.get_player_mutable(client_id);
     if (!p) return;
+
+    if (!world.player_near_service_npc(client_id, NpcId::PRIEST)) {
+        world.push_message(client_id, 0,
+            "Debes estar cerca del Sacerdote para ser curado.\n"
+            "Acércate y haz click en él primero.");
+        return;
+    }
     if (p->is_ghost) {
-        world.push_message(client_id, 0, "Eres un fantasma, no puedes ser curado.");
+        world.push_message(client_id, 0, "Eres un fantasma. Usa /resucitar primero.");
         return;
     }
     p->hp = p->max_hp;
     p->mp = p->max_mp;
-    world.push_message(client_id, 0, "El sacerdote te curó completamente.");
+    world.push_message(client_id, 0, "El Sacerdote te curó completamente.");
 }
 
 void ChatCommand::handle_comprar(World& world, const std::string& item_name) {
     PlayerData* p = world.get_player_mutable(client_id);
     if (!p || p->is_ghost) return;
+
+    if (!world.player_near_service_npc(client_id, NpcId::MERCHANT)) {
+        world.push_message(client_id, 0,
+            "Debes estar cerca del Mercader para comprar.");
+        return;
+    }
+
+    static const std::vector<ItemId> shop_items = {
+        ItemId::SWORD,
+        ItemId::SIMPLE_BOW,
+        ItemId::ELVEN_FLUTE,
+        ItemId::LEATHER_ARMOR,
+        ItemId::HEALTH_POTION,
+    };
 
     int free_slot = -1;
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i)
@@ -87,36 +108,35 @@ void ChatCommand::handle_comprar(World& world, const std::string& item_name) {
         return;
     }
 
-    static const std::vector<ItemId> all_items = {
-        ItemId::SWORD, ItemId::AXE, ItemId::HAMMER,
-        ItemId::SIMPLE_BOW, ItemId::COMPOUND_BOW,
-        ItemId::ELVEN_FLUTE, ItemId::GEMMED_STAFF,
-        ItemId::LEATHER_ARMOR, ItemId::PLATE_ARMOR,
-        ItemId::HOOD, ItemId::IRON_HELMET, ItemId::MAGIC_HAT,
-        ItemId::TURTLE_SHIELD, ItemId::IRON_SHIELD,
-        ItemId::HEALTH_POTION, ItemId::MANA_POTION,
-    };
-
-    for (ItemId iid : all_items) {
+    for (ItemId iid : shop_items) {
         const ItemDef& def = Items::get(iid);
         if (def.name == item_name) {
-            uint32_t price = def.max_value * 10 + 10;
+            uint32_t price = (static_cast<uint32_t>(def.min_value) + def.max_value) * 8 + 50;
             if (p->gold < price) {
-                world.push_message(client_id, 0, "Oro insuficiente. Necesitas " + std::to_string(price) + " de oro.");
+                world.push_message(client_id, 0,
+                    "Oro insuficiente. Necesitas " + std::to_string(price) + " de oro.");
                 return;
             }
             p->gold -= price;
             p->inventory[free_slot] = static_cast<uint8_t>(iid);
-            world.push_message(client_id, 0, "Compraste " + item_name + " por " + std::to_string(price) + " de oro.");
+            world.push_message(client_id, 0,
+                "Compraste " + item_name + " por " + std::to_string(price) + " de oro.");
             return;
         }
     }
-    world.push_message(client_id, 0, "El vendedor no tiene ese artículo.");
+    world.push_message(client_id, 0, "El mercader no tiene ese articulo. Usa /listar.");
 }
 
 void ChatCommand::handle_vender(World& world, const std::string& item_name) {
     PlayerData* p = world.get_player_mutable(client_id);
     if (!p || p->is_ghost) return;
+
+    if (!world.player_near_service_npc(client_id, NpcId::MERCHANT)) {
+        world.push_message(client_id, 0,
+            "Debes estar cerca del Mercader para vender.\n"
+            "Acércate y haz click en él primero.");
+        return;
+    }
 
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i) {
         if (p->inventory[i] == 0) continue;

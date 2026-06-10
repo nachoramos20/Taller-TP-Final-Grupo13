@@ -42,6 +42,8 @@ private:
     WorldSpawner    spawner_;
     WorldSnapshot   snapshot_;
 
+    std::unordered_map<uint16_t, NpcId> selected_service_npc_;
+
 public:
     World(uint16_t width, uint16_t height, std::vector<uint8_t> collision_map);
 
@@ -113,6 +115,12 @@ public:
 
     // ---- Spawner / Safe Zones ----
     WorldSpawner& spawner();
+
+    // ---- NPC de servicio seleccionado ----
+    void     set_selected_npc(uint16_t client_id, NpcId type);
+    NpcId    get_selected_npc(uint16_t client_id) const;
+    void     clear_selected_npc(uint16_t client_id);
+    bool     player_near_service_npc(uint16_t client_id, NpcId required_type) const;
 };
 
 #endif // WORLD_H

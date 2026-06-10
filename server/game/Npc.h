@@ -21,6 +21,7 @@ struct NpcTemplate {
     uint32_t gold_min;
     uint32_t gold_max;
     std::vector<uint8_t> drop_table;
+    bool is_service = false;
 };
 
 struct NpcData {
