@@ -62,6 +62,7 @@ private:
     void render_floor();
     void render_objects();
     void render_entities();
+    void render_entity_healthbar(const EntityDTO& entity, int screen_x, int screen_y);
     void render_obj_sup();
     void render_spells();
     void load_item_textures();
@@ -101,6 +102,7 @@ private:
     SpriteConfig     _sprite_config;
     TileConfig       _tile_config;
     ObjectSupConfig  _obj_sup_config;
+    TTF_Font*        _small_font = nullptr;  // Para nombres y barras de vida
 
     std::unique_ptr<ChatWidget>        _chat;
     std::unique_ptr<StatsPanel>        _stats;

@@ -26,6 +26,7 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
     _inventory = std::make_unique<InventoryPanel>(renderer, CHAT_FONT_PATH);
     _chat->add_message("Bienvenido. Enter para chatear.");
     _pos_label = std::make_unique<PositionLabel>(renderer, CHAT_FONT_PATH);
+    _small_font = TTF_OpenFont(CHAT_FONT_PATH, 10);
     load_item_textures();
 }
 
@@ -54,6 +55,7 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
 
     _chat->add_message("Conectado. Enter para chatear. Click izq sobre enemigo para atacar.");
     _pos_label = std::make_unique<PositionLabel>(renderer, CHAT_FONT_PATH);
+    _small_font = TTF_OpenFont(CHAT_FONT_PATH, 10);
     _chat->on_submit([this](const std::string& text) {
         if (!_command_queue) return;
         _command_queue->push(Command::chat(text));
@@ -397,7 +399,7 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
             eq_weapon_item = snap.inventory[snap.equipped_wpn];
         _stats->update(snap.hp, snap.max_hp,
                     snap.mp, snap.max_mp,
-                    snap.gold, snap.level,
+                    snap.gold, snap.level, snap.exp,
                     snap.meditating != 0,
                     snap.is_ghost   != 0,
                     snap.cls,
@@ -582,7 +584,6 @@ void GameLoop::render_entities() {
 
     // Mapeo ItemId → path de armadura (body overlay)
     static const std::unordered_map<uint8_t, std::string> armor_paths = {
-        // Armaduras
         { static_cast<uint8_t>(ItemId::LEATHER_ARMOR),          "assets/sprites/equipment/armor/clerigo_blanco.png" },
         { static_cast<uint8_t>(ItemId::CLERIC_BLACK_ARMOR),     "assets/sprites/equipment/armor/clerigo_negro.png" },
         { static_cast<uint8_t>(ItemId::MAGE_COMMON_ARMOR),      "assets/sprites/equipment/armor/mago_comun.png" },
@@ -593,25 +594,23 @@ void GameLoop::render_entities() {
         { static_cast<uint8_t>(ItemId::PALADIN_ROYAL_ARMOR),    "assets/sprites/equipment/armor/paladin_real.png" },
     };
 
-    // Mapeo ItemId → path de casco
-    static const std::unordered_map<uint8_t, std::string> helmet_paths = {
-        // Cascos (será necesario agregar src_rect en EquipVisual)
-        { static_cast<uint8_t>(ItemId::HOOD),           "assets/sprites/equipment/helmet/cascos.png" },
-        { static_cast<uint8_t>(ItemId::IRON_HELMET),    "assets/sprites/equipment/helmet/cascos.png" },
-        { static_cast<uint8_t>(ItemId::MAGIC_HAT),      "assets/sprites/equipment/helmet/cascos.png" },
+    struct HelmetInfo {
+        std::string path;
+        int src_x, src_y, src_w, src_h;
+    };
+    static const std::unordered_map<uint8_t, HelmetInfo> helmet_info = {
+        { static_cast<uint8_t>(ItemId::HOOD),           { "assets/sprites/equipment/helmet/cascos.png", 0, 0, 32, 32 } },
+        { static_cast<uint8_t>(ItemId::IRON_HELMET),    { "assets/sprites/equipment/helmet/cascos.png", 32, 0, 32, 32 } },
+        { static_cast<uint8_t>(ItemId::MAGIC_HAT),      { "assets/sprites/equipment/helmet/cascos.png", 64, 0, 32, 32 } },
     };
 
-    // Mapeo ItemId → path de escudo
     static const std::unordered_map<uint8_t, std::string> shield_paths = {
-        // Escudos
         { static_cast<uint8_t>(ItemId::TURTLE_SHIELD),  "assets/sprites/equipment/shield/escudo_tortuga.png" },
         { static_cast<uint8_t>(ItemId::IRON_SHIELD),    "assets/sprites/equipment/shield/escudo_hierro.png" },
         { static_cast<uint8_t>(ItemId::BOCA_SHIELD),    "assets/sprites/equipment/shield/escudo_boca.png" },
     };
 
-    // Mapeo ItemId → path de arma (incluye todas las categorías de arma)
     static const std::unordered_map<uint8_t, std::string> weapon_paths = {
-        // Armas cuerpo a cuerpo
         { static_cast<uint8_t>(ItemId::SWORD),              "assets/sprites/weapons/sword/espada_comun.png" },
         { static_cast<uint8_t>(ItemId::DARK_SWORD),         "assets/sprites/weapons/sword/espada_oscura.png" },
         { static_cast<uint8_t>(ItemId::AXE),                "assets/sprites/weapons/axe/hacha_hierro.png" },
@@ -619,12 +618,10 @@ void GameLoop::render_entities() {
         { static_cast<uint8_t>(ItemId::HAMMER),             "assets/sprites/weapons/hammer/martillo_comun.png" },
         { static_cast<uint8_t>(ItemId::EPIC_HAMMER),        "assets/sprites/weapons/hammer/martillo_epico.png" },
         { static_cast<uint8_t>(ItemId::LEGENDARY_HAMMER),   "assets/sprites/weapons/hammer/martillo_legendario.png" },
-        // Armas a distancia
         { static_cast<uint8_t>(ItemId::SIMPLE_BOW),         "assets/sprites/weapons/bow/arco_simple_madera.png" },
         { static_cast<uint8_t>(ItemId::AMETHYST_BOW),       "assets/sprites/weapons/bow/arco_simple_amatista.png" },
         { static_cast<uint8_t>(ItemId::COMPOUND_BOW),       "assets/sprites/weapons/bow/arco_compuesto_oro.png" },
         { static_cast<uint8_t>(ItemId::INFERNAL_BOW),       "assets/sprites/weapons/bow/arco_compuesto_infernal.png" },
-        // Armas mágicas
         { static_cast<uint8_t>(ItemId::ELVEN_FLUTE),        "assets/sprites/weapons/flute/flauta_elfica.png" },
         { static_cast<uint8_t>(ItemId::ASH_STICK),          "assets/sprites/weapons/stick/vara_fresno.png" },
         { static_cast<uint8_t>(ItemId::QUARTZ_STICK),       "assets/sprites/weapons/stick/vara_cuarzo.png" },
@@ -635,56 +632,31 @@ void GameLoop::render_entities() {
     };
 
     for (const auto& e : _last_entities) {
-        int screen_x = _camera.world_to_screen_x(
-            static_cast<float>(e.pos_x * TILE_SIZE));
-        int screen_y = _camera.world_to_screen_y(
-            static_cast<float>(e.pos_y * TILE_SIZE));
+        int screen_x = _camera.world_to_screen_x(static_cast<float>(e.pos_x * TILE_SIZE));
+        int screen_y = _camera.world_to_screen_y(static_cast<float>(e.pos_y * TILE_SIZE));
 
         // ── Items en el suelo ──
         if (e.entity_type == static_cast<uint8_t>(EntityType::ITEM_FLOOR)) {
-            // Variantes visuales por item_id (e.direction = sprite_variant)
             static const std::unordered_map<uint8_t, std::vector<std::string>> item_variants = {
-                {  1, { "assets/sprites/weapons/sword/espada_comun.png",
-                        "assets/sprites/weapons/sword/espada_oscura.png" }},
-                {  2, { "assets/sprites/weapons/axe/hacha_hierro.png",
-                        "assets/sprites/weapons/axe/hacha_epica.png" }},
-                {  3, { "assets/sprites/weapons/hammer/martillo_comun.png",
-                        "assets/sprites/weapons/hammer/martillo_epico.png",
-                        "assets/sprites/weapons/hammer/martillo_legendario.png" }},
-                {  4, { "assets/sprites/weapons/bow/arco_simple_madera.png",
-                        "assets/sprites/weapons/bow/arco_simple_amatista.png" }},
-                {  5, { "assets/sprites/weapons/bow/arco_compuesto_oro.png",
-                        "assets/sprites/weapons/bow/arco_compuesto_infernal.png" }},
+                {  1, { "assets/sprites/weapons/sword/espada_comun.png", "assets/sprites/weapons/sword/espada_oscura.png" }},
+                {  2, { "assets/sprites/weapons/axe/hacha_hierro.png", "assets/sprites/weapons/axe/hacha_epica.png" }},
+                {  3, { "assets/sprites/weapons/hammer/martillo_comun.png", "assets/sprites/weapons/hammer/martillo_epico.png", "assets/sprites/weapons/hammer/martillo_legendario.png" }},
+                {  4, { "assets/sprites/weapons/bow/arco_simple_madera.png", "assets/sprites/weapons/bow/arco_simple_amatista.png" }},
+                {  5, { "assets/sprites/weapons/bow/arco_compuesto_oro.png", "assets/sprites/weapons/bow/arco_compuesto_infernal.png" }},
                 {  6, { "assets/sprites/weapons/flute/flauta_elfica.png" }},
-                {  7, { "assets/sprites/weapons/staff/baculo_esmeralda.png",
-                        "assets/sprites/weapons/staff/baculo_egipcio.png",
-                        "assets/sprites/weapons/staff/baculo_esqueletico.png" }},
-                {  8, { "assets/sprites/weapons/stick/vara_fresno.png",
-                        "assets/sprites/weapons/stick/vara_cuarzo.png",
-                        "assets/sprites/weapons/stick/vara_muerdago.png" }},
-                { 10, { "assets/sprites/equipment/armor/clerigo_blanco.png",
-                        "assets/sprites/equipment/armor/clerigo_negro.png",
-                        "assets/sprites/equipment/armor/mago_comun.png",
-                        "assets/sprites/equipment/armor/mago_real.png" }},
-                { 11, { "assets/sprites/equipment/armor/guerrero_ejecutor.png",
-                        "assets/sprites/equipment/armor/guerrero_epico.png",
-                        "assets/sprites/equipment/armor/paladin_magico.png",
-                        "assets/sprites/equipment/armor/paladin_real.png" }},
+                {  7, { "assets/sprites/weapons/staff/baculo_esmeralda.png", "assets/sprites/weapons/staff/baculo_egipcio.png", "assets/sprites/weapons/staff/baculo_esqueletico.png" }},
+                {  8, { "assets/sprites/weapons/stick/vara_fresno.png", "assets/sprites/weapons/stick/vara_cuarzo.png", "assets/sprites/weapons/stick/vara_muerdago.png" }},
+                { 10, { "assets/sprites/equipment/armor/clerigo_blanco.png", "assets/sprites/equipment/armor/clerigo_negro.png", "assets/sprites/equipment/armor/mago_comun.png", "assets/sprites/equipment/armor/mago_real.png" }},
+                { 11, { "assets/sprites/equipment/armor/guerrero_ejecutor.png", "assets/sprites/equipment/armor/guerrero_epico.png", "assets/sprites/equipment/armor/paladin_magico.png", "assets/sprites/equipment/armor/paladin_real.png" }},
                 { 30, { "assets/sprites/equipment/shield/escudo_tortuga.png" }},
-                { 31, { "assets/sprites/equipment/shield/escudo_hierro.png",
-                        "assets/sprites/equipment/shield/escudo_boca.png" }},
-                // Items sin variante
-                { static_cast<uint8_t>(ItemId::BLOOD_STAIN),
-                        { "assets/sprites/stage/sangre.png" }},
-                { static_cast<uint8_t>(ItemId::GOLD_PILE),
-                        { "assets/sprites/items/oro.png" }},
-                { static_cast<uint8_t>(ItemId::HEALTH_POTION),
-                        { "assets/sprites/items/pocion_vida.png" }},
-                { static_cast<uint8_t>(ItemId::MANA_POTION),
-                        { "assets/sprites/items/pocion_mana.png" }},
+                { 31, { "assets/sprites/equipment/shield/escudo_hierro.png", "assets/sprites/equipment/shield/escudo_boca.png" }},
+                { static_cast<uint8_t>(ItemId::BLOOD_STAIN), { "assets/sprites/stage/sangre.png" }},
+                { static_cast<uint8_t>(ItemId::GOLD_PILE), { "assets/sprites/items/oro.png" }},
+                { static_cast<uint8_t>(ItemId::HEALTH_POTION), { "assets/sprites/items/pocion_vida.png" }},
+                { static_cast<uint8_t>(ItemId::MANA_POTION), { "assets/sprites/items/pocion_mana.png" }},
             };
 
-            std::string path = "assets/sprites/items/oro.png"; // fallback
+            std::string path = "assets/sprites/items/oro.png";
             auto vit = item_variants.find(e.sprite_id);
             if (vit != item_variants.end() && !vit->second.empty()) {
                 uint8_t variant = e.direction % static_cast<uint8_t>(vit->second.size());
@@ -697,10 +669,10 @@ void GameLoop::render_entities() {
                 _renderer.Copy(tex, SDL2pp::Rect(0, 192, 48, 64), dst);
             else
                 _renderer.Copy(tex, SDL2pp::NullOpt, dst);
-            continue;
+            
+            continue; // Los items en el piso no llevan barra de vida
         }
 
-        // ── Jugadores y NPCs ──
         Direction dir = static_cast<Direction>(e.direction);
         bool moving = false;
 
@@ -710,90 +682,75 @@ void GameLoop::render_entities() {
             moving = _player.is_moving();
         }
 
-        // ── NPC ──
+        // ── NPC / Criaturas hostiles ──
         if (e.entity_type == static_cast<uint8_t>(EntityType::NPC)) {
             struct NpcSheet { std::string path; int cols, rows, frame_w, frame_h; };
             static const std::unordered_map<uint8_t, std::vector<NpcSheet>> npc_sheets = {
-                { 1, { // GOBLIN
-                    { "assets/npcs/goblin/duende_ladron.png",      7, 4,  25,  32 },
-                    { "assets/npcs/goblin/duende_zombie_real.png", 8, 4,  64,  67 },
-                }},
-                { 2, { // SKELETON
-                    { "assets/npcs/skeleton/esqueleto_magico.png", 4, 4, 64, 64 },
-                    { "assets/npcs/skeleton/esqueleto_muerte.png", 5, 3, 25, 50 },
-                    { "assets/npcs/skeleton/esqueleto_oscuro.png", 7, 3, 24, 32 },
-                }},
-                { 3, { // ZOMBIE
-                    { "assets/npcs/zombie/zombie_comun.png",   5, 4,  24,  50 },
-                    { "assets/npcs/zombie/zombie_magico.png",  5, 4,  27,  50 },
-                    { "assets/npcs/zombie/zombie_poseido.png", 4, 4,  89, 106 },
-                }},
-                { 4, { // SPIDER
-                    { "assets/npcs/spider/araña_comun.png",       8, 4,  64,  64 },
-                    { "assets/npcs/spider/araña_endurecida.png",  5, 4, 192, 192 },
-                }},
-                { 5, { // ORC
-                    { "assets/npcs/orc/orco_errante.png", 6, 4,  56, 100 },
-                    { "assets/npcs/orc/orco_fuego.png",   5, 4,  57,  99 },
-                }},
-                { 6, { // GOLEM
-                    { "assets/npcs/golem/golem_moribundo.png",  4, 4,  74,  50 },
-                    { "assets/npcs/golem/golem_reforzado.png",  6, 4,  79, 128 },
-                    { "assets/npcs/golem/golem_tierra.png",     6, 4, 140, 180 },
-                }},
-                { 7, { // MERCHANT — reutiliza el sprite de humano con ropa de mercader
-                    { "assets/sprites/skins/humano.png", 9, 4, 32, 48 },
-                }},
-                { 8, { // BANKER — sprite de humano
-                    { "assets/sprites/skins/humano.png", 9, 4, 32, 48 },
-                }},
-                { 9, { // PRIEST — sprite de humano
-                    { "assets/sprites/skins/humano.png", 9, 4, 32, 48 },
-                }},
+                { 1, { { "assets/npcs/goblin/duende_ladron.png",      7, 4,  25,  32 },
+                       { "assets/npcs/goblin/duende_zombie_real.png", 8, 4,  64,  67 }, }},
+                { 2, { { "assets/npcs/skeleton/esqueleto_magico.png", 4, 4, 64, 64 },
+                       { "assets/npcs/skeleton/esqueleto_muerte.png", 5, 3, 25, 50 },
+                       { "assets/npcs/skeleton/esqueleto_oscuro.png", 7, 3, 24, 32 }, }},
+                { 3, { { "assets/npcs/zombie/zombie_comun.png",   5, 4,  24,  50 },
+                       { "assets/npcs/zombie/zombie_magico.png",  5, 4,  27,  50 },
+                       { "assets/npcs/zombie/zombie_poseido.png", 4, 4,  89, 106 }, }},
+                { 4, { { "assets/npcs/spider/araña_comun.png",       8, 4,  64,  64 },
+                       { "assets/npcs/spider/araña_endurecida.png",  5, 4, 192, 192 }, }},
+                { 5, { { "assets/npcs/orc/orco_errante.png", 6, 4,  56, 100 },
+                       { "assets/npcs/orc/orco_fuego.png",   5, 4,  57,  99 }, }},
+                { 6, { { "assets/npcs/golem/golem_moribundo.png",  4, 4,  74,  50 },
+                       { "assets/npcs/golem/golem_reforzado.png",  6, 4,  79, 128 },
+                       { "assets/npcs/golem/golem_tierra.png",     6, 4, 140, 180 }, }},
+                { 7, { { "assets/sprites/skins/humano.png", 9, 4, 32, 48 }, }},
+                { 8, { { "assets/sprites/skins/humano.png", 9, 4, 32, 48 }, }},
+                { 9, { { "assets/sprites/skins/humano.png", 9, 4, 32, 48 }, }},
             };
 
             auto sit = npc_sheets.find(e.sprite_id);
             if (sit != npc_sheets.end() && !sit->second.empty()) {
                 const auto& sheets = sit->second;
                 const NpcSheet& s = sheets[e.entity_id % sheets.size()];
+                
+                // Dibujamos el NPC
                 _anim.render_npc(_renderer, _assets,
                                  s.path, s.cols, s.rows, s.frame_w, s.frame_h,
                                  dir, screen_x, screen_y,
                                  _current_tick, moving);
+                
+                // Calculamos dinámicamente el desfasaje en Y basado en el frame_h real del sprite
+                // para que la barra se dibuje correctamente encima de su cabeza
+                int custom_offset_y = -(s.frame_h - TILE_SIZE + 10);
+                render_entity_healthbar(e, screen_x, screen_y + custom_offset_y);
             }
-            continue;
+            continue; // El continue ahora sí ocurre después de renderizar el healthbar
         }
 
-        // Construir equipo visual solo para el jugador propio
+        // ── Otros Jugadores Humanos ──
         EquipVisual equip{};
         const EquipVisual* equip_ptr = nullptr;
 
         if (e.entity_id == _my_entity_id) {
-            // Arma
             if (_eq_wpn != 0xFF && _eq_wpn < SnapshotDTO::INVENTORY_SIZE) {
                 auto wit = weapon_paths.find(_inv[_eq_wpn]);
-                if (wit != weapon_paths.end())
-                    equip.weapon_path = wit->second;
+                if (wit != weapon_paths.end()) equip.weapon_path = wit->second;
             }
-            // Armadura
             if (_eq_arm != 0xFF && _eq_arm < SnapshotDTO::INVENTORY_SIZE) {
                 auto ait = armor_paths.find(_inv[_eq_arm]);
-                if (ait != armor_paths.end())
-                    equip.armor_path = ait->second;
+                if (ait != armor_paths.end()) equip.armor_path = ait->second;
             }
-            // Casco
             if (_eq_helm != 0xFF && _eq_helm < SnapshotDTO::INVENTORY_SIZE) {
-                auto hit = helmet_paths.find(_inv[_eq_helm]);
-                if (hit != helmet_paths.end()) {
-                    equip.helmet_path = hit->second;
-                    // Los src_rect se establecen en AnimationSystem basado en el item
+                auto hit = helmet_info.find(_inv[_eq_helm]);
+                if (hit != helmet_info.end()) {
+                    equip.helmet_path = hit->second.path;
+                    equip.helmet_src_x = hit->second.src_x;
+                    equip.helmet_src_y = hit->second.src_y;
+                    equip.helmet_src_w = hit->second.src_w;
+                    equip.helmet_src_h = hit->second.src_h;
                 }
             }
-            // Escudo
             if (_eq_shld != 0xFF && _eq_shld < SnapshotDTO::INVENTORY_SIZE) {
                 auto sit = shield_paths.find(_inv[_eq_shld]);
-                if (sit != shield_paths.end())
-                    equip.shield_path = sit->second;
+                if (sit != shield_paths.end()) equip.shield_path = sit->second;
             }
             equip_ptr = &equip;
         }
@@ -805,6 +762,76 @@ void GameLoop::render_entities() {
                      screen_x, screen_y,
                      _current_tick, moving,
                      equip_ptr);
+        
+        // Renderizar barra para los demás jugadores (aquellos que no tengan "continue" previo)
+        if (e.entity_id != _my_entity_id) {
+            render_entity_healthbar(e, screen_x, screen_y);
+        }
+    }
+}
+
+void GameLoop::render_entity_healthbar(const EntityDTO& entity, int screen_x, int screen_y) {
+    // No mostrar barra para el jugador propio ni items
+    if (entity.entity_type == static_cast<uint8_t>(EntityType::ITEM_FLOOR)) return;
+
+    // Dimensiones de la barra
+    const int bar_w = 30;
+    const int bar_h = 4;
+    const int bar_offset_y = -10;  // Encima del sprite
+    const int bar_offset_x = 15;
+
+    // Posición de la barra (centrada sobre el sprite)
+    int bar_x = screen_x + bar_offset_x;
+    int bar_y = screen_y + bar_offset_y;
+
+    // Renderizar barra de fondo (roja)
+    SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(_renderer.Get(), 30, 30, 30, 220);
+    SDL_Rect bg_rect{ bar_x, bar_y, bar_w, bar_h };
+    SDL_RenderFillRect(_renderer.Get(), &bg_rect);
+
+    // Renderizar barra de vida (verde/rojo según hp_pct)
+    int hp_bar_w = static_cast<int>(bar_w * entity.hp_pct / 100.0f);
+    if (hp_bar_w > 0) {
+        SDL_Color hp_color;
+        if (entity.hp_pct > 60) {
+            hp_color = { 100, 220, 100, 255 };  // Verde brillante
+        } else if (entity.hp_pct > 30) {
+            hp_color = { 255, 220, 50, 255 };   // Amarillo
+        } else {
+            hp_color = { 220, 80, 80, 255 };    // Rojo
+        }
+        SDL_SetRenderDrawColor(_renderer.Get(), hp_color.r, hp_color.g, hp_color.b, hp_color.a);
+        SDL_Rect hp_rect{ bar_x, bar_y, hp_bar_w, bar_h };
+        SDL_RenderFillRect(_renderer.Get(), &hp_rect);
+    }
+
+    // Borde de la barra
+    SDL_SetRenderDrawColor(_renderer.Get(), 200, 200, 200, 255);
+    SDL_RenderDrawRect(_renderer.Get(), &bg_rect);
+
+    // Renderizar nombre (solo para jugadores)
+    if (entity.entity_type == static_cast<uint8_t>(EntityType::PLAYER) && !entity.username.empty()) {
+        if (!_small_font) {
+            // Inicializar font si no existe
+            _small_font = TTF_OpenFont(CHAT_FONT_PATH, 10);
+        }
+        
+        if (_small_font) {
+            SDL_Color name_color = { 200, 220, 255, 255 };
+            SDL_Surface* surf = TTF_RenderUTF8_Blended(_small_font, entity.username.c_str(), name_color);
+            if (surf) {
+                SDL_Texture* tex = SDL_CreateTextureFromSurface(_renderer.Get(), surf);
+                if (tex) {
+                    int name_y = bar_y - 14;
+                    int name_x = screen_x + bar_offset_x + (bar_w - surf->w) / 2;
+                    SDL_Rect dst{ name_x, name_y, surf->w, surf->h };
+                    SDL_RenderCopy(_renderer.Get(), tex, nullptr, &dst);
+                    SDL_DestroyTexture(tex);
+                }
+                SDL_FreeSurface(surf);
+            }
+        }
     }
 }
 
