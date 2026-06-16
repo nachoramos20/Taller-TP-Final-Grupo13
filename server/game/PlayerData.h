@@ -40,6 +40,10 @@ struct PlayerData {
     
     static constexpr int INVENTORY_SIZE = 16;
     std::array<uint8_t, INVENTORY_SIZE> inventory{};
+
+    static constexpr int BANK_SIZE = 32;
+    std::array<uint8_t, BANK_SIZE> bank{};
+    uint32_t bank_gold = 0;
     
     uint8_t equipped_weapon = 255;
     uint8_t equipped_armor  = 255;
