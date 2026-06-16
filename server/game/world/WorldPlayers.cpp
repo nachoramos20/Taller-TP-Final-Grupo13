@@ -12,6 +12,7 @@ void WorldPlayers::add(const PlayerData& player_data) {
 void WorldPlayers::remove(uint16_t client_id) {
     auto it = players_map.find(client_id);
     if (it == players_map.end()) return;
+    save_queue.push(it->second);
     collision.update(it->second.pos_x, it->second.pos_y, false);
     players_map.erase(it);
 }
@@ -59,6 +60,7 @@ PlayerData* WorldPlayers::find_mutable(uint16_t client_id) {
 bool WorldPlayers::kick_by_username(const std::string& name) {
     for (auto it = players_map.begin(); it != players_map.end(); ++it) {
         if (std::string(it->second.username) == name) {
+            save_queue.push(it->second);
             collision.update(it->second.pos_x, it->second.pos_y, false);
             players_map.erase(it);
             return true;

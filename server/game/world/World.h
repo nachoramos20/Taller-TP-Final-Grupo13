@@ -18,6 +18,7 @@
 #include "WorldCollision.h"
 #include "WorldChat.h"
 #include "WorldPlayers.h"
+#include "../../../common/queue.h"
 #include "WorldItems.h"
 #include "WorldClans.h"
 #include "WorldBank.h"
@@ -45,7 +46,7 @@ private:
     std::unordered_map<uint16_t, NpcId> selected_service_npc_;
 
 public:
-    World(uint16_t width, uint16_t height, std::vector<uint8_t> collision_map);
+    World(uint16_t width, uint16_t height, std::vector<uint8_t> collision_map, Queue<PlayerData>& save_queue);
 
     // ---- Players ----
     void add_player(const PlayerData& player_data);
