@@ -51,9 +51,12 @@ void WorldItems::cleanup_expired(uint32_t current_tick) {
 }
 
 void WorldItems::drop_player_loot(PlayerData& dead) {
-    if (dead.gold > 0) {
-        add(static_cast<uint8_t>(ItemId::GOLD_PILE), dead.pos_x, dead.pos_y, dead.gold);
-        dead.gold = 0;
+    uint32_t gold_max = static_cast<uint32_t>(100.0 * std::pow(dead.level, 1.1));
+
+    if (dead.gold > gold_max) {
+        uint32_t excess = dead.gold - gold_max;
+        add(static_cast<uint8_t>(ItemId::GOLD_PILE), dead.pos_x, dead.pos_y, excess);
+        dead.gold = gold_max;
     }
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i) {
         if (dead.inventory[i] != 0) {
