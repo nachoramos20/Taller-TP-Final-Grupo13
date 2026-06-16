@@ -3,19 +3,15 @@
 
 #include <cstdint>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 class WorldPlayers;
 class WorldChat;
 
 class WorldBank {
 private:
-    std::unordered_map<std::string, std::vector<uint8_t>> inventories;
-    std::unordered_map<std::string, uint32_t>             gold;
-
     WorldPlayers& players;
     WorldChat&    chat;
+
 public:
     WorldBank(WorldPlayers& p, WorldChat& c) : players(p), chat(c) {}
 

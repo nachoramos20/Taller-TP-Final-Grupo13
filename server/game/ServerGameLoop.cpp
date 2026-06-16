@@ -14,7 +14,7 @@ ServerGameLoop::ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_qu
     : command_queue(command_queue),
       queue_monitor(queue_monitor),
       save_queue(save_queue),
-      world(100, 100, std::move(collision_map)), tick(0),
+      world(100, 100, std::move(collision_map), save_queue), tick(0),
       regen_ticks(0) {}
 
 void ServerGameLoop::run() {
@@ -81,7 +81,10 @@ void ServerGameLoop::run() {
 }
 
 
-void ServerGameLoop::stop() { Thread::stop(); }
+void ServerGameLoop::stop() {
+    save_players();
+    Thread::stop();
+}
 
 void ServerGameLoop::process_commands() {
     std::shared_ptr<ServerCommand> command;

@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "../PlayerData.h"
+#include "../../../common/queue.h"
 
 class WorldCollision;
 
@@ -13,10 +14,11 @@ class WorldPlayers {
 private:
     std::unordered_map<uint16_t, PlayerData> players_map;
     WorldCollision& collision;
+    Queue<PlayerData>& save_queue;
 
     void set_direction_from_delta(PlayerData& player, int dx, int dy);
 public:
-    explicit WorldPlayers(WorldCollision& c) : collision(c) {}
+    explicit WorldPlayers(WorldCollision& c, Queue<PlayerData>& sq) : collision(c), save_queue(sq) {}
 
     void add(const PlayerData& player_data);
     void remove(uint16_t client_id);
