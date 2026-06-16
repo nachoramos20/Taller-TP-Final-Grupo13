@@ -75,6 +75,10 @@ public:
             e.sprite_id   = recv_uint8();
             e.is_ghost    = recv_uint8();
             e.hp_pct      = recv_uint8();
+            e.equipped_weapon = recv_uint8();
+            e.equipped_armor  = recv_uint8();
+            e.equipped_helmet = recv_uint8();
+            e.equipped_shield = recv_uint8();
         }
 
         uint8_t msg_count = recv_uint8();

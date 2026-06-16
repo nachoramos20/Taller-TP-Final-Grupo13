@@ -69,7 +69,22 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
                              int screen_x, int screen_y,
                              uint32_t tick,
                              bool is_moving,
-                             const EquipVisual* equip) {
+                             const EquipVisual* equip,
+                             bool is_ghost) {
+    // Las texturas están cacheadas por path: el alpha-mod aplicado acá afecta
+    // a la misma textura compartida, por eso se restaura a opaco al final
+    // (sino el "fantasma" de uno contagiaría la transparencia a otro sprite
+    // que reuse la misma imagen más adelante en el frame).
+    static constexpr Uint8 GHOST_ALPHA = 120;
+    std::vector<SDL2pp::Texture*> ghost_textures;
+    auto get_tex = [&](const std::string& path) -> SDL2pp::Texture& {
+        SDL2pp::Texture& tex = assets.get(path);
+        if (is_ghost) {
+            tex.SetAlphaMod(GHOST_ALPHA);
+            ghost_textures.push_back(&tex);
+        }
+        return tex;
+    };
     int dir_idx = direction_to_index(dir);
     int n = static_cast<int>(_body_anims[dir_idx].frames.size());
     int frame = is_moving ? frame_for_tick(tick, n) : 0;
@@ -100,14 +115,14 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
     );
 
     // Pasada 1: body base
-    renderer.Copy(assets.get(body_path), body_src, body_dst);
+    renderer.Copy(get_tex(body_path), body_src, body_dst);
 
     // Pasada 2: armadura superpuesta
     if (equip && !equip->armor_path.empty())
-        renderer.Copy(assets.get(equip->armor_path), body_src, body_dst);
+        renderer.Copy(get_tex(equip->armor_path), body_src, body_dst);
 
     // Pasada 3: cabeza
-    renderer.Copy(assets.get(head_path), head_src, head_dst);
+    renderer.Copy(get_tex(head_path), head_src, head_dst);
 
     // Pasada 4: casco
     if (equip && !equip->helmet_path.empty() && equip->helmet_src_w > 0) {
@@ -119,25 +134,30 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
             equip->helmet_src_w,
             equip->helmet_src_h
         );
-        renderer.Copy(assets.get(equip->helmet_path), helm_src, helm_dst);
+        renderer.Copy(get_tex(equip->helmet_path), helm_src, helm_dst);
     }
 
     // Pasada 5: escudo en lado izquierdo
     if (equip && !equip->shield_path.empty()) {
         static constexpr int SHIELD_W = 24;
         static constexpr int SHIELD_H = 32;
-        
+
         int sx = body_dst.x - SHIELD_W - 2;
         int sy = body_dst.y + body_dst.h - SHIELD_H;
-        
+
         SDL2pp::Rect shield_src(0, 0, SHIELD_W, SHIELD_H);
         SDL2pp::Rect shield_dst(sx, sy, SHIELD_W, SHIELD_H);
-        renderer.Copy(assets.get(equip->shield_path), shield_src, shield_dst);
+        renderer.Copy(get_tex(equip->shield_path), shield_src, shield_dst);
     }
 
     // Pasada 6: arma en mano
-    if (equip)
+    if (equip) {
+        if (is_ghost && !equip->weapon_path.empty()) get_tex(equip->weapon_path);
         render_weapon(renderer, assets, equip->weapon_path, dir_idx, frame, body_dst);
+    }
+
+    for (SDL2pp::Texture* tex : ghost_textures)
+        tex->SetAlphaMod(255);
 
     return { head_dst.y, body_dst.x + body_dst.w / 2, body_dst.w };
 }

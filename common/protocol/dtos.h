@@ -15,6 +15,13 @@ struct EntityDTO {
     uint8_t  sprite_id;
     uint8_t  is_ghost;
     uint8_t  hp_pct;
+
+    // Equipo visible (ItemId, 0 = nada equipado en ese slot). Solo se usa
+    // para entity_type == PLAYER; NPCs e items en el piso van en 0.
+    uint8_t  equipped_weapon = 0;
+    uint8_t  equipped_armor  = 0;
+    uint8_t  equipped_helmet = 0;
+    uint8_t  equipped_shield = 0;
 };
 
 struct ChatMessageDTO {

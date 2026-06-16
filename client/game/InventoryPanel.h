@@ -20,6 +20,7 @@ public:
     void set_visible(bool v) { _visible = v; }
     void toggle()            { _visible = !_visible; }
     bool is_visible() const  { return _visible; }
+    int  selected_slot() const { return _selected_slot; }
 
     void update(const uint8_t inventory[SnapshotDTO::INVENTORY_SIZE],
                 uint8_t equipped_wpn, uint8_t equipped_arm,

@@ -38,6 +38,16 @@ struct SpellEffect {
     std::string path;
 };
 
+// Animación de proyectil para ataques a distancia (solo cliente, sin sprite
+// propio: se dibuja como una marca viajando del atacante al objetivo).
+struct Projectile {
+    uint16_t from_x, from_y;
+    uint16_t to_x, to_y;
+    uint32_t start_tick;
+    bool     is_magic;  // color distinto para distinguir flecha de hechizo
+};
+static constexpr uint32_t PROJECTILE_DURATION_TICKS = 8;
+
 class GameLoop {
 public:
     GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer);
@@ -65,8 +75,11 @@ private:
     void render_entity_healthbar(const EntityDTO& entity, const SpriteBounds& bounds);
     void render_obj_sup();
     void render_spells();
+    void render_projectiles();
     void load_item_textures();
     void spawn_spell_effect(uint8_t spell_id, uint16_t pos_x, uint16_t pos_y);
+    void spawn_projectile(uint16_t from_x, uint16_t from_y,
+                          uint16_t to_x, uint16_t to_y, bool is_magic);
 
     SDL2pp::Window&     _window;
     SDL2pp::Renderer&   _renderer;
@@ -93,6 +106,7 @@ private:
 
     // Efectos visuales de hechizos (solo cliente)
     std::vector<SpellEffect> _spell_effects;
+    std::vector<Projectile>  _projectiles;
 
     MapaDTO   _map;
     bool      _map_loaded;

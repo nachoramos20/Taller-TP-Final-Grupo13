@@ -9,6 +9,11 @@ std::shared_ptr<std::vector<EntityDTO>> WorldSnapshot::get_entities() const {
     auto entities = std::make_shared<std::vector<EntityDTO>>();
     entities->reserve(players.all().size() + npcs.all().size() + items.all().size());
 
+    auto resolve_equipped_item = [](const PlayerData& player, uint8_t slot) -> uint8_t {
+        if (slot >= PlayerData::INVENTORY_SIZE) return 0;
+        return player.inventory[slot];
+    };
+
     for (const auto& [id, player] : players.all()) {
         EntityDTO e{};
         e.entity_id   = player.entity_id;
@@ -21,6 +26,10 @@ std::shared_ptr<std::vector<EntityDTO>> WorldSnapshot::get_entities() const {
         e.is_ghost    = player.is_ghost ? 1 : 0;
         e.hp_pct      = static_cast<uint8_t>(
             player.max_hp > 0 ? (player.hp * 100) / player.max_hp : 0);
+        e.equipped_weapon = resolve_equipped_item(player, player.equipped_weapon);
+        e.equipped_armor  = resolve_equipped_item(player, player.equipped_armor);
+        e.equipped_helmet = resolve_equipped_item(player, player.equipped_helmet);
+        e.equipped_shield = resolve_equipped_item(player, player.equipped_shield);
         entities->push_back(e);
     }
 

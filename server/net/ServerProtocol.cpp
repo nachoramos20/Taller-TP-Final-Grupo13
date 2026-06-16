@@ -147,6 +147,8 @@ void ServerProtocol::send_snapshot(const SnapshotDTO& snap) {
             send_uint16(e.pos_x); send_uint16(e.pos_y);
             send_uint8(e.direction); send_uint8(e.sprite_id);
             send_uint8(e.is_ghost); send_uint8(e.hp_pct);
+            send_uint8(e.equipped_weapon); send_uint8(e.equipped_armor);
+            send_uint8(e.equipped_helmet); send_uint8(e.equipped_shield);
         }
     } else send_uint8(0);
 

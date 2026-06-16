@@ -181,6 +181,46 @@ void GameLoop::render_spells() {
     }
 }
 
+void GameLoop::spawn_projectile(uint16_t from_x, uint16_t from_y,
+                                uint16_t to_x, uint16_t to_y, bool is_magic) {
+    Projectile p{};
+    p.from_x     = from_x;
+    p.from_y     = from_y;
+    p.to_x       = to_x;
+    p.to_y       = to_y;
+    p.start_tick = _current_tick;
+    p.is_magic   = is_magic;
+    _projectiles.push_back(p);
+}
+
+void GameLoop::render_projectiles() {
+    _projectiles.erase(
+        std::remove_if(_projectiles.begin(), _projectiles.end(),
+            [&](const Projectile& p) {
+                return (_current_tick - p.start_tick) >= PROJECTILE_DURATION_TICKS;
+            }),
+        _projectiles.end());
+
+    for (const auto& p : _projectiles) {
+        float t = static_cast<float>(_current_tick - p.start_tick)
+                / static_cast<float>(PROJECTILE_DURATION_TICKS);
+        t = std::clamp(t, 0.0f, 1.0f);
+
+        float world_x = (p.from_x + (p.to_x - p.from_x) * t) * TILE_SIZE + TILE_SIZE / 2.0f;
+        float world_y = (p.from_y + (p.to_y - p.from_y) * t) * TILE_SIZE + TILE_SIZE / 2.0f;
+
+        int sx = _camera.world_to_screen_x(world_x);
+        int sy = _camera.world_to_screen_y(world_y);
+
+        SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
+        SDL_Color color = p.is_magic ? SDL_Color{120, 180, 255, 255}
+                                      : SDL_Color{230, 210, 120, 255};
+        SDL_SetRenderDrawColor(_renderer.Get(), color.r, color.g, color.b, color.a);
+        SDL_Rect dot{ sx - 3, sy - 3, 6, 6 };
+        SDL_RenderFillRect(_renderer.Get(), &dot);
+    }
+}
+
 void GameLoop::load_item_textures() {
     if (!_inventory) return;
 
@@ -295,6 +335,41 @@ void GameLoop::handle_events() {
             !(_chat && _chat->input_active())) {
             _pos_label->toggle_visibility();
             continue;
+        }
+
+        // Tecla dedicada para abrir/cerrar el inventario (no pasa por chat)
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_i &&
+            !(_chat && _chat->input_active())) {
+            if (_inventory) _inventory->toggle();
+            continue;
+        }
+
+        // Tecla dedicada para tirar el item seleccionado del inventario
+        if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_q &&
+            _inventory && _inventory->is_visible() &&
+            !(_chat && _chat->input_active()) && _command_queue) {
+            int slot = _inventory->selected_slot();
+            if (slot >= 0)
+                _command_queue->push(Command::drop(static_cast<uint8_t>(slot)));
+            continue;
+        }
+
+        // Teclas dedicadas para meditar / resucitar / tomar (sin pasar por chat)
+        if (event.type == SDL_KEYDOWN &&
+            !(_inventory && _inventory->is_visible()) &&
+            !(_chat && _chat->input_active())) {
+            if (event.key.keysym.sym == SDLK_m && _command_queue) {
+                _command_queue->push(Command::meditate());
+                continue;
+            }
+            if (event.key.keysym.sym == SDLK_r && _command_queue) {
+                _command_queue->push(Command::resurrect());
+                continue;
+            }
+            if (event.key.keysym.sym == SDLK_e && _command_queue) {
+                _command_queue->push(Command::pick_item());
+                continue;
+            }
         }
 
         if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
@@ -444,6 +519,7 @@ void GameLoop::render() {
     render_entities();
     render_obj_sup();
     render_spells();
+    render_projectiles();
 
     int sw = _window.GetWidth();
     int sh = _window.GetHeight();
@@ -730,32 +806,42 @@ void GameLoop::render_entities() {
 
         // ── Otros Jugadores Humanos ──
         EquipVisual equip{};
-        const EquipVisual* equip_ptr = nullptr;
+        const EquipVisual* equip_ptr = &equip;
 
+        uint8_t item_weapon, item_armor, item_helmet, item_shield;
         if (e.entity_id == _my_entity_id) {
-            if (_eq_wpn != 0xFF && _eq_wpn < SnapshotDTO::INVENTORY_SIZE) {
-                auto wit = weapon_paths.find(_inv[_eq_wpn]);
-                if (wit != weapon_paths.end()) equip.weapon_path = wit->second;
+            item_weapon = (_eq_wpn  != 0xFF && _eq_wpn  < SnapshotDTO::INVENTORY_SIZE) ? _inv[_eq_wpn]  : 0;
+            item_armor  = (_eq_arm  != 0xFF && _eq_arm  < SnapshotDTO::INVENTORY_SIZE) ? _inv[_eq_arm]  : 0;
+            item_helmet = (_eq_helm != 0xFF && _eq_helm < SnapshotDTO::INVENTORY_SIZE) ? _inv[_eq_helm] : 0;
+            item_shield = (_eq_shld != 0xFF && _eq_shld < SnapshotDTO::INVENTORY_SIZE) ? _inv[_eq_shld] : 0;
+        } else {
+            item_weapon = e.equipped_weapon;
+            item_armor  = e.equipped_armor;
+            item_helmet = e.equipped_helmet;
+            item_shield = e.equipped_shield;
+        }
+
+        if (item_weapon != 0) {
+            auto wit = weapon_paths.find(item_weapon);
+            if (wit != weapon_paths.end()) equip.weapon_path = wit->second;
+        }
+        if (item_armor != 0) {
+            auto ait = armor_paths.find(item_armor);
+            if (ait != armor_paths.end()) equip.armor_path = ait->second;
+        }
+        if (item_helmet != 0) {
+            auto hit = helmet_info.find(item_helmet);
+            if (hit != helmet_info.end()) {
+                equip.helmet_path = hit->second.path;
+                equip.helmet_src_x = hit->second.src_x;
+                equip.helmet_src_y = hit->second.src_y;
+                equip.helmet_src_w = hit->second.src_w;
+                equip.helmet_src_h = hit->second.src_h;
             }
-            if (_eq_arm != 0xFF && _eq_arm < SnapshotDTO::INVENTORY_SIZE) {
-                auto ait = armor_paths.find(_inv[_eq_arm]);
-                if (ait != armor_paths.end()) equip.armor_path = ait->second;
-            }
-            if (_eq_helm != 0xFF && _eq_helm < SnapshotDTO::INVENTORY_SIZE) {
-                auto hit = helmet_info.find(_inv[_eq_helm]);
-                if (hit != helmet_info.end()) {
-                    equip.helmet_path = hit->second.path;
-                    equip.helmet_src_x = hit->second.src_x;
-                    equip.helmet_src_y = hit->second.src_y;
-                    equip.helmet_src_w = hit->second.src_w;
-                    equip.helmet_src_h = hit->second.src_h;
-                }
-            }
-            if (_eq_shld != 0xFF && _eq_shld < SnapshotDTO::INVENTORY_SIZE) {
-                auto sit = shield_paths.find(_inv[_eq_shld]);
-                if (sit != shield_paths.end()) equip.shield_path = sit->second;
-            }
-            equip_ptr = &equip;
+        }
+        if (item_shield != 0) {
+            auto sit = shield_paths.find(item_shield);
+            if (sit != shield_paths.end()) equip.shield_path = sit->second;
         }
 
         const SpriteEntry& sprite = _sprite_config.get(e.sprite_id);
@@ -764,7 +850,7 @@ void GameLoop::render_entities() {
                      e.sprite_id, dir,
                      screen_x, screen_y,
                      _current_tick, moving,
-                     equip_ptr);
+                     equip_ptr, e.is_ghost != 0);
 
         // Renderizar barra para los demás jugadores (aquellos que no tengan "continue" previo)
         if (e.entity_id != _my_entity_id) {
@@ -886,6 +972,15 @@ void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
             _command_queue->push(Command::attack(e.entity_id));
             _chat->add_message("Atacando a " + (e.username.empty()
                 ? std::string("#") + std::to_string(e.entity_id) : e.username));
+
+            uint8_t my_weapon = (_eq_wpn != 0xFF && _eq_wpn < SnapshotDTO::INVENTORY_SIZE)
+                                 ? _inv[_eq_wpn] : 0;
+            if (weapon_is_ranged(my_weapon)) {
+                spawn_projectile(static_cast<uint16_t>(_player.tile_x),
+                                 static_cast<uint16_t>(_player.tile_y),
+                                 e.pos_x, e.pos_y,
+                                 weapon_is_magic(my_weapon));
+            }
         }
         return;
     }

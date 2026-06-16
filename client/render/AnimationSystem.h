@@ -60,6 +60,7 @@ public:
 
     // Render de jugador (body + head + equipo opcional).
     // Devuelve los límites reales del sprite dibujado (para overlays).
+    // is_ghost atenúa el sprite (transparencia) para distinguir personajes muertos.
     SpriteBounds render(SDL2pp::Renderer& renderer,
                 AssetManager& assets,
                 const std::string& body_path,
@@ -69,7 +70,8 @@ public:
                 int screen_x, int screen_y,
                 uint32_t tick,
                 bool is_moving,
-                const EquipVisual* equip = nullptr);
+                const EquipVisual* equip = nullptr,
+                bool is_ghost = false);
 
     // Render de NPC (spritesheet único, sin head separado).
     // Devuelve los límites reales del sprite dibujado (para overlays).

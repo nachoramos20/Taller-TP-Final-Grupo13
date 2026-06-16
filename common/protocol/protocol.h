@@ -143,3 +143,13 @@ inline bool weapon_enables_spells(uint8_t item_id) {
 inline bool weapon_is_magic(uint8_t item_id) {
     return weapon_enables_spells(item_id);
 }
+
+// Devuelve true si el item es un arma a distancia (arco o mágica), para
+// decidir si el ataque básico dispara una animación de proyectil.
+inline bool weapon_is_ranged(uint8_t item_id) {
+    return item_id == static_cast<uint8_t>(ItemId::SIMPLE_BOW)   ||
+           item_id == static_cast<uint8_t>(ItemId::COMPOUND_BOW) ||
+           item_id == static_cast<uint8_t>(ItemId::AMETHYST_BOW) ||
+           item_id == static_cast<uint8_t>(ItemId::INFERNAL_BOW) ||
+           weapon_is_magic(item_id);
+}
