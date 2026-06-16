@@ -58,9 +58,14 @@ void ServerGameLoop::run() {
     sp.add_safe_zone(SafeZone{ 29, 53, 49, 71 }); // pueblo sur
 
     // ── NPCs de servicio en la ciudad ──
-    world.spawn_npc(NpcId::MERCHANT, 38, 18);
-    world.spawn_npc(NpcId::BANKER,   42, 18);
-    world.spawn_npc(NpcId::PRIEST,   40, 22);
+    // Ubicados frente a sus edificios
+    world.spawn_npc(NpcId::MERCHANT, 30, 18);
+    world.spawn_npc(NpcId::BANKER,   50, 16);
+    world.spawn_npc(NpcId::PRIEST,   41, 14);
+
+    // ── NPCs de servicio en el pueblo sur ──
+    world.spawn_npc(NpcId::PRIEST,   40, 68);
+    world.spawn_npc(NpcId::MERCHANT, 46, 70);
 
     while (should_keep_running()) {
         process_commands();

@@ -81,7 +81,9 @@ public:
                     Direction dir,
                     int screen_x, int screen_y,
                     uint32_t tick,
-                    bool is_moving);
+                    bool is_moving,
+                    float scale = 1.5f,
+                    int draw_offset_y = 0);
 
 private:
     int frame_for_tick(uint32_t tick, int n_frames) const;

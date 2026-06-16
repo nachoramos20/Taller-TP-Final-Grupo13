@@ -150,23 +150,27 @@ SpriteBounds AnimationSystem::render_npc(SDL2pp::Renderer& renderer,
                                   Direction dir,
                                   int screen_x, int screen_y,
                                   uint32_t tick,
-                                  bool is_moving) {
+                                  bool is_moving,
+                                  float scale,
+                                  int draw_offset_y) {
     int dir_idx = std::min(direction_to_index(dir), rows - 1);
     int frame   = is_moving ? frame_for_tick(tick, cols) : 0;
 
     SDL2pp::Rect src(frame * frame_w, dir_idx * frame_h, frame_w, frame_h);
 
-    int dst_h = static_cast<int>(TILE_SIZE * 1.5f);
+    int dst_h = static_cast<int>(TILE_SIZE * scale);
     int dst_w = (frame_h > 0) ? (dst_h * frame_w / frame_h) : dst_h;
+
+    int top_y = screen_y + TILE_SIZE - dst_h;
 
     SDL2pp::Rect dst(
         screen_x + (TILE_SIZE - dst_w) / 2,
-        screen_y + TILE_SIZE - dst_h,
+        top_y + draw_offset_y,
         dst_w,
         dst_h
     );
 
     renderer.Copy(assets.get(sheet_path), src, dst);
 
-    return { dst.y, dst.x + dst.w / 2, dst.w };
+    return { top_y, dst.x + dst.w / 2, dst.w };
 }

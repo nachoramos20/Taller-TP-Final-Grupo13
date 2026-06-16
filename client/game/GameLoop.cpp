@@ -701,21 +701,28 @@ void GameLoop::render_entities() {
                 { 6, { { "assets/npcs/golem/golem_moribundo.png",  4, 4,  74,  50 },
                        { "assets/npcs/golem/golem_reforzado.png",  6, 4,  79, 128 },
                        { "assets/npcs/golem/golem_tierra.png",     6, 4, 140, 180 }, }},
-                { 7, { { "assets/sprites/skins/humano.png", 9, 4, 32, 48 }, }},
-                { 8, { { "assets/sprites/skins/humano.png", 9, 4, 32, 48 }, }},
-                { 9, { { "assets/sprites/skins/humano.png", 9, 4, 32, 48 }, }},
+                // NPCs de servicio: sprite estático único.
+                { 7, { { "assets/npcs/comerciante/comerciante.png", 1, 1, 31, 42 }, }},
+                { 8, { { "assets/npcs/banquero/banquero.png",       1, 1, 27, 54 }, }},
+                { 9, { { "assets/npcs/sacerdote/sacerdote.png",     1, 1, 25, 55 }, }},
             };
+
+            bool is_service_npc = (e.sprite_id >= 7);  // MERCHANT=7, BANKER=8, PRIEST=9
+            float scale = is_service_npc ? 1.0f : 1.5f;
+            bool is_pueblo_priest = (e.sprite_id == 9) && (e.pos_y > 50);
+            int draw_offset_y = !is_service_npc ? 0
+                               : (e.sprite_id == 9 /*PRIEST*/) ? (is_pueblo_priest ? 18 : 0) : 14;
 
             auto sit = npc_sheets.find(e.sprite_id);
             if (sit != npc_sheets.end() && !sit->second.empty()) {
                 const auto& sheets = sit->second;
                 const NpcSheet& s = sheets[e.entity_id % sheets.size()];
-                
+
                 // Dibujamos el NPC
                 SpriteBounds bounds = _anim.render_npc(_renderer, _assets,
                                  s.path, s.cols, s.rows, s.frame_w, s.frame_h,
                                  dir, screen_x, screen_y,
-                                 _current_tick, moving);
+                                 _current_tick, moving, scale, draw_offset_y);
                 render_entity_healthbar(e, bounds);
             }
             continue; // El continue ahora sí ocurre después de renderizar el healthbar
@@ -767,65 +774,81 @@ void GameLoop::render_entities() {
 }
 
 void GameLoop::render_entity_healthbar(const EntityDTO& entity, const SpriteBounds& bounds) {
-    // No mostrar barra para el jugador propio ni items
     if (entity.entity_type == static_cast<uint8_t>(EntityType::ITEM_FLOOR)) return;
 
-    // El ancho de la barra escala con el sprite real en pantalla
-    const int bar_w = std::clamp(bounds.width, 24, 50);
-    const int bar_h = 4;
-    const int margin = 6;  // separación entre la barra y la punta del sprite
+    const bool is_service_npc = (entity.entity_type == static_cast<uint8_t>(EntityType::NPC))
+                                && (entity.sprite_id >= 7);  // MERCHANT=7, BANKER=8, PRIEST=9
 
-    // Posición de la barra (centrada sobre el sprite)
-    int bar_x = bounds.center_x - bar_w / 2;
-    int bar_y = bounds.top_y - bar_h - margin;
+    const int margin = 6;  // separación entre overlay y punta del sprite
+    int text_anchor_y = bounds.top_y - margin;
 
-    // Renderizar barra de fondo (roja)
-    SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(_renderer.Get(), 30, 30, 30, 220);
-    SDL_Rect bg_rect{ bar_x, bar_y, bar_w, bar_h };
-    SDL_RenderFillRect(_renderer.Get(), &bg_rect);
+    if (!is_service_npc) {
+        // El ancho de la barra escala con el sprite real en pantalla.
+        const int bar_w = std::clamp(bounds.width, 24, 50);
+        const int bar_h = 4;
 
-    // Renderizar barra de vida (verde/rojo según hp_pct)
-    int hp_bar_w = static_cast<int>(bar_w * entity.hp_pct / 100.0f);
-    if (hp_bar_w > 0) {
-        SDL_Color hp_color;
-        if (entity.hp_pct > 60) {
-            hp_color = { 100, 220, 100, 255 };  // Verde brillante
-        } else if (entity.hp_pct > 30) {
-            hp_color = { 255, 220, 50, 255 };   // Amarillo
-        } else {
-            hp_color = { 220, 80, 80, 255 };    // Rojo
+        // Posición de la barra, centrada sobre el sprite.
+        int bar_x = bounds.center_x - bar_w / 2;
+        int bar_y = bounds.top_y - bar_h - margin;
+        text_anchor_y = bar_y;
+
+        // Renderizar barra de fondo
+        SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
+        SDL_SetRenderDrawColor(_renderer.Get(), 30, 30, 30, 220);
+        SDL_Rect bg_rect{ bar_x, bar_y, bar_w, bar_h };
+        SDL_RenderFillRect(_renderer.Get(), &bg_rect);
+
+        // Renderizar barra de vida
+        int hp_bar_w = static_cast<int>(bar_w * entity.hp_pct / 100.0f);
+        if (hp_bar_w > 0) {
+            SDL_Color hp_color;
+            if (entity.hp_pct > 60) {
+                hp_color = { 100, 220, 100, 255 };
+            } else if (entity.hp_pct > 30) {
+                hp_color = { 255, 220, 50, 255 };
+            } else {
+                hp_color = { 220, 80, 80, 255 };
+            }
+            SDL_SetRenderDrawColor(_renderer.Get(), hp_color.r, hp_color.g, hp_color.b, hp_color.a);
+            SDL_Rect hp_rect{ bar_x, bar_y, hp_bar_w, bar_h };
+            SDL_RenderFillRect(_renderer.Get(), &hp_rect);
         }
-        SDL_SetRenderDrawColor(_renderer.Get(), hp_color.r, hp_color.g, hp_color.b, hp_color.a);
-        SDL_Rect hp_rect{ bar_x, bar_y, hp_bar_w, bar_h };
-        SDL_RenderFillRect(_renderer.Get(), &hp_rect);
+
+        // Borde de la barra
+        SDL_SetRenderDrawColor(_renderer.Get(), 200, 200, 200, 255);
+        SDL_RenderDrawRect(_renderer.Get(), &bg_rect);
     }
 
-    // Borde de la barra
-    SDL_SetRenderDrawColor(_renderer.Get(), 200, 200, 200, 255);
-    SDL_RenderDrawRect(_renderer.Get(), &bg_rect);
+    // Los jugadores muestran nombre sobre la barra; los NPCs de servicio muestran solo nombre
+    // arriba de la cabeza, sin barra de vida.
+    const bool show_name = ((entity.entity_type == static_cast<uint8_t>(EntityType::PLAYER))
+                            || is_service_npc)
+                           && !entity.username.empty();
+    if (!show_name) return;
 
-    // Renderizar nombre (solo para jugadores)
-    if (entity.entity_type == static_cast<uint8_t>(EntityType::PLAYER) && !entity.username.empty()) {
-        if (!_small_font) {
-            // Inicializar font si no existe
-            _small_font = TTF_OpenFont(CHAT_FONT_PATH, 10);
-        }
-        
-        if (_small_font) {
-            SDL_Color name_color = { 200, 220, 255, 255 };
-            SDL_Surface* surf = TTF_RenderUTF8_Blended(_small_font, entity.username.c_str(), name_color);
-            if (surf) {
-                SDL_Texture* tex = SDL_CreateTextureFromSurface(_renderer.Get(), surf);
-                if (tex) {
-                    int name_y = bar_y - 14;
-                    int name_x = bounds.center_x - surf->w / 2;
-                    SDL_Rect dst{ name_x, name_y, surf->w, surf->h };
-                    SDL_RenderCopy(_renderer.Get(), tex, nullptr, &dst);
-                    SDL_DestroyTexture(tex);
-                }
-                SDL_FreeSurface(surf);
+    if (!_small_font) {
+        _small_font = TTF_OpenFont(CHAT_FONT_PATH, 10);
+    }
+
+    if (_small_font) {
+        SDL_Color name_color = { 200, 220, 255, 255 };
+        SDL_Surface* surf = TTF_RenderUTF8_Blended(_small_font, entity.username.c_str(), name_color);
+        if (surf) {
+            SDL_Texture* tex = SDL_CreateTextureFromSurface(_renderer.Get(), surf);
+            if (tex) {
+                bool is_pueblo_priest = (entity.sprite_id == 9) && (entity.pos_y > 50);
+                int service_name_offset = (entity.sprite_id == 9 /*PRIEST*/)
+                                               ? (is_pueblo_priest ? 2 : -10)
+                                               : 2;
+                int name_y = is_service_npc
+                                 ? bounds.top_y + service_name_offset
+                                 : text_anchor_y - surf->h - 2;
+                int name_x = bounds.center_x - surf->w / 2;
+                SDL_Rect dst{ name_x, name_y, surf->w, surf->h };
+                SDL_RenderCopy(_renderer.Get(), tex, nullptr, &dst);
+                SDL_DestroyTexture(tex);
             }
+            SDL_FreeSurface(surf);
         }
     }
 }
