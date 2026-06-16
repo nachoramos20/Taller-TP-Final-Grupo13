@@ -115,6 +115,7 @@ public:
 
     // ---- Spawner / Safe Zones ----
     WorldSpawner& spawner();
+    bool in_safe_zone(uint16_t x, uint16_t y) const;
 
     // ---- NPC de servicio seleccionado ----
     void     set_selected_npc(uint16_t client_id, NpcId type);

@@ -118,6 +118,11 @@ void CastSpellCommand::execute(World& world) {
     if (!caster || caster->is_ghost) return;
     if (caster->attack_cooldown > 0) return;
 
+    if (world.in_safe_zone(caster->pos_x, caster->pos_y)) {
+        world.push_message(client_id, 0, "No puedes lanzar hechizos desde una zona segura.");
+        return;
+    }
+
     // Los guerreros no pueden lanzar hechizos
     if (static_cast<Class>(caster->cls) == Class::WARRIOR) {
         world.push_message(client_id, 0, "El Guerrero no puede lanzar hechizos.");
@@ -161,6 +166,12 @@ void CastSpellCommand::execute(World& world) {
 
     uint16_t tx = target_p ? target_p->pos_x : target_n->pos_x;
     uint16_t ty = target_p ? target_p->pos_y : target_n->pos_y;
+
+    if (world.in_safe_zone(tx, ty)) {
+        world.push_message(client_id, 0,
+            "No puedes lanzar hechizos contra alguien que está en una zona segura.");
+        return;
+    }
 
     if (s_manhattan(caster->pos_x, caster->pos_y, tx, ty) > sd.range) {
         world.push_message(client_id, 0,

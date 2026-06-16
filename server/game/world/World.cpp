@@ -109,9 +109,13 @@ const std::vector<NpcData>& World::get_npcs() const {
     return npcs_.all();
 }
 
-// ---- Spawner ----
+// ---- Spawner / Safe Zones ----
 WorldSpawner& World::spawner() {
     return spawner_;
+}
+
+bool World::in_safe_zone(uint16_t x, uint16_t y) const {
+    return spawner_.in_safe_zone(x, y);
 }
 
 // ---- Helpers ----
