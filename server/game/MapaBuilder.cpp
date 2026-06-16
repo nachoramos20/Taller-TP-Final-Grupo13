@@ -482,7 +482,7 @@ void MapaBuilder::build_costa(MapaDTO& mapa) {
         for (int x = AGUA_X1; x <= AGUA_X2; x++)
             get_tile(mapa, x, y).floor_id = F_AGUA;
 
-    for (int y = ZJ_Y2 + 1; y <= MAP_H; y++) {
+    for (int y = ZJ_Y2 + 1; y < MAP_H; y++) {
         get_tile(mapa, FRANJA_X1, y).floor_id = F_ARENA_FRANJA;
         for (int x = ARENA_X1; x <= OLAS_X2; x++)
             get_tile(mapa, x, y).floor_id = F_ARENA;
