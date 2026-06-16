@@ -106,6 +106,11 @@ static uint16_t weapon_base_damage(const PlayerData& p) {
     return static_cast<uint16_t>(p.strength * srand_range(dmin, dmax));
 }
 
+static bool fair_play_ok(const PlayerData& a, const PlayerData& b) {
+    if (a.level <= 12 || b.level <= 12) return false;
+    return std::abs((int)a.level - (int)b.level) <= 10;
+}
+
 } // namespace
 
 // CastSpellCommand
@@ -171,6 +176,20 @@ void CastSpellCommand::execute(World& world) {
         world.push_message(client_id, 0,
             "No puedes lanzar hechizos contra alguien que está en una zona segura.");
         return;
+    }
+
+    if (target_p) {
+        if (target_p->is_ghost) return;
+
+        if (world.same_clan(client_id, target_id)) {
+            world.push_message(client_id, 0, "No puedes atacar a un compañero de clan.");
+            return;
+        }
+
+        if (!fair_play_ok(*caster, *target_p)) {
+            world.push_message(client_id, 0, "No puedes atacar a ese jugador (fair-play).");
+            return;
+        }
     }
 
     if (s_manhattan(caster->pos_x, caster->pos_y, tx, ty) > sd.range) {
