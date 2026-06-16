@@ -24,7 +24,7 @@ static void give_item(PlayerData& p, uint8_t item_id,
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; i++) {
         if (p.inventory[i] == 0) {
             p.inventory[i] = item_id;
-            if (equip) equip_slot_ref = item_id;
+            if (equip) equip_slot_ref = i;
             return;
         }
     }
@@ -34,19 +34,20 @@ static void apply_initial_equipment(PlayerData& p) {
     using I = ItemId;
     const auto cls  = static_cast<Class>(p.cls);
 
-    // Arma
+    // Arma inicial: siempre la de menor tier dentro de la categoría de la clase.
+    // Las versiones "epicas"/"legendarias" quedan como drops/compras, no como punto de partida.
     switch (cls) {
         case Class::WARRIOR:
-            give_item(p, static_cast<uint8_t>(I::DARK_SWORD),       p.equipped_weapon, true);
+            give_item(p, static_cast<uint8_t>(I::SWORD),       p.equipped_weapon, true);
             break;
         case Class::PALADIN:
-            give_item(p, static_cast<uint8_t>(I::INFERNAL_BOW),      p.equipped_weapon, true);
+            give_item(p, static_cast<uint8_t>(I::SIMPLE_BOW),   p.equipped_weapon, true);
             break;
         case Class::CLERIC:
-            give_item(p, static_cast<uint8_t>(I::SKELETAL_STAFF), p.equipped_weapon, true);
+            give_item(p, static_cast<uint8_t>(I::ELVEN_FLUTE), p.equipped_weapon, true);
             break;
         case Class::MAGE:
-            give_item(p, static_cast<uint8_t>(I::GEMMED_STAFF),p.equipped_weapon, true);
+            give_item(p, static_cast<uint8_t>(I::ASH_STICK),  p.equipped_weapon, true);
             break;
     }
 

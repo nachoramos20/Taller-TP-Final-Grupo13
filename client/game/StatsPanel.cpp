@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <string>
 #include <algorithm>
+#include <cmath>
 
 StatsPanel::StatsPanel(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size)
     : _renderer(renderer), _font_size(font_size) {
@@ -200,12 +201,12 @@ void StatsPanel::render(int screen_w, int screen_h) {
     // ─── EXP ───
     draw_text("Experiencia", px + pad, cy, white);
     
-    // Piso de experiencia (lo acumulado hasta el nivel actual)
-    // Ej: si sos lvl 8, necesitabas la suma de 1000+2000+...+7000.
-    uint32_t exp_current_level_floor = (_level <= 1) ? 0 : ((_level - 1) * _level * 1000) / 2;
-    
-    // Techo de experiencia (lo necesario para el siguiente nivel)
-    uint32_t exp_next_level_ceil = (_level >= 50) ? 0xFFFFFFFF : (_level * (_level + 1) * 1000) / 2;
+    // Piso/techo de experiencia para el nivel actual.
+    uint32_t exp_current_level_floor = (_level <= 1) ? 0
+        : static_cast<uint32_t>(1000.0 * std::pow(static_cast<double>(_level - 1), 1.8));
+
+    uint32_t exp_next_level_ceil = (_level >= 50) ? 0xFFFFFFFF
+        : static_cast<uint32_t>(1000.0 * std::pow(static_cast<double>(_level), 1.8));
     
     // El total requerido NETO para ESTE nivel en específico
     uint32_t exp_needed_for_this_level = exp_next_level_ceil - exp_current_level_floor;

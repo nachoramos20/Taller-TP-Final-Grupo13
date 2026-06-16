@@ -82,8 +82,9 @@ static uint16_t calc_defense(const PlayerData& defender) {
 }
 
 static bool try_dodge(uint16_t agility) {
+    double chance = std::min(0.30, agility * 0.005);
     double r = std::uniform_real_distribution<double>(0.0, 1.0)(local_rng());
-    return std::pow(r, agility) < 0.001;
+    return r < chance;
 }
 
 static bool is_critical() {

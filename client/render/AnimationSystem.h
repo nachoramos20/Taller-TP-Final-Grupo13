@@ -27,6 +27,13 @@ struct NpcLayout {
     }
 };
 
+// Límites reales del sprite ya dibujado en pantalla
+struct SpriteBounds {
+    int top_y;
+    int center_x;
+    int width;
+};
+
 // Equipo visual a renderizar encima del personaje
 struct EquipVisual {
     std::string armor_path;
@@ -51,8 +58,9 @@ public:
 
     void load();
 
-    // Render de jugador (body + head + equipo opcional)
-    void render(SDL2pp::Renderer& renderer,
+    // Render de jugador (body + head + equipo opcional).
+    // Devuelve los límites reales del sprite dibujado (para overlays).
+    SpriteBounds render(SDL2pp::Renderer& renderer,
                 AssetManager& assets,
                 const std::string& body_path,
                 const std::string& head_path,
@@ -63,8 +71,9 @@ public:
                 bool is_moving,
                 const EquipVisual* equip = nullptr);
 
-    // Render de NPC (spritesheet único, sin head separado)
-    void render_npc(SDL2pp::Renderer& renderer,
+    // Render de NPC (spritesheet único, sin head separado).
+    // Devuelve los límites reales del sprite dibujado (para overlays).
+    SpriteBounds render_npc(SDL2pp::Renderer& renderer,
                     AssetManager& assets,
                     const std::string& sheet_path,
                     int cols, int rows,

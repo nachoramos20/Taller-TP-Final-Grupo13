@@ -712,15 +712,11 @@ void GameLoop::render_entities() {
                 const NpcSheet& s = sheets[e.entity_id % sheets.size()];
                 
                 // Dibujamos el NPC
-                _anim.render_npc(_renderer, _assets,
+                SpriteBounds bounds = _anim.render_npc(_renderer, _assets,
                                  s.path, s.cols, s.rows, s.frame_w, s.frame_h,
                                  dir, screen_x, screen_y,
                                  _current_tick, moving);
-                
-                // Calculamos dinámicamente el desfasaje en Y basado en el frame_h real del sprite
-                // para que la barra se dibuje correctamente encima de su cabeza
-                int custom_offset_y = -(s.frame_h - TILE_SIZE + 10);
-                render_entity_healthbar(e, screen_x, screen_y + custom_offset_y);
+                render_entity_healthbar(e, bounds);
             }
             continue; // El continue ahora sí ocurre después de renderizar el healthbar
         }
@@ -756,33 +752,32 @@ void GameLoop::render_entities() {
         }
 
         const SpriteEntry& sprite = _sprite_config.get(e.sprite_id);
-        _anim.render(_renderer, _assets,
+        SpriteBounds bounds = _anim.render(_renderer, _assets,
                      sprite.body_path, sprite.head_path,
                      e.sprite_id, dir,
                      screen_x, screen_y,
                      _current_tick, moving,
                      equip_ptr);
-        
+
         // Renderizar barra para los demás jugadores (aquellos que no tengan "continue" previo)
         if (e.entity_id != _my_entity_id) {
-            render_entity_healthbar(e, screen_x, screen_y);
+            render_entity_healthbar(e, bounds);
         }
     }
 }
 
-void GameLoop::render_entity_healthbar(const EntityDTO& entity, int screen_x, int screen_y) {
+void GameLoop::render_entity_healthbar(const EntityDTO& entity, const SpriteBounds& bounds) {
     // No mostrar barra para el jugador propio ni items
     if (entity.entity_type == static_cast<uint8_t>(EntityType::ITEM_FLOOR)) return;
 
-    // Dimensiones de la barra
-    const int bar_w = 30;
+    // El ancho de la barra escala con el sprite real en pantalla
+    const int bar_w = std::clamp(bounds.width, 24, 50);
     const int bar_h = 4;
-    const int bar_offset_y = -10;  // Encima del sprite
-    const int bar_offset_x = 15;
+    const int margin = 6;  // separación entre la barra y la punta del sprite
 
     // Posición de la barra (centrada sobre el sprite)
-    int bar_x = screen_x + bar_offset_x;
-    int bar_y = screen_y + bar_offset_y;
+    int bar_x = bounds.center_x - bar_w / 2;
+    int bar_y = bounds.top_y - bar_h - margin;
 
     // Renderizar barra de fondo (roja)
     SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
@@ -824,7 +819,7 @@ void GameLoop::render_entity_healthbar(const EntityDTO& entity, int screen_x, in
                 SDL_Texture* tex = SDL_CreateTextureFromSurface(_renderer.Get(), surf);
                 if (tex) {
                     int name_y = bar_y - 14;
-                    int name_x = screen_x + bar_offset_x + (bar_w - surf->w) / 2;
+                    int name_x = bounds.center_x - surf->w / 2;
                     SDL_Rect dst{ name_x, name_y, surf->w, surf->h };
                     SDL_RenderCopy(_renderer.Get(), tex, nullptr, &dst);
                     SDL_DestroyTexture(tex);
@@ -847,6 +842,9 @@ void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
     for (const auto& e : _last_entities) {
         if (e.entity_id == _my_entity_id) continue;
         if (e.pos_x != tile_x || e.pos_y != tile_y) continue;
+        // Los items en el piso (oro, sangre, drops) no son objetivos válidos:
+        // si comparten tile con un NPC/jugador, no deben tapar el click sobre él.
+        if (e.entity_type == static_cast<uint8_t>(EntityType::ITEM_FLOOR)) continue;
 
         bool is_service_npc = (e.entity_type == static_cast<uint8_t>(EntityType::NPC))
                               && (e.sprite_id >= 7);  // MERCHANT=7, BANKER=8, PRIEST=9

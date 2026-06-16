@@ -60,7 +60,7 @@ void AnimationSystem::render_weapon(SDL2pp::Renderer& renderer,
     renderer.Copy(assets.get(weapon_path), wpn_src, wpn_dst);
 }
 
-void AnimationSystem::render(SDL2pp::Renderer& renderer,
+SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
                              AssetManager& assets,
                              const std::string& body_path,
                              const std::string& head_path,
@@ -138,9 +138,11 @@ void AnimationSystem::render(SDL2pp::Renderer& renderer,
     // Pasada 6: arma en mano
     if (equip)
         render_weapon(renderer, assets, equip->weapon_path, dir_idx, frame, body_dst);
+
+    return { head_dst.y, body_dst.x + body_dst.w / 2, body_dst.w };
 }
 
-void AnimationSystem::render_npc(SDL2pp::Renderer& renderer,
+SpriteBounds AnimationSystem::render_npc(SDL2pp::Renderer& renderer,
                                   AssetManager& assets,
                                   const std::string& sheet_path,
                                   int cols, int rows,
@@ -165,4 +167,6 @@ void AnimationSystem::render_npc(SDL2pp::Renderer& renderer,
     );
 
     renderer.Copy(assets.get(sheet_path), src, dst);
+
+    return { dst.y, dst.x + dst.w / 2, dst.w };
 }

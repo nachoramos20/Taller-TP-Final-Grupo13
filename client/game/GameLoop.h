@@ -62,7 +62,7 @@ private:
     void render_floor();
     void render_objects();
     void render_entities();
-    void render_entity_healthbar(const EntityDTO& entity, int screen_x, int screen_y);
+    void render_entity_healthbar(const EntityDTO& entity, const SpriteBounds& bounds);
     void render_obj_sup();
     void render_spells();
     void load_item_textures();
