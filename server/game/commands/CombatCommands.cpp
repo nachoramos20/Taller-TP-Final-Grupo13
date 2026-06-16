@@ -172,6 +172,15 @@ void AttackCommand::execute(World& world) {
     if (attacker->is_ghost || target->is_ghost) return;
     if (attacker->attack_cooldown > 0) return;
 
+    if (world.in_safe_zone(attacker->pos_x, attacker->pos_y)) {
+        world.push_message(client_id, 0, "No puedes atacar desde una zona segura.");
+        return;
+    }
+    if (world.in_safe_zone(target->pos_x, target->pos_y)) {
+        world.push_message(client_id, 0, "No puedes atacar a alguien que está en una zona segura.");
+        return;
+    }
+
     if (!fair_play_ok(*attacker, *target)) {
         world.push_message(client_id, 0, "No puedes atacar a ese jugador (fair-play).");
         return;
@@ -271,6 +280,11 @@ void AttackNpcCommand::execute(World& world) {
     if (!attacker || !npc) return;
     if (attacker->is_ghost) return;
     if (attacker->attack_cooldown > 0) return;
+
+    if (world.in_safe_zone(attacker->pos_x, attacker->pos_y)) {
+        world.push_message(client_id, 0, "No puedes atacar desde una zona segura.");
+        return;
+    }
 
     attacker->meditating = false;
 

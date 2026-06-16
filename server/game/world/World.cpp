@@ -1,11 +1,11 @@
 #include "World.h"
 
-World::World(uint16_t width, uint16_t height, std::vector<uint8_t> collision_map)
+World::World(uint16_t width, uint16_t height, std::vector<uint8_t> collision_map, Queue<PlayerData>& save_queue)
     : id_alloc(10000),
       rng(std::random_device{}()),
       collision_(width, height, std::move(collision_map)),
       chat_(),
-      players_(collision_),
+      players_(collision_, save_queue),
       items_(id_alloc),
       clans_(players_, chat_),
       bank_(players_, chat_),
@@ -16,7 +16,7 @@ World::World(uint16_t width, uint16_t height, std::vector<uint8_t> collision_map
 
 // ---- Players ----
 void World::add_player(const PlayerData& p) {
-    players_.kick_by_username(p.username);  // saca sesión duplicada si existe
+    players_.kick_by_username(p.username); 
     players_.add(p);
     restore_clan_membership(p);
     clans_.notify_login(p.entity_id, true);
@@ -109,9 +109,13 @@ const std::vector<NpcData>& World::get_npcs() const {
     return npcs_.all();
 }
 
-// ---- Spawner ----
+// ---- Spawner / Safe Zones ----
 WorldSpawner& World::spawner() {
     return spawner_;
+}
+
+bool World::in_safe_zone(uint16_t x, uint16_t y) const {
+    return spawner_.in_safe_zone(x, y);
 }
 
 // ---- Helpers ----

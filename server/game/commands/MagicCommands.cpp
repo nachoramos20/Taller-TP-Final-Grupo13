@@ -106,6 +106,11 @@ static uint16_t weapon_base_damage(const PlayerData& p) {
     return static_cast<uint16_t>(p.strength * srand_range(dmin, dmax));
 }
 
+static bool fair_play_ok(const PlayerData& a, const PlayerData& b) {
+    if (a.level <= 12 || b.level <= 12) return false;
+    return std::abs((int)a.level - (int)b.level) <= 10;
+}
+
 } // namespace
 
 // CastSpellCommand
@@ -117,6 +122,11 @@ void CastSpellCommand::execute(World& world) {
     PlayerData* caster = world.get_player_mutable(client_id);
     if (!caster || caster->is_ghost) return;
     if (caster->attack_cooldown > 0) return;
+
+    if (world.in_safe_zone(caster->pos_x, caster->pos_y)) {
+        world.push_message(client_id, 0, "No puedes lanzar hechizos desde una zona segura.");
+        return;
+    }
 
     // Los guerreros no pueden lanzar hechizos
     if (static_cast<Class>(caster->cls) == Class::WARRIOR) {
@@ -161,6 +171,26 @@ void CastSpellCommand::execute(World& world) {
 
     uint16_t tx = target_p ? target_p->pos_x : target_n->pos_x;
     uint16_t ty = target_p ? target_p->pos_y : target_n->pos_y;
+
+    if (world.in_safe_zone(tx, ty)) {
+        world.push_message(client_id, 0,
+            "No puedes lanzar hechizos contra alguien que está en una zona segura.");
+        return;
+    }
+
+    if (target_p) {
+        if (target_p->is_ghost) return;
+
+        if (world.same_clan(client_id, target_id)) {
+            world.push_message(client_id, 0, "No puedes atacar a un compañero de clan.");
+            return;
+        }
+
+        if (!fair_play_ok(*caster, *target_p)) {
+            world.push_message(client_id, 0, "No puedes atacar a ese jugador (fair-play).");
+            return;
+        }
+    }
 
     if (s_manhattan(caster->pos_x, caster->pos_y, tx, ty) > sd.range) {
         world.push_message(client_id, 0,

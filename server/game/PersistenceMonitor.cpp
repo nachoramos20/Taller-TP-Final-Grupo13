@@ -24,7 +24,7 @@ static void give_item(PlayerData& p, uint8_t item_id,
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; i++) {
         if (p.inventory[i] == 0) {
             p.inventory[i] = item_id;
-            if (equip) equip_slot_ref = item_id;
+            if (equip) equip_slot_ref = i;
             return;
         }
     }
