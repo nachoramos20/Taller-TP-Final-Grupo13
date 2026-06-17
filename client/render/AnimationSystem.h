@@ -101,4 +101,5 @@ private:
     int          _last_sprite_id;
     SDL2pp::Rect _head_rects[4];
     int          _head_overlaps[4];
+    int          _head_offset_x[4];
 };

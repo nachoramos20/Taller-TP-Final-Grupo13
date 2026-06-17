@@ -286,9 +286,9 @@ void GameLoop::load_item_textures() {
         { static_cast<uint8_t>(ItemId::PALADIN_ROYAL_ARMOR),"assets/sprites/equipment/armor/paladin_real.png" },
         
         // Cascos
-        { static_cast<uint8_t>(ItemId::HOOD),               "assets/sprites/equipment/helmet/cascos.png" },
-        { static_cast<uint8_t>(ItemId::IRON_HELMET),        "assets/sprites/equipment/helmet/cascos.png" },
-        { static_cast<uint8_t>(ItemId::MAGIC_HAT),          "assets/sprites/equipment/helmet/cascos.png" },
+        { static_cast<uint8_t>(ItemId::HOOD),               "assets/sprites/equipment/helmet/capucha_tirada.png" },
+        { static_cast<uint8_t>(ItemId::IRON_HELMET),        "assets/sprites/equipment/helmet/casco_de_hierro_tirado.png" },
+        { static_cast<uint8_t>(ItemId::MAGIC_HAT),          "assets/sprites/equipment/helmet/sombrero_mago_tirado.png" },
         
         // Escudos
         { static_cast<uint8_t>(ItemId::TURTLE_SHIELD),      "assets/sprites/equipment/shield/escudo_tortuga.png" },
@@ -712,9 +712,9 @@ void GameLoop::render_entities() {
         int src_x, src_y, src_w, src_h;
     };
     static const std::unordered_map<uint8_t, HelmetInfo> helmet_info = {
-        { static_cast<uint8_t>(ItemId::HOOD),           { "assets/sprites/equipment/helmet/cascos.png", 0, 0, 32, 32 } },
-        { static_cast<uint8_t>(ItemId::IRON_HELMET),    { "assets/sprites/equipment/helmet/cascos.png", 32, 0, 32, 32 } },
-        { static_cast<uint8_t>(ItemId::MAGIC_HAT),      { "assets/sprites/equipment/helmet/cascos.png", 64, 0, 32, 32 } },
+        { static_cast<uint8_t>(ItemId::HOOD),           { "assets/sprites/equipment/helmet/capucha.png",          0, 0, 17, 85  / 4 } },
+        { static_cast<uint8_t>(ItemId::IRON_HELMET),    { "assets/sprites/equipment/helmet/casco_de_hierro.png",  0, 0, 19, 110 / 4 } },
+        { static_cast<uint8_t>(ItemId::MAGIC_HAT),      { "assets/sprites/equipment/helmet/sombrero_magico.png",  0, 0, 25, 113 / 4 } },
     };
 
     static const std::unordered_map<uint8_t, std::string> shield_paths = {

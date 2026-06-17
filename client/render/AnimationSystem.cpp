@@ -94,6 +94,7 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
         for (int d = 0; d < 4; d++) {
             _head_rects[d]    = SDL2pp::Rect(0, hl.dir_y[d], hl.width, hl.dir_h[d]);
             _head_overlaps[d] = hl.overlaps[d];
+            _head_offset_x[d] = hl.offset_x[d];
         }
         _last_sprite_id = sprite_id;
     }
@@ -108,7 +109,7 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
         body_src.h
     );
     SDL2pp::Rect head_dst(
-        body_dst.x + (BodyLayout::FRAME_W - head_src.w) / 2,
+        body_dst.x + (BodyLayout::FRAME_W - head_src.w) / 2 + _head_offset_x[dir_idx],
         body_dst.y - head_src.h + _head_overlaps[dir_idx],
         head_src.w,
         head_src.h
@@ -126,7 +127,7 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
 
     // Pasada 4: casco
     if (equip && !equip->helmet_path.empty() && equip->helmet_src_w > 0) {
-        SDL2pp::Rect helm_src(equip->helmet_src_x, equip->helmet_src_y,
+        SDL2pp::Rect helm_src(equip->helmet_src_x, dir_idx * equip->helmet_src_h,
                               equip->helmet_src_w, equip->helmet_src_h);
         SDL2pp::Rect helm_dst(
             head_dst.x + (head_dst.w - equip->helmet_src_w) / 2,
