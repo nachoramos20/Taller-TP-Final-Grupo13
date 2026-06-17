@@ -59,21 +59,21 @@ void ChatCommand::handle_retirar(World& world, const std::string& args) {
 }
 
 void ChatCommand::handle_listar(World& world) {
-    // /listar funciona tanto para banco (si hay banquero cerca) como para mercader
+    // /listar funciona tanto para banco (si hay banquero cerca) como para comerciante
     if (world.player_near_service_npc(client_id, NpcId::BANKER)) {
         std::string listing = world.bank_list(client_id);
         world.push_message(client_id, 0, listing.empty() ? "Banco vacío." : listing);
         return;
     }
     if (world.player_near_service_npc(client_id, NpcId::MERCHANT)) {
-        handle_listar_mercader(world);
+        handle_listar_comerciante(world);
         return;
     }
     world.push_message(client_id, 0,
-        "Debes estar cerca del Banquero o Mercader para usar este comando.");
+        "Debes estar cerca del Banquero o Comerciante para usar este comando.");
 }
 
-void ChatCommand::handle_listar_mercader(World& world) {
+void ChatCommand::handle_listar_comerciante(World& world) {
     static const std::vector<ItemId> shop_items = {
         ItemId::SWORD,
         ItemId::SIMPLE_BOW,
@@ -82,7 +82,7 @@ void ChatCommand::handle_listar_mercader(World& world) {
         ItemId::HEALTH_POTION,
     };
 
-    std::string msg = "=== Tienda del Mercader ===\n";
+    std::string msg = "=== Tienda del Comerciante ===\n";
     for (ItemId iid : shop_items) {
         const ItemDef& def = Items::get(iid);
         uint32_t price = (static_cast<uint32_t>(def.min_value) + def.max_value) * 8 + 50;

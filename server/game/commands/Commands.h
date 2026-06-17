@@ -148,7 +148,7 @@ private:
     void handle_clan_ban(World& world, const std::string& nick);
     void handle_clan_kick(World& world, const std::string& nick);
     void handle_dejar_clan(World& world);
-    void handle_listar_mercader(World& world);
+    void handle_listar_comerciante(World& world);
 
     // -- Cheats --
     void handle_set_nivel(World& world, const std::string& args);

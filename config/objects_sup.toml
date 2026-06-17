@@ -265,3 +265,9 @@ frames = ["assets/sprites/objects_sup/cementerio/tumba_4.png"]
 size_tiles  = 1
 width_tiles = 1
 frames = ["assets/sprites/objects_sup/cementerio/tumba_5.png"]
+
+#  Banco pueblo ----------------------------------------------------------
+[object_sup.51]
+size_tiles  = 8
+width_tiles = 7
+frames = ["assets/sprites/objects_sup/edificios/banco_pueblo.png"]

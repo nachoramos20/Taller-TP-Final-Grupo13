@@ -181,6 +181,31 @@ void GameLoop::render_spells() {
     }
 }
 
+void GameLoop::render_deaths() {
+    uint32_t now = SDL_GetTicks();
+
+    _death_effects.erase(
+        std::remove_if(_death_effects.begin(), _death_effects.end(),
+            [&](const DeathEffect& d) {
+                return (now - d.start_ms) >= DEATH_DURATION_MS;
+            }),
+        _death_effects.end());
+
+    for (const auto& d : _death_effects) {
+        uint32_t elapsed_ms = now - d.start_ms;
+        int frame = std::clamp(
+            static_cast<int>(elapsed_ms / DEATH_FRAME_MS),
+            0, DEATH_FRAMES - 1);
+
+        std::string path = "assets/sprites/stage/sangre_"
+                         + std::to_string(frame + 1) + ".png";
+        int sx = _camera.tile_to_screen_x(static_cast<int>(d.pos_x));
+        int sy = _camera.tile_to_screen_y(static_cast<int>(d.pos_y));
+        SDL2pp::Rect dst(sx, sy, TILE_SIZE, TILE_SIZE);
+        _renderer.Copy(_assets.get(path), SDL2pp::NullOpt, dst);
+    }
+}
+
 void GameLoop::spawn_projectile(uint16_t from_x, uint16_t from_y,
                                 uint16_t to_x, uint16_t to_y, bool is_magic) {
     Projectile p{};
@@ -458,10 +483,21 @@ void GameLoop::apply_map(const MapaDTO& map) {
 }
 
 void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
-    if (snap.entities)
-        _last_entities = *snap.entities;
     _my_entity_id = snap.self_entity_id;
     _current_tick = snap.tick;
+
+    if (snap.entities) {
+        // Detectar NPCs que murieron (estaban en el snapshot anterior, ya no están)
+        for (const auto& prev : _last_entities) {
+            if (prev.entity_type != static_cast<uint8_t>(EntityType::NPC)) continue;
+            bool found = false;
+            for (const auto& ne : *snap.entities)
+                if (ne.entity_id == prev.entity_id) { found = true; break; }
+            if (!found)
+                _death_effects.push_back({prev.pos_x, prev.pos_y, SDL_GetTicks()});
+        }
+        _last_entities = *snap.entities;
+    }
 
     if (_chat && snap.messages) {
         for (const auto& m : *snap.messages) _chat->add_message(m.text);
@@ -517,6 +553,7 @@ void GameLoop::render() {
     render_floor();
     render_objects();
     render_entities();
+    render_deaths();
     render_obj_sup();
     render_spells();
     render_projectiles();
@@ -713,6 +750,8 @@ void GameLoop::render_entities() {
 
         // ── Items en el suelo ──
         if (e.entity_type == static_cast<uint8_t>(EntityType::ITEM_FLOOR)) {
+            if (e.sprite_id == static_cast<uint8_t>(ItemId::BLOOD_STAIN)) continue;
+
             static const std::unordered_map<uint8_t, std::vector<std::string>> item_variants = {
                 {  1, { "assets/sprites/weapons/sword/espada_comun.png", "assets/sprites/weapons/sword/espada_oscura.png" }},
                 {  2, { "assets/sprites/weapons/axe/hacha_hierro.png", "assets/sprites/weapons/axe/hacha_epica.png" }},
@@ -726,7 +765,7 @@ void GameLoop::render_entities() {
                 { 11, { "assets/sprites/equipment/armor/guerrero_ejecutor.png", "assets/sprites/equipment/armor/guerrero_epico.png", "assets/sprites/equipment/armor/paladin_magico.png", "assets/sprites/equipment/armor/paladin_real.png" }},
                 { 30, { "assets/sprites/equipment/shield/escudo_tortuga.png" }},
                 { 31, { "assets/sprites/equipment/shield/escudo_hierro.png", "assets/sprites/equipment/shield/escudo_boca.png" }},
-                { static_cast<uint8_t>(ItemId::BLOOD_STAIN), { "assets/sprites/stage/sangre.png" }},
+                { static_cast<uint8_t>(ItemId::BLOOD_STAIN), { "assets/sprites/stage/sangre_5.png" }},
                 { static_cast<uint8_t>(ItemId::GOLD_PILE), { "assets/sprites/items/oro.png" }},
                 { static_cast<uint8_t>(ItemId::HEALTH_POTION), { "assets/sprites/items/pocion_vida.png" }},
                 { static_cast<uint8_t>(ItemId::MANA_POTION), { "assets/sprites/items/pocion_mana.png" }},
@@ -777,22 +816,28 @@ void GameLoop::render_entities() {
                 { 6, { { "assets/npcs/golem/golem_moribundo.png",  4, 4,  74,  50 },
                        { "assets/npcs/golem/golem_reforzado.png",  6, 4,  79, 128 },
                        { "assets/npcs/golem/golem_tierra.png",     6, 4, 140, 180 }, }},
-                // NPCs de servicio: sprite estático único.
-                { 7, { { "assets/npcs/comerciante/comerciante.png", 1, 1, 31, 42 }, }},
-                { 8, { { "assets/npcs/banquero/banquero.png",       1, 1, 27, 54 }, }},
-                { 9, { { "assets/npcs/sacerdote/sacerdote.png",     1, 1, 25, 55 }, }},
+                // NPCs de servicio
+                { 7, { { "assets/npcs/comerciante/comerciante_ciudad.png", 1, 1, 31, 42 },
+                       { "assets/npcs/comerciante/comerciante_pueblo.png", 1, 1, 23, 45 }, }},
+                { 8, { { "assets/npcs/banquero/banquero_ciudad.png",       1, 1, 23, 56 },
+                       { "assets/npcs/banquero/banquero_pueblo.png",       1, 1, 27, 54 }, }},
+                { 9, { { "assets/npcs/sacerdote/sacerdote_ciudad.png",     1, 1, 25, 55 },
+                       { "assets/npcs/sacerdote/sacerdote_pueblo.png",     1, 1, 27, 54 }, }},
             };
 
             bool is_service_npc = (e.sprite_id >= 7);  // MERCHANT=7, BANKER=8, PRIEST=9
+            bool is_pueblo = is_service_npc && (e.pos_y > 50);
             float scale = is_service_npc ? 1.0f : 1.5f;
-            bool is_pueblo_priest = (e.sprite_id == 9) && (e.pos_y > 50);
             int draw_offset_y = !is_service_npc ? 0
-                               : (e.sprite_id == 9 /*PRIEST*/) ? (is_pueblo_priest ? 18 : 0) : 14;
+                               : (e.sprite_id == 9 /*PRIEST*/) ? (is_pueblo ? 18 : 0) : 14;
 
             auto sit = npc_sheets.find(e.sprite_id);
             if (sit != npc_sheets.end() && !sit->second.empty()) {
                 const auto& sheets = sit->second;
-                const NpcSheet& s = sheets[e.entity_id % sheets.size()];
+                int sheet_idx = is_service_npc
+                    ? (is_pueblo ? 1 : 0)
+                    : static_cast<int>(e.entity_id % sheets.size());
+                const NpcSheet& s = sheets[sheet_idx];
 
                 // Dibujamos el NPC
                 SpriteBounds bounds = _anim.render_npc(_renderer, _assets,

@@ -40,7 +40,7 @@ void NpcInteractCommand::execute(World& world) {
     switch (npc->type) {
         case NpcId::MERCHANT:
             world.push_message(client_id, 0,
-                "=== Mercader ===\n"
+                "=== Comerciante ===\n"
                 "Usa /listar para ver los articulos disponibles.\n"
                 "Usa /comprar <nombre> para comprar.\n"
                 "Usa /vender <nombre> para vender.");

@@ -48,6 +48,17 @@ struct Projectile {
 };
 static constexpr uint32_t PROJECTILE_DURATION_TICKS = 8;
 
+// Animación de muerte de NPC
+struct DeathEffect {
+    uint16_t pos_x, pos_y;
+    uint32_t start_ms;   // SDL_GetTicks() al crear el efecto
+};
+static constexpr int      DEATH_FRAMES       = 5;
+static constexpr uint32_t DEATH_FRAME_MS     = 150;  // ms por frame 1-4
+static constexpr uint32_t DEATH_LINGER_MS    = 2500; // ms que dura el frame 5
+static constexpr uint32_t DEATH_DURATION_MS  =
+    (DEATH_FRAMES - 1) * DEATH_FRAME_MS + DEATH_LINGER_MS; // 3100 ms total
+
 class GameLoop {
 public:
     GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer);
@@ -76,6 +87,7 @@ private:
     void render_obj_sup();
     void render_spells();
     void render_projectiles();
+    void render_deaths();
     void load_item_textures();
     void spawn_spell_effect(uint8_t spell_id, uint16_t pos_x, uint16_t pos_y);
     void spawn_projectile(uint16_t from_x, uint16_t from_y,
@@ -107,6 +119,7 @@ private:
     // Efectos visuales de hechizos (solo cliente)
     std::vector<SpellEffect> _spell_effects;
     std::vector<Projectile>  _projectiles;
+    std::vector<DeathEffect> _death_effects;
 
     MapaDTO   _map;
     bool      _map_loaded;

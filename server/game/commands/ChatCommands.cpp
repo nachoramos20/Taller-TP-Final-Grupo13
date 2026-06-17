@@ -88,7 +88,7 @@ void ChatCommand::handle_comprar(World& world, const std::string& item_name) {
 
     if (!world.player_near_service_npc(client_id, NpcId::MERCHANT)) {
         world.push_message(client_id, 0,
-            "Debes estar cerca del Mercader para comprar.");
+            "Debes estar cerca del Comerciante para comprar.");
         return;
     }
 
@@ -124,7 +124,7 @@ void ChatCommand::handle_comprar(World& world, const std::string& item_name) {
             return;
         }
     }
-    world.push_message(client_id, 0, "El mercader no tiene ese articulo. Usa /listar.");
+    world.push_message(client_id, 0, "El comerciante no tiene ese articulo. Usa /listar.");
 }
 
 void ChatCommand::handle_vender(World& world, const std::string& item_name) {
@@ -133,7 +133,7 @@ void ChatCommand::handle_vender(World& world, const std::string& item_name) {
 
     if (!world.player_near_service_npc(client_id, NpcId::MERCHANT)) {
         world.push_message(client_id, 0,
-            "Debes estar cerca del Mercader para vender.\n"
+            "Debes estar cerca del Comerciante para vender.\n"
             "Acércate y haz click en él primero.");
         return;
     }

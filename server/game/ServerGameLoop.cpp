@@ -64,8 +64,9 @@ void ServerGameLoop::run() {
     world.spawn_npc(NpcId::PRIEST,   41, 14);
 
     // ── NPCs de servicio en el pueblo sur ──
-    world.spawn_npc(NpcId::PRIEST,   40, 68);
-    world.spawn_npc(NpcId::MERCHANT, 46, 70);
+    world.spawn_npc(NpcId::PRIEST,   41, 68);
+    world.spawn_npc(NpcId::MERCHANT, 47, 70);
+    world.spawn_npc(NpcId::BANKER,   33, 70);
 
     while (should_keep_running()) {
         process_commands();

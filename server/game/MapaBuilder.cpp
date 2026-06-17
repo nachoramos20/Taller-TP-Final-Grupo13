@@ -71,8 +71,9 @@ static constexpr uint16_t O_ESQUELETO_2      = 23;
 static constexpr uint16_t O_ESQUELETO_3      = 24;
 static constexpr uint16_t O_IGLESIA_CIUDAD   = 25;  
 static constexpr uint16_t O_IGLESIA_PUEBLO   = 26;  
-static constexpr uint16_t O_BANCO            = 27;  
-static constexpr uint16_t O_COMERCIO         = 28;  
+static constexpr uint16_t O_BANCO            = 27;
+static constexpr uint16_t O_COMERCIO         = 28;
+static constexpr uint16_t O_BANCO_PUEBLO     = 51;  
 static constexpr uint16_t O_CASA_1           = 29;  
 static constexpr uint16_t O_CASA_2           = 30;  
 static constexpr uint16_t O_ESTATUA_IZQ      = 31;
@@ -369,18 +370,21 @@ void MapaBuilder::build_pueblo(MapaDTO& mapa) {
         get_tile(mapa, PUE_X1 - 2, y).floor_id = F_PASTO_1X1;
 
     // Edificios pueblo
-    place_object_sup(mapa, 40, 67, O_IGLESIA_PUEBLO);
-    mark_collision_rect(38, 62, 41, 67); // iglesia
-    mark_collision_rect(42, 67, 42, 67); // iglesia pared derecha inferior
-    mark_collision_rect(37, 67, 37, 67); // iglesia pared izquierda inferior
-    mark_collision_rect(37, 62, 37, 62); // iglesia pared izquierda superior
-    mark_collision_rect(42, 62, 42, 62); // iglesia pared derecha superior
-    place_object_sup(mapa, 46, 69, O_COMERCIO);
-    mark_collision_rect(44, 66, 47, 69); // comercio        
-    place_object_sup(mapa, 32, 69, O_CASA_1);
-    mark_collision_rect(30, 66, 34, 69); // casa 1       
-    place_object_sup(mapa, 32, 62, O_CASA_2);
-    mark_collision_rect(30, 59, 34, 62); // casa 2
+    // Sur: iglesia (centro), comercio (este), banco (oeste)
+    place_object_sup(mapa, 41, 67, O_IGLESIA_PUEBLO);
+    mark_collision_rect(39, 62, 42, 67); // iglesia
+    mark_collision_rect(43, 67, 43, 67); // iglesia pared derecha inferior
+    mark_collision_rect(38, 67, 38, 67); // iglesia pared izquierda inferior
+    mark_collision_rect(38, 62, 38, 62); // iglesia pared izquierda superior
+    mark_collision_rect(43, 62, 43, 62); // iglesia pared derecha superior
+    place_object_sup(mapa, 47, 69, O_COMERCIO);
+    mark_collision_rect(45, 66, 48, 69); // comercio
+    place_object_sup(mapa, 33, 69, O_BANCO_PUEBLO);
+    mark_collision_rect(30, 63, 35, 69); // banco pueblo
+    place_object_sup(mapa, 32, 57, O_CASA_1);
+    mark_collision_rect(30, 55, 34, 57); // casa 1 
+    place_object_sup(mapa, 46, 57, O_CASA_2);
+    mark_collision_rect(44, 54, 48, 57); // casa 2
 }
 
 void MapaBuilder::build_cementerio(MapaDTO& mapa) {

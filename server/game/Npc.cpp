@@ -11,7 +11,7 @@ static const std::unordered_map<uint8_t, NpcTemplate>& tpls() {
         {(uint8_t)NpcId::ORC,      {NpcId::ORC,      "Orco",    140,  9, 18,  2, 5, 1, 22, 30, 180, 10, 40, {(uint8_t)ItemId::IRON_SHIELD, (uint8_t)ItemId::HAMMER}}},
         {(uint8_t)NpcId::GOLEM,    {NpcId::GOLEM,    "Golem",   250, 12, 24,  4, 8, 1, 26, 36, 400, 25, 80, {(uint8_t)ItemId::PLATE_ARMOR, (uint8_t)ItemId::IRON_SHIELD}}},
         // NPCs de servicio, no tienen drops ni daño real
-        {(uint8_t)NpcId::MERCHANT, {NpcId::MERCHANT, "Mercader",  9999, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {}, true}},
+        {(uint8_t)NpcId::MERCHANT, {NpcId::MERCHANT, "Comerciante",  9999, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {}, true}},
         {(uint8_t)NpcId::BANKER,   {NpcId::BANKER,   "Banquero",  9999, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {}, true}},
         {(uint8_t)NpcId::PRIEST,   {NpcId::PRIEST,   "Sacerdote", 9999, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {}, true}},
     };
