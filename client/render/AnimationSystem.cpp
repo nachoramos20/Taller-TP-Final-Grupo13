@@ -96,6 +96,7 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
             _head_overlaps[d] = hl.overlaps[d];
             _head_offset_x[d] = hl.offset_x[d];
         }
+        _armor_scale_y = hl.armor_scale_y;
         _last_sprite_id = sprite_id;
     }
 
@@ -119,8 +120,16 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
     renderer.Copy(get_tex(body_path), body_src, body_dst);
 
     // Pasada 2: armadura superpuesta
-    if (equip && !equip->armor_path.empty())
-        renderer.Copy(get_tex(equip->armor_path), body_src, body_dst);
+    if (equip && !equip->armor_path.empty()) {
+        int armor_h = static_cast<int>(body_dst.h * _armor_scale_y);
+        SDL2pp::Rect armor_dst(
+            body_dst.x,
+            body_dst.y + body_dst.h - armor_h,
+            body_dst.w,
+            armor_h
+        );
+        renderer.Copy(get_tex(equip->armor_path), body_src, armor_dst);
+    }
 
     // Pasada 3: cabeza
     renderer.Copy(get_tex(head_path), head_src, head_dst);

@@ -104,4 +104,5 @@ private:
     SDL2pp::Rect _head_rects[4];
     int          _head_overlaps[4];
     int          _head_offset_x[4];
+    float        _armor_scale_y = 1.0f;
 };

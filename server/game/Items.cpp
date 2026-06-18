@@ -41,13 +41,13 @@ static const std::unordered_map<uint8_t, ItemDef>& catalog() {
         {(uint8_t)ItemId::PALADIN_ROYAL_ARMOR,{ItemId::PALADIN_ROYAL_ARMOR,ItemKind::ARMOR,"Paladin Real", 7, 14, 0, 0}},
 
         // Cascos
-        {(uint8_t)ItemId::HOOD,          {ItemId::HOOD,          ItemKind::HELMET, "Capucha",             0,  2, 0, 0}},
-        {(uint8_t)ItemId::IRON_HELMET,   {ItemId::IRON_HELMET,   ItemKind::HELMET, "Casco de Hierro",     2,  5, 0, 0}},
-        {(uint8_t)ItemId::MAGIC_HAT,     {ItemId::MAGIC_HAT,     ItemKind::HELMET, "Sombrero Mágico",     1,  3, 0, 0}},
+        {(uint8_t)ItemId::HOOD,          {ItemId::HOOD,          ItemKind::HELMET, "Capucha",             1,  4, 0, 0}},
+        {(uint8_t)ItemId::IRON_HELMET,   {ItemId::IRON_HELMET,   ItemKind::HELMET, "Casco de Hierro",     4,  8, 0, 0}},
+        {(uint8_t)ItemId::MAGIC_HAT,     {ItemId::MAGIC_HAT,     ItemKind::HELMET, "Sombrero Mágico",     4, 12, 0, 0}},
 
         // Escudos
-        {(uint8_t)ItemId::TURTLE_SHIELD, {ItemId::TURTLE_SHIELD, ItemKind::SHIELD, "Escudo Tortuga",      1,  3, 0, 0}},
-        {(uint8_t)ItemId::IRON_SHIELD,   {ItemId::IRON_SHIELD,   ItemKind::SHIELD, "Escudo de Hierro",    3,  7, 0, 0}},
+        {(uint8_t)ItemId::TURTLE_SHIELD, {ItemId::TURTLE_SHIELD, ItemKind::SHIELD, "Escudo Tortuga",      1,  2, 0, 0}},
+        {(uint8_t)ItemId::IRON_SHIELD,   {ItemId::IRON_SHIELD,   ItemKind::SHIELD, "Escudo de Hierro",    1,  4, 0, 0}},
         {(uint8_t)ItemId::BOCA_SHIELD,   {ItemId::BOCA_SHIELD,   ItemKind::SHIELD, "Escudo Boca",         4,  9, 0, 0}},
 
         // Pociones
