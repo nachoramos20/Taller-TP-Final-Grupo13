@@ -1,5 +1,6 @@
 #include "GameLoop.h"
 #include <algorithm>
+#include <array>
 #include <unordered_map>
 #include <string>
 #include "../../common/protocol/protocol.h"
@@ -707,14 +708,27 @@ void GameLoop::render_entities() {
         { static_cast<uint8_t>(ItemId::PALADIN_ROYAL_ARMOR),    "assets/sprites/equipment/armor/paladin_real.png" },
     };
 
+    // offsets indexados por [sprite_id de raza][dirección] (0=sin uso, 1=humano, 2=elfo, 3=enano, 4=gnomo)
+    using RaceDirOffsets = std::array<std::array<int, 4>, 5>;
+
     struct HelmetInfo {
         std::string path;
         int src_x, src_y, src_w, src_h;
+        RaceDirOffsets offset_y;
+        RaceDirOffsets offset_x{};
     };
+    // Cada fila de RaceDirOffsets es {sur, norte, oeste, este}.
+    // Orden de filas: {sin_uso}, {humano}, {elfo}, {enano}, {gnomo}.
     static const std::unordered_map<uint8_t, HelmetInfo> helmet_info = {
-        { static_cast<uint8_t>(ItemId::HOOD),           { "assets/sprites/equipment/helmet/capucha.png",          0, 0, 17, 85  / 4 } },
-        { static_cast<uint8_t>(ItemId::IRON_HELMET),    { "assets/sprites/equipment/helmet/casco_de_hierro.png",  0, 0, 19, 110 / 4 } },
-        { static_cast<uint8_t>(ItemId::MAGIC_HAT),      { "assets/sprites/equipment/helmet/sombrero_magico.png",  0, 0, 25, 113 / 4 } },
+        { static_cast<uint8_t>(ItemId::HOOD), { "assets/sprites/equipment/helmet/capucha.png", 0, 0, 17, 85 / 4,
+            RaceDirOffsets{{ {0,0,0,0}, {-2,-2,-1,0}, {-2,-2,-1,-1}, {-2,-2,-1,-1}, {-2,-2,-6,-4} }},
+            RaceDirOffsets{{ {0,0,0,0}, {0,0,0,0},    {0,0,0,-1},    {0,0,0,0},    {0,1,1,-1}    }} } },
+        { static_cast<uint8_t>(ItemId::IRON_HELMET), { "assets/sprites/equipment/helmet/casco_de_hierro.png", 0, 0, 19, 110 / 4,
+            RaceDirOffsets{{ {0,0,0,0}, {-8,-7,-5,-6}, {-8,-7,-6,-10}, {-9,-7,-6,-9}, {-10,-7,-11,-13} }},
+            RaceDirOffsets{{ {0,0,0,0}, {0,0,2,-2},     {0,0,1,-2},     {0,0,1,-1},     {0,1,2,-2}    }} } },
+        { static_cast<uint8_t>(ItemId::MAGIC_HAT), { "assets/sprites/equipment/helmet/sombrero_magico.png", 0, 0, 25, 113 / 4,
+            RaceDirOffsets{{ {0,0,0,0}, {-12,-9,-10,-7}, {-12,-9,-12,-11}, {-12,-9,-12,-11}, {-12,-9,-16,-13} }},
+            RaceDirOffsets{{ {0,0,0,0}, {-1,-1,1,-1},    {-1,-1,1,-1},     {-1,-1,1,0},     {-1,-1,1,-1}  }} } },
     };
 
     static const std::unordered_map<uint8_t, std::string> shield_paths = {
@@ -882,6 +896,11 @@ void GameLoop::render_entities() {
                 equip.helmet_src_y = hit->second.src_y;
                 equip.helmet_src_w = hit->second.src_w;
                 equip.helmet_src_h = hit->second.src_h;
+                int race = (e.sprite_id >= 1 && e.sprite_id <= 4) ? e.sprite_id : 1;
+                for (int d = 0; d < 4; d++) {
+                    equip.helmet_offset_y[d] = hit->second.offset_y[race][d];
+                    equip.helmet_offset_x[d] = hit->second.offset_x[race][d];
+                }
             }
         }
         if (item_shield != 0) {

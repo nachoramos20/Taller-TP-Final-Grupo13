@@ -130,8 +130,8 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
         SDL2pp::Rect helm_src(equip->helmet_src_x, dir_idx * equip->helmet_src_h,
                               equip->helmet_src_w, equip->helmet_src_h);
         SDL2pp::Rect helm_dst(
-            head_dst.x + (head_dst.w - equip->helmet_src_w) / 2,
-            head_dst.y,
+            head_dst.x + (head_dst.w - equip->helmet_src_w) / 2 + equip->helmet_offset_x[dir_idx],
+            head_dst.y + equip->helmet_offset_y[dir_idx],
             equip->helmet_src_w,
             equip->helmet_src_h
         );
