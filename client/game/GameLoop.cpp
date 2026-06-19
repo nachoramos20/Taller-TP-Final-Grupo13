@@ -356,17 +356,18 @@ void GameLoop::play_spell_sound(uint8_t spell_id, uint16_t x, uint16_t y) {
     _audio->play_random_effect_at(hechizo, dist_to_player_tiles(x, y));
 }
 
-void GameLoop::play_npc_death_sound(uint8_t npc_sprite_id, uint16_t x, uint16_t y) {
+void GameLoop::play_npc_death_sound(uint8_t npc_sprite_id, uint16_t entity_id, uint16_t x, uint16_t y) {
     if (!_audio) return;
-    static const std::vector<std::string> bestia = {
-        "assets/sounds/effects/creatures/sonido_de_bestia.wav",
-    };
-    static const std::vector<std::string> orco = {
-        "assets/sounds/effects/creatures/bandido.wav",
-        "assets/sounds/effects/creatures/bandido_2.wav",
-    };
-    static const std::vector<std::string> zombie = {"assets/sounds/effects/creatures/zombie.wav"};
-    static const std::vector<std::string> esqueleto = {"assets/sounds/effects/creatures/sonido_no_muerto.wav"};
+    static const std::vector<std::string> goblin       = {"assets/sounds/effects/creatures/goblin.wav"};
+    static const std::vector<std::string> orco_errante = {"assets/sounds/effects/creatures/orco_errante.wav"};
+    static const std::vector<std::string> orco_fuego   = {"assets/sounds/effects/creatures/orco_fuego.wav"};
+    static const std::vector<std::string> zombie       = {"assets/sounds/effects/creatures/zombie.wav"};
+    static const std::vector<std::string> esqueleto_magico_oscuro = {"assets/sounds/effects/creatures/esqueleto_magico_oscuro.wav"};
+    static const std::vector<std::string> esqueleto_muerte        = {"assets/sounds/effects/creatures/esqueleto_muerte.wav"};
+    static const std::vector<std::string> golem_moribundo = {"assets/sounds/effects/creatures/golem_moribundo.wav"};
+    static const std::vector<std::string> golem_reforzado = {"assets/sounds/effects/creatures/golem_reforzado.wav"};
+    static const std::vector<std::string> golem_tierra    = {"assets/sounds/effects/creatures/golem_tierra.wav"};
+    static const std::vector<std::string> aranas          = {"assets/sounds/effects/creatures/arañas.wav"};
 
     static const std::vector<std::string> golpe_final = {
         "assets/sounds/effects/combat/espadazo_y_sangre_cayendo.wav",
@@ -374,12 +375,37 @@ void GameLoop::play_npc_death_sound(uint8_t npc_sprite_id, uint16_t x, uint16_t 
 
     float dist = dist_to_player_tiles(x, y);
     switch (static_cast<NpcId>(npc_sprite_id)) {
-        case NpcId::ORC:      _audio->play_random_effect_at(orco, dist);     break;
-        case NpcId::ZOMBIE:   _audio->play_random_effect_at(zombie, dist);   break;
-        case NpcId::SKELETON: _audio->play_random_effect_at(esqueleto, dist);break;
         case NpcId::GOBLIN:
+            _audio->play_random_effect_at(goblin, dist);
+            break;
+        case NpcId::SKELETON:
+            // npc_sheets: 0=magico, 1=muerte, 2=oscuro. Magico y oscuro comparten sonido.
+            switch (entity_id % 3) {
+                case 1:  _audio->play_random_effect_at(esqueleto_muerte, dist);        break;
+                default: _audio->play_random_effect_at(esqueleto_magico_oscuro, dist); break;
+            }
+            break;
+        case NpcId::ZOMBIE:
+            _audio->play_random_effect_at(zombie, dist);
+            break;
         case NpcId::SPIDER:
-        case NpcId::GOLEM:    _audio->play_random_effect_at(bestia, dist);   break;
+            _audio->play_random_effect_at(aranas, dist);
+            break;
+        case NpcId::ORC:
+            // npc_sheets: 0=orco_errante, 1=orco_fuego.
+            switch (entity_id % 2) {
+                case 0:  _audio->play_random_effect_at(orco_errante, dist); break;
+                default: _audio->play_random_effect_at(orco_fuego, dist);   break;
+            }
+            break;
+        case NpcId::GOLEM:
+            // npc_sheets tiene 3 variantes en este orden: moribundo, reforzado, tierra.
+            switch (entity_id % 3) {
+                case 0: _audio->play_random_effect_at(golem_moribundo, dist); break;
+                case 1: _audio->play_random_effect_at(golem_reforzado, dist); break;
+                default: _audio->play_random_effect_at(golem_tierra, dist);  break;
+            }
+            break;
         default: break;
     }
 
@@ -669,7 +695,7 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
                 if (ne.entity_id == prev.entity_id) { found = true; break; }
             if (!found) {
                 _death_effects.push_back({prev.pos_x, prev.pos_y, SDL_GetTicks()});
-                play_npc_death_sound(prev.sprite_id, prev.pos_x, prev.pos_y);
+                play_npc_death_sound(prev.sprite_id, prev.entity_id, prev.pos_x, prev.pos_y);
             }
         }
 

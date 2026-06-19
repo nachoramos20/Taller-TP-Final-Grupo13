@@ -98,7 +98,7 @@ private:
     float dist_to_player_tiles(uint16_t x, uint16_t y) const;
     void play_attack_sound(uint8_t weapon_item, uint16_t x, uint16_t y);
     void play_spell_sound(uint8_t spell_id, uint16_t x, uint16_t y);
-    void play_npc_death_sound(uint8_t npc_sprite_id, uint16_t x, uint16_t y);
+    void play_npc_death_sound(uint8_t npc_sprite_id, uint16_t entity_id, uint16_t x, uint16_t y);
     void play_player_death_sound(uint16_t x, uint16_t y);
 
     SDL2pp::Window&     _window;
