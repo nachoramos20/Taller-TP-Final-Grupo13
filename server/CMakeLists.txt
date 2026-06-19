@@ -31,6 +31,8 @@ target_sources(argentum_grupo13_server
     game/MapaBuilder.cpp
     game/Items.cpp
     game/Npc.cpp
+    game/Equations.cpp
+    game/GameConfig.cpp
     game/PersistenceThread.cpp
 )
 

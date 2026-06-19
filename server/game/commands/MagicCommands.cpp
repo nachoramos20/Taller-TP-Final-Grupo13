@@ -1,10 +1,10 @@
 #include "Commands.h"
-#include <algorithm>
-#include <random>
-#include <cmath>
+#include "../Equations.h"
+#include "../GameConfig.h"
 #include "../Items.h"
+#include <algorithm>
 
-// MeditateCommand
+// MeditateCommand y ResurrectCommand se mantienen estructuralmente similares pero limpios de lógica local
 
 MeditateCommand::MeditateCommand(uint16_t c) : client_id(c) {}
 
@@ -12,17 +12,15 @@ void MeditateCommand::execute(World& world) {
     PlayerData* p = world.get_player_mutable(client_id);
     if (!p || p->is_ghost) return;
 
-    if (static_cast<Class>(p->cls) == Class::WARRIOR) {
-        world.push_message(client_id, 0, "El Guerrero no puede meditar.");
+    const ClassConfig& cc = GameConfig::get().cls(p->cls);
+    if (!cc.can_meditate) {
+        world.push_message(client_id, 0, "Tu clase no puede meditar.");
         return;
     }
 
     p->meditating = !p->meditating;
-    world.push_message(client_id, 0,
-        p->meditating ? "Entraste en meditación." : "Saliste de la meditación.");
+    world.push_message(client_id, 0, p->meditating ? "Entraste en meditación." : "Saliste de la meditación.");
 }
-
-// ResurrectCommand
 
 ResurrectCommand::ResurrectCommand(uint16_t c) : client_id(c) {}
 
@@ -30,88 +28,30 @@ void ResurrectCommand::execute(World& world) {
     PlayerData* p = world.get_player_mutable(client_id);
     if (!p || !p->is_ghost) return;
 
+    const CombatFormulas& f = GameConfig::get().formulas();
+
     world.update_occupied({p->pos_x, p->pos_y}, false);
-    p->pos_x      = 40;
-    p->pos_y      = 25;
+    p->pos_x      = f.respawn_x;
+    p->pos_y      = f.respawn_y;
     p->is_ghost   = false;
     p->meditating = false;
-    p->hp         = p->max_hp / 4;
+    p->hp         = static_cast<uint16_t>(p->max_hp * f.hp_fraction);
     p->mp         = 0;
     world.update_occupied({p->pos_x, p->pos_y}, true);
     world.push_message(client_id, 0, "Resucitaste junto al sanador en la ciudad.");
 }
 
-// Hechizos
-
-namespace {
-
-struct SpellDef {
-    const char* name;
-    Class       cls;
-    uint16_t    mana_cost;
-    float       dmg_multiplier;  // multiplicador sobre el daño base del arma
-    uint16_t    flat_bonus;      // daño plano adicional
-    int         range;           // alcance en tiles (manhattan)
-};
-
-// Tabla indexada por SpellId (uint8_t).
-// El índice 0 es el placeholder NONE.
-static const SpellDef& spell_def(uint8_t id) {
-    static const SpellDef defs[] = {
-        { "Ninguno",                  Class::MAGE,          0,     1.0f,      0,     1 },
-        { "Explosión",                Class::MAGE,          9,     4.5f,     50,     8 },
-        { "Area de veneno",           Class::MAGE,         18,     3.0f,     30,     6 },
-        { "Explosión calavérica",     Class::MAGE,         32,     2.0f,     10,     6 },
-
-        { "Orbe de hielo",            Class::CLERIC,        8,     2.8f,     25,     5 },
-        { "Tornado gravitatorio",     Class::CLERIC,       22,     2.0f,      8,     5 },
-        { "Tormenta eléctrica",       Class::CLERIC,       38,     3.5f,     60,     6 },
-
-        { "Orbe de vacío",            Class::PALADIN,      10,     2.5f,     20,     4 },
-        { "Brecha de vacío",          Class::PALADIN,      22,     3.2f,     45,     4 },
-        { "Tornado de oscuridad",     Class::PALADIN,      40,     1.8f,      6,     2 },
-    };
-    static constexpr int TABLE_SIZE = static_cast<int>(sizeof(defs)/sizeof(defs[0]));
-    if (id == 0 || id >= TABLE_SIZE) return defs[0];
-    return defs[id];
-}
-
-static std::mt19937& spell_rng() {
-    static std::mt19937 r(std::random_device{}());
-    return r;
-}
-
-static int srand_range(int lo, int hi) {
-    if (lo >= hi) return lo;
-    return std::uniform_int_distribution<int>(lo, hi)(spell_rng());
-}
-
-static int s_manhattan(uint16_t ax, uint16_t ay, uint16_t bx, uint16_t by) {
-    return std::abs((int)ax - (int)bx) + std::abs((int)ay - (int)by);
-}
-
-// Calcula el daño base del arma equipada (fuerza × rango del arma).
-// Para hechizos se usa este valor como base antes de aplicar el multiplicador
-// del spell — el mana del ARMA no se consume aquí (ya lo cobra AttackCommand).
 static uint16_t weapon_base_damage(const PlayerData& p) {
-    int dmin = 1, dmax = 3;
+    WeaponBounds bounds = {1, 3};
     if (p.equipped_weapon != 0xFF && p.equipped_weapon < PlayerData::INVENTORY_SIZE) {
         uint8_t item_id = p.inventory[p.equipped_weapon];
         if (item_id != 0 && Items::exists(static_cast<ItemId>(item_id))) {
             const ItemDef& def = Items::get(static_cast<ItemId>(item_id));
-            dmin = def.min_value;
-            dmax = def.max_value;
+            bounds = {def.min_value, def.max_value};
         }
     }
-    return static_cast<uint16_t>(p.strength * srand_range(dmin, dmax));
+    return Equations::calc_weapon_damage(p.strength, bounds);
 }
-
-static bool fair_play_ok(const PlayerData& a, const PlayerData& b) {
-    if (a.level <= 12 || b.level <= 12) return false;
-    return std::abs((int)a.level - (int)b.level) <= 10;
-}
-
-} // namespace
 
 // CastSpellCommand
 
@@ -120,96 +60,77 @@ CastSpellCommand::CastSpellCommand(uint16_t c, uint16_t t, uint8_t s)
 
 void CastSpellCommand::execute(World& world) {
     PlayerData* caster = world.get_player_mutable(client_id);
-    if (!caster || caster->is_ghost) return;
-    if (caster->attack_cooldown > 0) return;
+    if (!caster || caster->is_ghost || caster->attack_cooldown > 0) return;
 
     if (world.in_safe_zone(caster->pos_x, caster->pos_y)) {
         world.push_message(client_id, 0, "No puedes lanzar hechizos desde una zona segura.");
         return;
     }
 
-    // Los guerreros no pueden lanzar hechizos
-    if (static_cast<Class>(caster->cls) == Class::WARRIOR) {
-        world.push_message(client_id, 0, "El Guerrero no puede lanzar hechizos.");
+    const ClassConfig& cc = GameConfig::get().cls(caster->cls);
+    if (!cc.can_meditate) {
+        world.push_message(client_id, 0, "Tu clase no puede lanzar hechizos.");
         return;
     }
 
-    // Requiere arma mágica equipada
     uint8_t weapon_item = 0;
     if (caster->equipped_weapon != 0xFF && caster->equipped_weapon < PlayerData::INVENTORY_SIZE)
         weapon_item = caster->inventory[caster->equipped_weapon];
 
     if (!weapon_enables_spells(weapon_item)) {
-        world.push_message(client_id, 0,
-            "Necesitás un báculo, vara o flauta mágica para lanzar hechizos.");
+        world.push_message(client_id, 0, "Necesitás un báculo, vara o flauta mágica para lanzar hechizos.");
         return;
     }
 
-    // Validar hechizo
-    if (spell_id == 0) {
-        world.push_message(client_id, 0, "Hechizo inválido.");
-        return;
-    }
+    if (spell_id == 0) return;
 
-    const SpellDef& sd = spell_def(spell_id);
-
-    if (static_cast<uint8_t>(sd.cls) != caster->cls) {
+    const SpellConfig& sd = GameConfig::get().spell(spell_id);
+    if (sd.spell_class != caster->cls) {
         world.push_message(client_id, 0, "Tu clase no puede lanzar ese hechizo.");
         return;
     }
 
     if (caster->mp < sd.mana_cost) {
-        world.push_message(client_id, 0,
-            "Maná insuficiente para " + std::string(sd.name) + ".");
+        world.push_message(client_id, 0, "Maná insuficiente para " + sd.name + ".");
         return;
     }
 
-    // Localizar objetivo
     PlayerData* target_p = world.get_player_mutable(target_id);
-    NpcData*    target_n = target_p ? nullptr : world.find_npc(target_id);
+    NpcData* target_n = target_p ? nullptr : world.find_npc(target_id);
     if (!target_p && !target_n) return;
 
     uint16_t tx = target_p ? target_p->pos_x : target_n->pos_x;
     uint16_t ty = target_p ? target_p->pos_y : target_n->pos_y;
 
     if (world.in_safe_zone(tx, ty)) {
-        world.push_message(client_id, 0,
-            "No puedes lanzar hechizos contra alguien que está en una zona segura.");
+        world.push_message(client_id, 0, "No puedes lanzar hechizos contra alguien que está en una zona segura.");
         return;
     }
 
     if (target_p) {
         if (target_p->is_ghost) return;
-
         if (world.same_clan(client_id, target_id)) {
             world.push_message(client_id, 0, "No puedes atacar a un compañero de clan.");
             return;
         }
-
-        if (!fair_play_ok(*caster, *target_p)) {
+        if (!Equations::is_pvp_allowed(caster->level, target_p->level)) {
             world.push_message(client_id, 0, "No puedes atacar a ese jugador (fair-play).");
             return;
         }
     }
 
-    if (s_manhattan(caster->pos_x, caster->pos_y, tx, ty) > sd.range) {
-        world.push_message(client_id, 0,
-            "Objetivo fuera de alcance para " + std::string(sd.name) + ".");
+    if (Equations::manhattan_distance(caster->pos_x, caster->pos_y, tx, ty) > sd.range) {
+        world.push_message(client_id, 0, "Objetivo fuera de alcance para " + sd.name + ".");
         return;
     }
 
-    // Ejecutar hechizo
     caster->meditating = false;
-    caster->mp -= sd.mana_cost;   // solo el costo del hechizo
+    caster->mp -= sd.mana_cost;
 
-    uint16_t base  = weapon_base_damage(*caster);
-    uint32_t dmg32 = static_cast<uint32_t>(base * sd.dmg_multiplier) + sd.flat_bonus;
-    dmg32 += caster->intelligence;  // bonus INT
-    uint16_t damage = static_cast<uint16_t>(std::min<uint32_t>(dmg32, 65000));
+    uint16_t base_dmg = weapon_base_damage(*caster);
+    uint16_t damage = Equations::calc_spell_damage(base_dmg, sd.dmg_multiplier, sd.flat_bonus, caster->intelligence);
 
-    world.push_message(client_id, 1,
-        "Lanzaste " + std::string(sd.name) + " e hiciste " +
-        std::to_string(damage) + " de daño.");
+    world.push_message(client_id, 1, "Lanzaste " + sd.name + " e hiciste " + std::to_string(damage) + " de daño.");
 
     if (target_p) {
         if (target_p->hp <= damage) {
@@ -218,8 +139,7 @@ void CastSpellCommand::execute(World& world) {
             target_p->meditating = false;
             world.update_occupied({target_p->pos_x, target_p->pos_y}, false);
             world.drop_player_loot(*target_p);
-            world.push_message(target_id, 1,
-                "¡Moriste por " + std::string(sd.name) + "!");
+            world.push_message(target_id, 1, "¡Moriste por " + sd.name + "!");
         } else {
             target_p->hp -= damage;
         }
@@ -227,12 +147,11 @@ void CastSpellCommand::execute(World& world) {
         if (target_n->hp <= damage) {
             world.update_occupied({target_n->pos_x, target_n->pos_y}, false);
             target_n->hp = 0;
-            world.push_message(client_id, 1,
-                "¡Mataste al objetivo con " + std::string(sd.name) + "!");
+            world.push_message(client_id, 1, "¡Mataste al objetivo con " + sd.name + "!");
         } else {
             target_n->hp -= damage;
         }
     }
 
-    caster->attack_cooldown = 12;
+    caster->attack_cooldown = GameConfig::get().formulas().attack_cooldown_spell;
 }

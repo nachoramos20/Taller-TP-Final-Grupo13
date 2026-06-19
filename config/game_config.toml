@@ -1,0 +1,127 @@
+# ============================================================
+# game_config.toml — Configuración global de balance del juego
+# Todas las constantes de stats, fórmulas y combate se definen
+# aquí. El servidor las carga al arrancar via GameConfig.
+# ============================================================
+
+# ── Parámetros base de stats ─────────────────────────────────
+[base_stats]
+# HP/MP base antes de aplicar factores de raza y clase
+base_hp = 100
+base_mp = 100
+
+# ── Razas ────────────────────────────────────────────────────
+# Campos: hp_factor, mp_factor, base_str, base_agi, base_int, base_const
+[race.1]   # HUMAN  = 1
+name       = "Humano"
+hp_factor  = 1.0
+mp_factor  = 1.0
+base_str   = 18
+base_agi   = 18
+base_int   = 18
+base_const = 18
+
+[race.2]   # ELF = 2
+name       = "Elfo"
+hp_factor  = 1.0
+mp_factor  = 1.4
+base_str   = 14
+base_agi   = 22
+base_int   = 22
+base_const = 18
+
+[race.3]   # DWARF = 3
+name       = "Enano"
+hp_factor  = 1.4
+mp_factor  = 0.8
+base_str   = 22
+base_agi   = 14
+base_int   = 14
+base_const = 22
+
+[race.4]   # GNOME = 4
+name       = "Gnomo"
+hp_factor  = 0.8
+mp_factor  = 1.6
+base_str   = 14
+base_agi   = 18
+base_int   = 24
+base_const = 16
+
+# ── Clases ───────────────────────────────────────────────────
+# can_use_weapon_melee / ranged / armor_heavy: false / true
+# can_meditate: si la clase puede recuperar MP meditando
+[class.1]   # MAGE = 1
+name                 = "Mago"
+hp_factor            = 0.8
+mp_factor            = 1.8
+can_use_weapon_melee = false
+can_use_weapon_ranged= true
+can_use_armor_heavy  = false
+can_meditate         = true
+
+[class.2]   # CLERIC = 2
+name                 = "Clerigo"
+hp_factor            = 1.0
+mp_factor            = 1.4
+can_use_weapon_melee = true
+can_use_weapon_ranged= true
+can_use_armor_heavy  = false
+can_meditate         = true
+
+[class.3]   # PALADIN = 3
+name                 = "Paladin"
+hp_factor            = 1.2
+mp_factor            = 1.2
+can_use_weapon_melee = true
+can_use_weapon_ranged= true
+can_use_armor_heavy  = true
+can_meditate         = true
+
+[class.4]   # WARRIOR = 4
+name                 = "Guerrero"
+hp_factor            = 1.5
+mp_factor            = 0.6
+can_use_weapon_melee = true
+can_use_weapon_ranged= true
+can_use_armor_heavy  = true
+can_meditate         = false
+
+# ── Módulo Único de Ecuaciones y Balance ─────────────────────
+# Centraliza todas las variables numéricas utilizadas por las fórmulas del juego
+[formulas]
+# Progresión de nivel (EXP requerida = exp_base * N^exp_exponent)
+exp_base               = 1000.0
+exp_exponent           = 1.8
+
+# Reglas Fair-Play PvP
+pvp_min_level          = 12
+pvp_max_level_delta    = 10
+
+# Mecánicas de Combate Físico y Evasión
+crit_multiplier        = 2.0
+crit_chance            = 0.05
+dodge_cap              = 0.30
+dodge_per_agi          = 0.005
+attack_cooldown_melee  = 10
+attack_cooldown_spell  = 12
+
+# Sistema de Recompensas de Experiencia (Daño y Kills)
+per_damage_base_factor = 10
+kill_exp_rand_max      = 0.1
+
+# Sistema de Drops de NPCs (Rangos de Oro y Probabilidades Acumuladas)
+gold_drop_min_frac     = 0.01
+gold_drop_max_frac     = 0.20
+drop_chance_nothing    = 0.80   # [0.00, 0.80) → Nada
+drop_chance_gold       = 0.88   # [0.80, 0.88) → Oro
+drop_chance_potion     = 0.89   # [0.88, 0.89) → Poción
+drop_chance_item       = 0.90   # [0.89, 0.90) → Ítem de drop_table
+
+# Regeneración por Meditación (MP por tick)
+mp_regen_per_tick      = 2
+
+# Mecánica de Resurrección (Sacerdote de la ciudad)
+respawn_x              = 40
+respawn_y              = 25
+hp_fraction            = 0.25   # Fracción del max_hp restaurada
