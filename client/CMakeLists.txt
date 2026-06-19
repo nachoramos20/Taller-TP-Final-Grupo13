@@ -14,6 +14,7 @@ target_sources(argentum_grupo13_client
     render/ObjectSupConfig.cpp
     net/SenderThread.cpp
     net/ReceiverThread.cpp
+    audio/AudioManager.cpp
 )
 
 target_include_directories(argentum_grupo13_client

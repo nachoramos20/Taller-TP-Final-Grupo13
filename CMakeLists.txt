@@ -128,10 +128,11 @@ if(ARGENTUM_CLIENT)
         ${libSDL2pp_SOURCE_DIR}
         ${sdl2_image_SOURCE_DIR}/include
         ${sdl2_ttf_SOURCE_DIR}
+        ${sdl2_mixer_SOURCE_DIR}/include
     )
 
     # Link the argentum_grupo13_common lib target
-    target_link_libraries(argentum_grupo13_client argentum_grupo13_common SDL2pp::SDL2pp SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf)
+    target_link_libraries(argentum_grupo13_client argentum_grupo13_common SDL2pp::SDL2pp SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf SDL2_mixer::SDL2_mixer)
 
 endif()
 

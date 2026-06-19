@@ -8,6 +8,7 @@
 
 #include "game/GameLoop.h"
 #include "game/LoginScreen.h"
+#include "audio/AudioManager.h"
 #include "../common/socket.h"
 #include "../common/queue.h"
 #include "../common/protocol/dtos.h"
@@ -18,6 +19,7 @@
 #include "net/ReceiverThread.h"
 
 static const char* FONT_PATH = "assets/fonts/DejaVuSans.ttf";
+static const char* MUSIC_PATH = "assets/sounds/music/argentum_music.mp3";
 
 // Detiene y joinea todos los threads de red de forma segura.
 static void shutdown_net(std::atomic<bool>& connected,
@@ -50,6 +52,9 @@ int main(int argc, char* argv[]) try {
         std::cerr << "TTF_Init: " << TTF_GetError() << "\n";
         return 1;
     }
+
+    AudioManager audio;
+    audio.play_music_loop(MUSIC_PATH);
 
     SDL2pp::Window window(
         "Argentum Online - Grupo 13",
@@ -125,7 +130,7 @@ int main(int argc, char* argv[]) try {
         try {
             GameLoop game_loop(window, renderer,
                                &command_queue, &snapshot_queue,
-                               &map_queue, &connected);
+                               &map_queue, &connected, &audio);
             game_loop.run();
         } catch (const std::exception& e) {
             std::cerr << "GameLoop error: " << e.what() << "\n";

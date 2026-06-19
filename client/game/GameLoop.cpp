@@ -1,6 +1,7 @@
 #include "GameLoop.h"
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <unordered_map>
 #include <string>
 #include "../../common/protocol/protocol.h"
@@ -14,7 +15,7 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
       _camera(window.GetWidth(), window.GetHeight(), StatsPanel::PANEL_W),
       _running(false),
       _command_queue(nullptr), _snapshot_queue(nullptr),
-      _map_queue(nullptr), _connected(nullptr),
+      _map_queue(nullptr), _connected(nullptr), _audio(nullptr),
       _my_entity_id(0), _last_move_tick(0), _current_tick(0),
       _map_loaded(false),
       _assets(renderer),
@@ -35,7 +36,8 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                    Queue<Command>* command_queue,
                    Queue<SnapshotDTO>* snapshot_queue,
                    Queue<MapaDTO>* map_queue,
-                   std::atomic<bool>* connected)
+                   std::atomic<bool>* connected,
+                   AudioManager* audio)
     : _window(window), _renderer(renderer),
       _camera(window.GetWidth(), window.GetHeight(), StatsPanel::PANEL_W),
       _running(false),
@@ -43,6 +45,7 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
       _snapshot_queue(snapshot_queue),
       _map_queue(map_queue),
       _connected(connected),
+      _audio(audio),
       _my_entity_id(0), _last_move_tick(0), _current_tick(0),
       _map_loaded(false),
       _assets(renderer),
@@ -61,6 +64,61 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
         if (!_command_queue) return;
         _command_queue->push(Command::chat(text));
         _chat->add_message("> " + text);
+
+        if (_audio && _shop_npc_id != -1) {
+            float dist = 0.0f;
+            for (const auto& e : _last_entities)
+                if (e.entity_id == _shop_npc_id) { dist = dist_to_player_tiles(e.pos_x, e.pos_y); break; }
+
+            if (text.rfind("/listar", 0) == 0) {
+                static const std::vector<std::string> busco = {
+                    "assets/sounds/effects/npcs/comerciante/lo_pides_lo_tienes.wav",
+                };
+                _audio->play_random_effect_at(busco, dist);
+            } else if (text.rfind("/comprar", 0) == 0) {
+                static const std::vector<std::string> elijo = {
+                    "assets/sounds/effects/npcs/comerciante/una_gran_eleccion.wav",
+                };
+                _audio->play_random_effect_at(elijo, dist);
+            }
+        }
+
+        if (_audio && _bank_npc_id != -1) {
+            float dist = 0.0f;
+            for (const auto& e : _last_entities)
+                if (e.entity_id == _bank_npc_id) { dist = dist_to_player_tiles(e.pos_x, e.pos_y); break; }
+
+            if (text.rfind("/depositar", 0) == 0) {
+                static const std::vector<std::string> depositar = {
+                    "assets/sounds/effects/npcs/banquero/cuidamos_sus_cosas_mejor_que_usted.wav",
+                };
+                _audio->play_random_effect_at(depositar, dist);
+            } else if (text.rfind("/retirar", 0) == 0) {
+                static const std::vector<std::string> retirar = {
+                    "assets/sounds/effects/npcs/banquero/puede_confiar_en_nosotros.wav",
+                };
+                _audio->play_random_effect_at(retirar, dist);
+            }
+        }
+
+        if (_audio && _priest_npc_id != -1) {
+            float dist = 0.0f;
+            for (const auto& e : _last_entities)
+                if (e.entity_id == _priest_npc_id) { dist = dist_to_player_tiles(e.pos_x, e.pos_y); break; }
+
+            if (text.rfind("/curar", 0) == 0) {
+                static const std::vector<std::string> curar = {
+                    "assets/sounds/effects/npcs/sacerdote/orare_por_ti.wav",
+                    "assets/sounds/effects/npcs/sacerdote/curar.wav",
+                };
+                _audio->queue_speech_sequence(curar, dist);
+            } else if (text.rfind("/resucitar", 0) == 0) {
+                static const std::vector<std::string> resucitar = {
+                    "assets/sounds/effects/npcs/sacerdote/resucitar_con_sacerdote.wav",
+                };
+                _audio->play_random_effect_at(resucitar, dist);
+            }
+        }
     });
 
     load_item_textures();
@@ -217,6 +275,96 @@ void GameLoop::spawn_projectile(uint16_t from_x, uint16_t from_y,
     p.start_tick = _current_tick;
     p.is_magic   = is_magic;
     _projectiles.push_back(p);
+}
+
+float GameLoop::dist_to_player_tiles(uint16_t x, uint16_t y) const {
+    float dx = static_cast<float>(x) - static_cast<float>(_player.tile_x);
+    float dy = static_cast<float>(y) - static_cast<float>(_player.tile_y);
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+void GameLoop::play_attack_sound(uint8_t weapon_item, uint16_t x, uint16_t y) {
+    if (!_audio) return;
+    static const std::vector<std::string> melee = {
+        "assets/sounds/effects/combat/espadazo.wav",
+        "assets/sounds/effects/combat/golpe_con_arma.wav",
+        "assets/sounds/effects/combat/golpe_con_arma_2.wav",
+        "assets/sounds/effects/combat/martillazos.wav",
+        "assets/sounds/effects/combat/hachazo_y_golpe_de_clavado.wav",
+        "assets/sounds/effects/combat/apunalada.wav",
+    };
+    static const std::vector<std::string> disparo = {
+        "assets/sounds/effects/combat/flecha.wav",
+        "assets/sounds/effects/combat/disparo.wav",
+        "assets/sounds/effects/combat/disparo_2.wav",
+        "assets/sounds/effects/combat/disparo_3.wav",
+    };
+    static const std::vector<std::string> disparo_magico = {
+        "assets/sounds/effects/combat/flecha_magica.wav",
+    };
+
+    float dist = dist_to_player_tiles(x, y);
+    if (weapon_item == 0) {
+        _audio->play_random_effect_at(melee, dist);
+    } else if (weapon_is_magic(weapon_item)) {
+        _audio->play_random_effect_at(disparo_magico, dist);
+    } else if (weapon_is_ranged(weapon_item)) {
+        _audio->play_random_effect_at(disparo, dist);
+    } else {
+        // Arma cuerpo a cuerpo (espada/hacha/martillo): sonido de golpe.
+        _audio->play_random_effect_at(melee, dist);
+    }
+}
+
+void GameLoop::play_spell_sound(uint8_t spell_id, uint16_t x, uint16_t y) {
+    if (!_audio || spell_id == 0) return;
+    static const std::vector<std::string> hechizo = {
+        "assets/sounds/effects/combat/explosion.wav",
+        "assets/sounds/effects/magic/sonido_similar_al_de_lanzar_un_hechizo.wav",
+        "assets/sounds/effects/magic/sonido_similar_al_de_lanzar_un_hechizo_2.wav",
+        "assets/sounds/effects/magic/sonido_similar_al_de_lanzar_un_hechizo_3.wav",
+        "assets/sounds/effects/magic/apertura_magica.wav",
+        "assets/sounds/effects/magic/sonido_de_onda.wav",
+        "assets/sounds/effects/magic/sonido_de_onda_2.wav",
+        "assets/sounds/effects/magic/resorte_explosivo.wav",
+        "assets/sounds/effects/magic/sonido_como_de_portal_magico.wav",
+        "assets/sounds/effects/magic/sonido_como_de_portal_magico_2.wav",
+        "assets/sounds/effects/magic/sonido_de_runa.wav",
+    };
+    _audio->play_random_effect_at(hechizo, dist_to_player_tiles(x, y));
+}
+
+void GameLoop::play_npc_death_sound(uint8_t npc_sprite_id, uint16_t x, uint16_t y) {
+    if (!_audio) return;
+    static const std::vector<std::string> bestia = {
+        "assets/sounds/effects/creatures/sonido_de_bestia.wav",
+    };
+    static const std::vector<std::string> orco = {
+        "assets/sounds/effects/creatures/bandido.wav",
+        "assets/sounds/effects/creatures/bandido_2.wav",
+    };
+    static const std::vector<std::string> zombie = {"assets/sounds/effects/creatures/zombie.wav"};
+    static const std::vector<std::string> esqueleto = {"assets/sounds/effects/creatures/sonido_no_muerto.wav"};
+
+    float dist = dist_to_player_tiles(x, y);
+    switch (static_cast<NpcId>(npc_sprite_id)) {
+        case NpcId::ORC:      _audio->play_random_effect_at(orco, dist);     break;
+        case NpcId::ZOMBIE:   _audio->play_random_effect_at(zombie, dist);   break;
+        case NpcId::SKELETON: _audio->play_random_effect_at(esqueleto, dist);break;
+        case NpcId::GOBLIN:
+        case NpcId::SPIDER:
+        case NpcId::GOLEM:    _audio->play_random_effect_at(bestia, dist);   break;
+        default: break;
+    }
+}
+
+void GameLoop::play_player_death_sound(uint16_t x, uint16_t y) {
+    if (!_audio) return;
+    static const std::vector<std::string> muerte = {
+        "assets/sounds/effects/combat/sonido_de_muerte_hombre.wav",
+        "assets/sounds/effects/combat/grito_de_hombre.wav",
+    };
+    _audio->play_random_effect_at(muerte, dist_to_player_tiles(x, y));
 }
 
 void GameLoop::render_projectiles() {
@@ -476,6 +624,7 @@ void GameLoop::update(float dt) {
     _player.update(dt);
     _camera.follow(_player);
     _pos_label->update(_player.tile_x, _player.tile_y);
+    if (_audio) _audio->update();
 }
 
 void GameLoop::apply_map(const MapaDTO& map) {
@@ -494,15 +643,94 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
             bool found = false;
             for (const auto& ne : *snap.entities)
                 if (ne.entity_id == prev.entity_id) { found = true; break; }
-            if (!found)
+            if (!found) {
                 _death_effects.push_back({prev.pos_x, prev.pos_y, SDL_GetTicks()});
+                play_npc_death_sound(prev.sprite_id, prev.pos_x, prev.pos_y);
+            }
         }
+
+        // Detectar otros jugadores que acaban de morir (pasan a fantasma).
+        // La propia muerte se maneja aparte con _was_ghost.
+        for (const auto& ne : *snap.entities) {
+            if (ne.entity_type != static_cast<uint8_t>(EntityType::PLAYER)) continue;
+            if (ne.entity_id == _my_entity_id || ne.is_ghost == 0) continue;
+            for (const auto& prev : _last_entities) {
+                if (prev.entity_id == ne.entity_id && prev.is_ghost == 0) {
+                    play_player_death_sound(ne.pos_x, ne.pos_y);
+                    break;
+                }
+            }
+        }
+
         _last_entities = *snap.entities;
     }
 
-    if (_chat && snap.messages) {
-        for (const auto& m : *snap.messages) _chat->add_message(m.text);
+    // Si me alejé del comerciante con el que estaba hablando, despedida.
+    if (_shop_npc_id != -1) {
+        static constexpr float SHOP_RANGE_TILES = 2.0f;
+        const EntityDTO* shop_npc = nullptr;
+        for (const auto& e : _last_entities)
+            if (e.entity_id == _shop_npc_id) { shop_npc = &e; break; }
+
+        bool left = (shop_npc == nullptr)
+                  || (dist_to_player_tiles(shop_npc->pos_x, shop_npc->pos_y) > SHOP_RANGE_TILES);
+        if (left) {
+            if (_audio) {
+                static const std::vector<std::string> vuelve_pronto = {
+                    "assets/sounds/effects/npcs/comerciante/vuelve_pronto.wav",
+                };
+                _audio->play_random_effect_at(vuelve_pronto, 0.0f);
+            }
+            _shop_npc_id = -1;
+        }
     }
+
+    // Si me alejé del sacerdote con el que estaba hablando, despedida en 2 frases.
+    if (_priest_npc_id != -1) {
+        static constexpr float PRIEST_RANGE_TILES = 2.0f;
+        const EntityDTO* priest_npc = nullptr;
+        for (const auto& e : _last_entities)
+            if (e.entity_id == _priest_npc_id) { priest_npc = &e; break; }
+
+        bool left = (priest_npc == nullptr)
+                  || (dist_to_player_tiles(priest_npc->pos_x, priest_npc->pos_y) > PRIEST_RANGE_TILES);
+        if (left) {
+            if (_audio) {
+                static const std::vector<std::string> despedida = {
+                    "assets/sounds/effects/npcs/sacerdote/ten_cuidado_ahi_fuera.wav",
+                    "assets/sounds/effects/npcs/sacerdote/que_la_luz_guie_tu_camino.wav",
+                };
+                _audio->queue_speech_sequence(despedida, 0.0f);
+            }
+            _priest_npc_id = -1;
+        }
+    }
+
+    if (snap.messages) {
+        for (const auto& m : *snap.messages) {
+            if (_chat) _chat->add_message(m.text);
+            if (_audio && m.text.rfind("Compraste ", 0) == 0) {
+                static const std::vector<std::string> monedas = {
+                    "assets/sounds/effects/economy/monedas.wav",
+                };
+                _audio->play_random_effect_at(monedas, 0.0f);
+            }
+        }
+    }
+
+    if (snap.is_ghost != 0 && !_was_ghost)
+        play_player_death_sound(static_cast<uint16_t>(_player.tile_x),
+                                 static_cast<uint16_t>(_player.tile_y));
+    _was_ghost = (snap.is_ghost != 0);
+
+    if (_audio && _level_initialized && snap.level > _last_level) {
+        static const std::vector<std::string> subir_nivel = {
+            "assets/sounds/effects/ui/sonido_al_subir_de_lvl.wav",
+        };
+        _audio->play_random_effect_at(subir_nivel, 0.0f);
+    }
+    _last_level = snap.level;
+    _level_initialized = true;
 
     // Actualizar StatsPanel
     if (_stats) {
@@ -1026,10 +1254,45 @@ void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
             // Interactuar con NPC de servicio
             _command_queue->push(Command::npc_interact(e.entity_id));
             _chat->add_message("Hablando con " + e.username + "...");
+            if (static_cast<NpcId>(e.sprite_id) == NpcId::MERCHANT) {
+                // Si ya estoy hablando con este mismo comerciante, no repetir
+                // el saludo (solo re-enviar la interacción/mensaje de chat).
+                bool already_talking = (_shop_npc_id == static_cast<int32_t>(e.entity_id));
+                _shop_npc_id = e.entity_id;
+                if (_audio && !already_talking) {
+                    static const std::vector<std::string> saludo = {
+                        "assets/sounds/effects/npcs/comerciante/buenos_dias.wav",
+                        "assets/sounds/effects/npcs/comerciante/bienvenido_a_mi_tienda.wav",
+                        "assets/sounds/effects/npcs/comerciante/como_puedo_ayudar.wav",
+                    };
+                    _audio->queue_speech_sequence(saludo, dist_to_player_tiles(e.pos_x, e.pos_y));
+                }
+            } else if (static_cast<NpcId>(e.sprite_id) == NpcId::BANKER) {
+                // si ya estoy hablando con este mismo banquero, no repetir el saludo.
+                bool already_talking = (_bank_npc_id == static_cast<int32_t>(e.entity_id));
+                _bank_npc_id = e.entity_id;
+                if (_audio && !already_talking) {
+                    static const std::vector<std::string> saludo = {
+                        "assets/sounds/effects/npcs/banquero/bienvenido_al_banco.wav",
+                        "assets/sounds/effects/npcs/banquero/que_transaccion_desea_realizar_hoy.wav",
+                    };
+                    _audio->queue_speech_sequence(saludo, dist_to_player_tiles(e.pos_x, e.pos_y));
+                }
+            } else if (static_cast<NpcId>(e.sprite_id) == NpcId::PRIEST) {
+                bool already_talking = (_priest_npc_id == static_cast<int32_t>(e.entity_id));
+                _priest_npc_id = e.entity_id;
+                if (_audio && !already_talking) {
+                    static const std::vector<std::string> saludo = {
+                        "assets/sounds/effects/npcs/sacerdote/oigo_tus_plegarias.wav",
+                    };
+                    _audio->play_random_effect_at(saludo, dist_to_player_tiles(e.pos_x, e.pos_y));
+                }
+            }
         } else if (_stats && _stats->cast_mode_active() && _stats->selected_spell() != 0) {
             uint8_t spell = _stats->selected_spell();
             _command_queue->push(Command::cast_spell(e.entity_id, spell));
             spawn_spell_effect(spell, e.pos_x, e.pos_y);
+            play_spell_sound(spell, e.pos_x, e.pos_y);
             _chat->add_message("Lanzando hechizo a " + (e.username.empty()
                 ? std::string("#") + std::to_string(e.entity_id) : e.username));
         } else {
@@ -1045,6 +1308,7 @@ void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
                                  e.pos_x, e.pos_y,
                                  weapon_is_magic(my_weapon));
             }
+            play_attack_sound(my_weapon, e.pos_x, e.pos_y);
         }
         return;
     }

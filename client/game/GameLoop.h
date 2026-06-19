@@ -16,6 +16,7 @@
 #include "../render/AnimationSystem.h"
 #include "../render/SpriteConfig.h"
 #include "../render/ObjectSupConfig.h"
+#include "../audio/AudioManager.h"
 #include "../../common/queue.h"
 #include "../../common/protocol/dtos.h"
 #include "../../common/MapaDTO.h"
@@ -67,7 +68,8 @@ public:
              Queue<Command>* command_queue,
              Queue<SnapshotDTO>* snapshot_queue,
              Queue<MapaDTO>* map_queue,
-             std::atomic<bool>* connected);
+             std::atomic<bool>* connected,
+             AudioManager* audio = nullptr);
 
     void run();
     void stop();
@@ -93,6 +95,12 @@ private:
     void spawn_projectile(uint16_t from_x, uint16_t from_y,
                           uint16_t to_x, uint16_t to_y, bool is_magic);
 
+    float dist_to_player_tiles(uint16_t x, uint16_t y) const;
+    void play_attack_sound(uint8_t weapon_item, uint16_t x, uint16_t y);
+    void play_spell_sound(uint8_t spell_id, uint16_t x, uint16_t y);
+    void play_npc_death_sound(uint8_t npc_sprite_id, uint16_t x, uint16_t y);
+    void play_player_death_sound(uint16_t x, uint16_t y);
+
     SDL2pp::Window&     _window;
     SDL2pp::Renderer&   _renderer;
     Camera              _camera;
@@ -103,11 +111,18 @@ private:
     Queue<SnapshotDTO>*  _snapshot_queue;
     Queue<MapaDTO>*      _map_queue;
     std::atomic<bool>*   _connected;
+    AudioManager*        _audio;
 
     std::vector<EntityDTO> _last_entities;
     uint16_t               _my_entity_id;
     Uint32                 _last_move_tick;
     uint32_t               _current_tick;
+    bool                    _was_ghost = false;
+    uint8_t                 _last_level = 0;
+    bool                    _level_initialized = false;
+    int32_t                 _shop_npc_id = -1; 
+    int32_t                 _bank_npc_id = -1; 
+    int32_t                 _priest_npc_id = -1;
 
     // Equipo del jugador propio (slots de inventario, 0xFF = vacío)
     uint8_t _inv[SnapshotDTO::INVENTORY_SIZE] {};
