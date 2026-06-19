@@ -1,6 +1,7 @@
 #include "Commands.h"
 #include "../Items.h"
 #include "../Stats.h"
+#include "../GameConfig.h"
 #include <algorithm>
 #include <cmath>
 #include <random>
@@ -24,21 +25,20 @@ static int manhattan(uint16_t ax, uint16_t ay, uint16_t bx, uint16_t by) {
 }
 
 static bool fair_play_ok(const PlayerData& a, const PlayerData& b) {
-    if (a.level <= 12 || b.level <= 12) return false;
-    return std::abs((int)a.level - (int)b.level) <= 10;
+    const auto& f = GameConfig::get().formulas();
+    if (a.level <= f.pvp_min_level || b.level <= f.pvp_min_level) return false;
+    return std::abs((int)a.level - (int)b.level) <= f.pvp_max_level_delta;
 }
 
 // Helpers de combate
 
-// Estructura que describe el arma actualmente equipada.
-// Se usa para centralizar la lectura del slot de arma.
 struct WeaponInfo {
     ItemKind  kind      = ItemKind::NONE;
     uint16_t  mana_cost = 0;
     int       range     = 1;
     int       dmin      = 1;
     int       dmax      = 3;
-    bool      valid     = false; // false → "a puño limpio"
+    bool      valid     = false;
 };
 
 static WeaponInfo read_weapon(const PlayerData& p) {
@@ -82,39 +82,47 @@ static uint16_t calc_defense(const PlayerData& defender) {
 }
 
 static bool try_dodge(uint16_t agility) {
-    double chance = std::min(0.30, agility * 0.005);
+    const auto& f = GameConfig::get().formulas();
+    double chance = std::min(f.dodge_cap, agility * f.dodge_per_agi);
     double r = std::uniform_real_distribution<double>(0.0, 1.0)(local_rng());
     return r < chance;
 }
 
 static bool is_critical() {
-    return std::uniform_real_distribution<double>(0.0, 1.0)(local_rng()) < 0.05;
+    const auto& f = GameConfig::get().formulas();
+    return std::uniform_real_distribution<double>(0.0, 1.0)(local_rng()) < f.crit_chance;
 }
 
 static uint32_t exp_per_damage(uint16_t damage, uint8_t my_level, uint8_t other_level) {
-    int factor = std::max((int)other_level - (int)my_level + 10, 0);
+    const auto& f = GameConfig::get().formulas();
+    int factor = std::max((int)other_level - (int)my_level + f.per_damage_base_factor, 0);
     return static_cast<uint32_t>(damage) * static_cast<uint32_t>(factor);
 }
 
 static uint32_t exp_on_kill(uint16_t other_max_hp, uint8_t my_level, uint8_t other_level) {
-    double r = std::uniform_real_distribution<double>(0.0, 0.1)(local_rng());
-    int factor = std::max((int)other_level - (int)my_level + 10, 0);
+    const auto& f = GameConfig::get().formulas();
+    double r = std::uniform_real_distribution<double>(0.0, f.kill_exp_rand_max)(local_rng());
+    int factor = std::max((int)other_level - (int)my_level + f.per_damage_base_factor, 0);
     return static_cast<uint32_t>(r * other_max_hp * factor);
 }
 
 static uint32_t gold_drop_npc(uint16_t npc_max_hp) {
-    double r = std::uniform_real_distribution<double>(0.0, 0.2)(local_rng());
+    const auto& f = GameConfig::get().formulas();
+    double r = std::uniform_real_distribution<double>(
+        f.gold_drop_min_frac, f.gold_drop_max_frac)(local_rng());
     return static_cast<uint32_t>(r * npc_max_hp);
 }
 
 static void check_level_up(PlayerData& p, World& world) {
+    const auto& f = GameConfig::get().formulas();
     uint8_t orig_level = p.level;
     while (true) {
-        uint32_t limit = static_cast<uint32_t>(1000.0 * std::pow((double)p.level, 1.8));
+        uint32_t limit = static_cast<uint32_t>(
+            f.exp_base * std::pow((double)p.level, f.exp_exponent));
         if (p.exp < limit) break;
         p.level++;
         p.max_hp = Stats::initial_max_hp(p.race, p.cls) * p.level;
-        if (static_cast<Class>(p.cls) == Class::WARRIOR) {
+        if (!GameConfig::get().cls(p.cls).can_meditate) {
             p.max_mp = 0;
             p.mp     = 0;
         } else {
@@ -128,22 +136,24 @@ static void check_level_up(PlayerData& p, World& world) {
 }
 
 static void npc_drop(const NpcData& npc, const NpcTemplate& tpl, World& world) {
+    const auto& f = GameConfig::get().formulas();
     double r = std::uniform_real_distribution<double>(0.0, 1.0)(local_rng());
-    if (r < 0.80) return;
-    if (r < 0.88) {
-        double gr = std::uniform_real_distribution<double>(0.01, 0.2)(local_rng());
+    if (r < f.drop_chance_nothing) return;
+    if (r < f.drop_chance_gold) {
+        double gr = std::uniform_real_distribution<double>(
+            f.gold_drop_min_frac, f.gold_drop_max_frac)(local_rng());
         uint32_t gold = static_cast<uint32_t>(gr * tpl.max_hp);
         world.add_floor_item(static_cast<uint8_t>(ItemId::GOLD_PILE), npc.pos_x, npc.pos_y, gold);
         return;
     }
-    if (r < 0.89) {
+    if (r < f.drop_chance_potion) {
         uint8_t pot = (rand_range(0, 1) == 0)
             ? static_cast<uint8_t>(ItemId::HEALTH_POTION)
             : static_cast<uint8_t>(ItemId::MANA_POTION);
         world.add_floor_item(pot, npc.pos_x, npc.pos_y, 0);
         return;
     }
-    if (r < 0.90) {
+    if (r < f.drop_chance_item) {
         if (!tpl.drop_table.empty()) {
             int idx = rand_range(0, (int)tpl.drop_table.size() - 1);
             world.add_floor_item(tpl.drop_table[idx], npc.pos_x, npc.pos_y, 0);
@@ -195,7 +205,6 @@ void AttackCommand::execute(World& world) {
 
     WeaponInfo w = read_weapon(*attacker);
 
-    // Verificar mana para armas mágicas
     if (w.kind == ItemKind::WEAPON_MAGIC) {
         if (attacker->mp < w.mana_cost) {
             world.push_message(client_id, 0,
@@ -204,7 +213,6 @@ void AttackCommand::execute(World& world) {
         }
     }
 
-    // Verificar rango
     bool is_ranged = (w.kind == ItemKind::WEAPON_RANGED || w.kind == ItemKind::WEAPON_MAGIC);
     int  dist      = manhattan(attacker->pos_x, attacker->pos_y, target->pos_x, target->pos_y);
     int  max_dist  = is_ranged ? w.range : 1;
@@ -220,17 +228,17 @@ void AttackCommand::execute(World& world) {
             "¡" + std::string(target->username) + " esquivó tu ataque!");
         world.push_message(target_id, 1,
             "Esquivaste el ataque de " + std::string(attacker->username) + "!");
-        attacker->attack_cooldown = 10;
+        attacker->attack_cooldown = GameConfig::get().formulas().attack_cooldown_melee;
         return;
     }
 
-    // Consumir mana del arma mágica
     if (w.kind == ItemKind::WEAPON_MAGIC) {
         attacker->mp -= w.mana_cost;
     }
 
     uint16_t damage = calc_weapon_damage(*attacker, w);
-    if (crit) damage *= 2;
+    if (crit) damage = static_cast<uint16_t>(
+        damage * GameConfig::get().formulas().crit_multiplier);
 
     if (!crit) {
         uint16_t def = calc_defense(*target);
@@ -266,7 +274,7 @@ void AttackCommand::execute(World& world) {
         target->hp -= damage;
     }
 
-    attacker->attack_cooldown = 10;
+    attacker->attack_cooldown = GameConfig::get().formulas().attack_cooldown_melee;
 }
 
 // AttackNpcCommand
@@ -309,11 +317,12 @@ void AttackNpcCommand::execute(World& world) {
         return;
     }
 
+    // Los NPCs tienen agilidad fija (definida por su template)
     bool crit = is_critical();
 
     if (!crit && try_dodge(10)) {
         world.push_message(client_id, 1, "¡El NPC esquivó tu ataque!");
-        attacker->attack_cooldown = 10;
+        attacker->attack_cooldown = GameConfig::get().formulas().attack_cooldown_melee;
         return;
     }
 
@@ -322,7 +331,8 @@ void AttackNpcCommand::execute(World& world) {
     }
 
     uint16_t damage = calc_weapon_damage(*attacker, w);
-    if (crit) damage *= 2;
+    if (crit) damage = static_cast<uint16_t>(
+        damage * GameConfig::get().formulas().crit_multiplier);
 
     if (!crit) {
         int def = rand_range(tpl.defense_min, tpl.defense_max);
@@ -356,5 +366,5 @@ void AttackNpcCommand::execute(World& world) {
         npc->hp -= damage;
     }
 
-    attacker->attack_cooldown = 10;
+    attacker->attack_cooldown = GameConfig::get().formulas().attack_cooldown_melee;
 }

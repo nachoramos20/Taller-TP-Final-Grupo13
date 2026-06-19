@@ -1,6 +1,7 @@
 #include "PersistenceMonitor.h"
 #include "Stats.h"
 #include "Items.h"
+#include "GameConfig.h"
 
 #include <fstream>
 
@@ -100,8 +101,8 @@ make_initial_player(const std::string& username, uint8_t race, uint8_t cls) {
     data.entity_id = 0;
     data.race = race;
     data.cls  = cls;
-    data.pos_x = 40;
-    data.pos_y = 25;
+    data.pos_x = GameConfig::get().formulas().respawn_x;
+    data.pos_y = GameConfig::get().formulas().respawn_y;
     data.direction = 0;
     data.exp   = 0;
     data.level = 1;
@@ -120,8 +121,8 @@ make_initial_player(const std::string& username, uint8_t race, uint8_t cls) {
     data.max_hp = Stats::initial_max_hp(race, cls);
     data.hp     = data.max_hp;
 
-    // Guerrero: maná siempre 0
-    if (static_cast<Class>(cls) == Class::WARRIOR) {
+    // Si la clase no puede meditar (Guerrero), no tiene maná
+    if (!GameConfig::get().cls(cls).can_meditate) {
         data.max_mp = 0;
         data.mp     = 0;
     } else {

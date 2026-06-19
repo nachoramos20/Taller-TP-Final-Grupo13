@@ -1,0 +1,480 @@
+# ============================================================
+# items.toml — Catálogo completo de ítems del juego
+#
+# Campos por ítem:
+#   kind        : tipo (weapon_melee | weapon_ranged | weapon_magic |
+#                        armor | helmet | shield | potion | gold)
+#   name        : nombre visible
+#   min_value   : daño mínimo (armas) / defensa mínima (armaduras)
+#   max_value   : daño máximo / defensa máxima
+#   mana_cost   : mana consumido en ataque básico (solo weapon_magic)
+#   range_tiles : alcance en tiles (armas a distancia/mágicas)
+#   sprite      : ruta al spritesheet del ítem (se usa en cliente)
+#   sprite_x    : columna en el spritesheet (px)
+#   sprite_y    : fila en el spritesheet (px)
+#   sprite_w    : ancho del frame (px)
+#   sprite_h    : alto del frame (px)
+# ============================================================
+
+# ── Armas cuerpo a cuerpo ────────────────────────────────────
+[item.1]   # SWORD
+kind        = "weapon_melee"
+name        = "Espada"
+min_value   = 4
+max_value   = 12
+mana_cost   = 0
+range_tiles = 1
+sprite      = "assets/sprites/equipment/weapons/espada.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.9]   # DARK_SWORD
+kind        = "weapon_melee"
+name        = "Espada Oscura"
+min_value   = 7
+max_value   = 17
+mana_cost   = 0
+range_tiles = 1
+sprite      = "assets/sprites/equipment/weapons/espada_oscura.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.2]   # AXE
+kind        = "weapon_melee"
+name        = "Hacha"
+min_value   = 5
+max_value   = 14
+mana_cost   = 0
+range_tiles = 1
+sprite      = "assets/sprites/equipment/weapons/hacha.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.12]  # EPIC_AXE
+kind        = "weapon_melee"
+name        = "Hacha Epica"
+min_value   = 9
+max_value   = 21
+mana_cost   = 0
+range_tiles = 1
+sprite      = "assets/sprites/equipment/weapons/hacha_epica.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.3]   # HAMMER
+kind        = "weapon_melee"
+name        = "Martillo"
+min_value   = 6
+max_value   = 16
+mana_cost   = 0
+range_tiles = 1
+sprite      = "assets/sprites/equipment/weapons/martillo.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.13]  # EPIC_HAMMER
+kind        = "weapon_melee"
+name        = "Martillo Epico"
+min_value   = 9
+max_value   = 22
+mana_cost   = 0
+range_tiles = 1
+sprite      = "assets/sprites/equipment/weapons/martillo_epico.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.14]  # LEGENDARY_HAMMER
+kind        = "weapon_melee"
+name        = "Martillo Legendario"
+min_value   = 12
+max_value   = 28
+mana_cost   = 0
+range_tiles = 1
+sprite      = "assets/sprites/equipment/weapons/martillo_legendario.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+# ── Armas a distancia físicas ────────────────────────────────
+[item.4]   # SIMPLE_BOW
+kind        = "weapon_ranged"
+name        = "Arco Simple"
+min_value   = 3
+max_value   = 10
+mana_cost   = 0
+range_tiles = 6
+sprite      = "assets/sprites/equipment/weapons/arco_simple.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.15]  # AMETHYST_BOW
+kind        = "weapon_ranged"
+name        = "Arco Amatista"
+min_value   = 5
+max_value   = 13
+mana_cost   = 0
+range_tiles = 7
+sprite      = "assets/sprites/equipment/weapons/arco_amatista.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.5]   # COMPOUND_BOW
+kind        = "weapon_ranged"
+name        = "Arco Compuesto"
+min_value   = 5
+max_value   = 14
+mana_cost   = 0
+range_tiles = 8
+sprite      = "assets/sprites/equipment/weapons/arco_compuesto.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.16]  # INFERNAL_BOW
+kind        = "weapon_ranged"
+name        = "Arco Infernal"
+min_value   = 8
+max_value   = 19
+mana_cost   = 0
+range_tiles = 8
+sprite      = "assets/sprites/equipment/weapons/arco_infernal.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+# ── Armas mágicas ────────────────────────────────────────────
+[item.6]   # ELVEN_FLUTE
+kind        = "weapon_magic"
+name        = "Flauta Elfica"
+min_value   = 4
+max_value   = 9
+mana_cost   = 5
+range_tiles = 6
+sprite      = "assets/sprites/equipment/weapons/flauta_elfica.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.8]   # ASH_STICK
+kind        = "weapon_magic"
+name        = "Vara Magica"
+min_value   = 6
+max_value   = 13
+mana_cost   = 8
+range_tiles = 5
+sprite      = "assets/sprites/equipment/weapons/vara_magica.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.19]  # QUARTZ_STICK
+kind        = "weapon_magic"
+name        = "Vara de Cuarzo"
+min_value   = 8
+max_value   = 16
+mana_cost   = 10
+range_tiles = 6
+sprite      = "assets/sprites/equipment/weapons/vara_cuarzo.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.23]  # MISTLETOE_STICK
+kind        = "weapon_magic"
+name        = "Vara de Muerdago"
+min_value   = 10
+max_value   = 20
+mana_cost   = 12
+range_tiles = 6
+sprite      = "assets/sprites/equipment/weapons/vara_muerdago.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.7]   # GEMMED_STAFF
+kind        = "weapon_magic"
+name        = "Baculo Engarzado"
+min_value   = 10
+max_value   = 22
+mana_cost   = 12
+range_tiles = 6
+sprite      = "assets/sprites/equipment/weapons/baculo_engarzado.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.17]  # EGYPTIAN_STAFF
+kind        = "weapon_magic"
+name        = "Baculo Egipcio"
+min_value   = 12
+max_value   = 26
+mana_cost   = 14
+range_tiles = 7
+sprite      = "assets/sprites/equipment/weapons/baculo_egipcio.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.18]  # SKELETAL_STAFF
+kind        = "weapon_magic"
+name        = "Baculo Esqueletico"
+min_value   = 14
+max_value   = 30
+mana_cost   = 16
+range_tiles = 7
+sprite      = "assets/sprites/equipment/weapons/baculo_esqueletico.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+# ── Armaduras ────────────────────────────────────────────────
+[item.10]  # LEATHER_ARMOR  (Tunica de Clerigo)
+kind        = "armor"
+name        = "Tunica de Clerigo"
+min_value   = 1
+max_value   = 4
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/armor/clerigo_blanco.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 64
+sprite_h    = 96
+
+[item.24]  # CLERIC_BLACK_ARMOR
+kind        = "armor"
+name        = "Tunica Negra"
+min_value   = 2
+max_value   = 5
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/armor/clerigo_negro.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 64
+sprite_h    = 96
+
+[item.25]  # MAGE_COMMON_ARMOR
+kind        = "armor"
+name        = "Ropa de Mago"
+min_value   = 1
+max_value   = 4
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/armor/mago_comun.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 64
+sprite_h    = 96
+
+[item.26]  # MAGE_ROYAL_ARMOR
+kind        = "armor"
+name        = "Mago Real"
+min_value   = 3
+max_value   = 7
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/armor/mago_real.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 64
+sprite_h    = 96
+
+[item.11]  # PLATE_ARMOR  (Guerrero Ejecutor)
+kind        = "armor"
+name        = "Guerrero Ejecutor"
+min_value   = 4
+max_value   = 9
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/armor/guerrero_ejecutor.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 64
+sprite_h    = 96
+
+[item.27]  # WARRIOR_EPIC_ARMOR
+kind        = "armor"
+name        = "Guerrero Epico"
+min_value   = 6
+max_value   = 12
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/armor/guerrero_epico.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 64
+sprite_h    = 96
+
+[item.28]  # PALADIN_MAGIC_ARMOR
+kind        = "armor"
+name        = "Paladin Magico"
+min_value   = 5
+max_value   = 11
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/armor/paladin_magico.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 64
+sprite_h    = 96
+
+[item.29]  # PALADIN_ROYAL_ARMOR
+kind        = "armor"
+name        = "Paladin Real"
+min_value   = 7
+max_value   = 14
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/armor/paladin_real.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 64
+sprite_h    = 96
+
+# ── Cascos ───────────────────────────────────────────────────
+[item.20]  # HOOD
+kind        = "helmet"
+name        = "Capucha"
+min_value   = 1
+max_value   = 4
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/helmet/capucha.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.21]  # IRON_HELMET
+kind        = "helmet"
+name        = "Casco de Hierro"
+min_value   = 4
+max_value   = 8
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/helmet/casco_de_hierro.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.22]  # MAGIC_HAT
+kind        = "helmet"
+name        = "Sombrero Magico"
+min_value   = 4
+max_value   = 12
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/helmet/sombrero_magico.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+# ── Escudos ──────────────────────────────────────────────────
+[item.30]  # TURTLE_SHIELD
+kind        = "shield"
+name        = "Escudo Tortuga"
+min_value   = 1
+max_value   = 2
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/shield/escudo_tortuga.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.31]  # IRON_SHIELD
+kind        = "shield"
+name        = "Escudo de Hierro"
+min_value   = 1
+max_value   = 4
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/shield/escudo_hierro.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.32]  # BOCA_SHIELD
+kind        = "shield"
+name        = "Escudo Boca"
+min_value   = 4
+max_value   = 9
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/equipment/shield/escudo_boca.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+# ── Pociones ─────────────────────────────────────────────────
+[item.40]  # HEALTH_POTION
+kind        = "potion"
+name        = "Pocion de Vida"
+min_value   = 30
+max_value   = 30
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/items/pocion_vida.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+[item.41]  # MANA_POTION
+kind        = "potion"
+name        = "Pocion de Mana"
+min_value   = 30
+max_value   = 30
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/items/pocion_mana.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32
+
+# ── Oro ──────────────────────────────────────────────────────
+[item.50]  # GOLD_PILE
+kind        = "gold"
+name        = "Oro"
+min_value   = 0
+max_value   = 0
+mana_cost   = 0
+range_tiles = 0
+sprite      = "assets/sprites/items/oro.png"
+sprite_x    = 0
+sprite_y    = 0
+sprite_w    = 32
+sprite_h    = 32

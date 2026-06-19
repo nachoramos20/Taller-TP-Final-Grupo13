@@ -1,87 +1,41 @@
 #include "Items.h"
-#include <unordered_map>
+#include "GameConfig.h"
 #include <stdexcept>
-
-static const std::unordered_map<uint8_t, ItemDef>& catalog() {
-    static const std::unordered_map<uint8_t, ItemDef> c = {
-        // id, kind, name, min_dmg, max_dmg, mana_cost, range_tiles
-
-        // Armas cuerpo a cuerpo (sin mana, rango 1)
-        {(uint8_t)ItemId::SWORD,         {ItemId::SWORD,         ItemKind::WEAPON_MELEE,  "Espada",              4, 12,  0, 1}},
-        {(uint8_t)ItemId::DARK_SWORD,    {ItemId::DARK_SWORD,    ItemKind::WEAPON_MELEE,  "Espada Oscura",       7, 17,  0, 1}},
-        {(uint8_t)ItemId::AXE,           {ItemId::AXE,           ItemKind::WEAPON_MELEE,  "Hacha",               5, 14,  0, 1}},
-        {(uint8_t)ItemId::EPIC_AXE,      {ItemId::EPIC_AXE,      ItemKind::WEAPON_MELEE,  "Hacha Epica",         9, 21,  0, 1}},
-        {(uint8_t)ItemId::HAMMER,        {ItemId::HAMMER,        ItemKind::WEAPON_MELEE,  "Martillo",            6, 16,  0, 1}},
-        {(uint8_t)ItemId::EPIC_HAMMER,   {ItemId::EPIC_HAMMER,   ItemKind::WEAPON_MELEE,  "Martillo Epico",      9, 22,  0, 1}},
-        {(uint8_t)ItemId::LEGENDARY_HAMMER,{ItemId::LEGENDARY_HAMMER,ItemKind::WEAPON_MELEE,"Martillo Legendario",12, 28, 0, 1}},
-
-        // Armas a distancia físicas (sin mana)
-        {(uint8_t)ItemId::SIMPLE_BOW,    {ItemId::SIMPLE_BOW,    ItemKind::WEAPON_RANGED, "Arco Simple",         3, 10,  0, 6}},
-        {(uint8_t)ItemId::AMETHYST_BOW,  {ItemId::AMETHYST_BOW,  ItemKind::WEAPON_RANGED, "Arco Amatista",       5, 13,  0, 7}},
-        {(uint8_t)ItemId::COMPOUND_BOW,  {ItemId::COMPOUND_BOW,  ItemKind::WEAPON_RANGED, "Arco Compuesto",      5, 14,  0, 8}},
-        {(uint8_t)ItemId::INFERNAL_BOW,  {ItemId::INFERNAL_BOW,  ItemKind::WEAPON_RANGED, "Arco Infernal",       8, 19,  0, 8}},
-
-        // Armas mágicas (consumen mana en ataque básico, habilitan hechizos)
-        {(uint8_t)ItemId::ELVEN_FLUTE,   {ItemId::ELVEN_FLUTE,   ItemKind::WEAPON_MAGIC,  "Flauta Élfica",       4,  9,  5, 6}},
-        {(uint8_t)ItemId::ASH_STICK,     {ItemId::ASH_STICK,     ItemKind::WEAPON_MAGIC,  "Vara Mágica",         6, 13,  8, 5}},
-        {(uint8_t)ItemId::QUARTZ_STICK,  {ItemId::QUARTZ_STICK,  ItemKind::WEAPON_MAGIC,  "Vara de Cuarzo",      8, 16, 10, 6}},
-        {(uint8_t)ItemId::MISTLETOE_STICK,{ItemId::MISTLETOE_STICK,ItemKind::WEAPON_MAGIC,"Vara de Muerdago",   10, 20, 12, 6}},
-        {(uint8_t)ItemId::GEMMED_STAFF,  {ItemId::GEMMED_STAFF,  ItemKind::WEAPON_MAGIC,  "Báculo Engarzado",    10, 22, 12, 6}},
-        {(uint8_t)ItemId::EGYPTIAN_STAFF,{ItemId::EGYPTIAN_STAFF,ItemKind::WEAPON_MAGIC,  "Báculo Egipcio",      12, 26, 14, 7}},
-        {(uint8_t)ItemId::SKELETAL_STAFF,{ItemId::SKELETAL_STAFF,ItemKind::WEAPON_MAGIC,  "Báculo Esqueletico",  14, 30, 16, 7}},
-
-        // Armaduras
-        {(uint8_t)ItemId::LEATHER_ARMOR, {ItemId::LEATHER_ARMOR, ItemKind::ARMOR,  "Tunica de Clerigo",   1,  4, 0, 0}},
-        {(uint8_t)ItemId::CLERIC_BLACK_ARMOR,{ItemId::CLERIC_BLACK_ARMOR,ItemKind::ARMOR,"Tunica Negra",  2,  5, 0, 0}},
-        {(uint8_t)ItemId::MAGE_COMMON_ARMOR,{ItemId::MAGE_COMMON_ARMOR,ItemKind::ARMOR,"Ropa de Mago",    1,  4, 0, 0}},
-        {(uint8_t)ItemId::MAGE_ROYAL_ARMOR,{ItemId::MAGE_ROYAL_ARMOR,ItemKind::ARMOR,"Mago Real",         3,  7, 0, 0}},
-        {(uint8_t)ItemId::PLATE_ARMOR,   {ItemId::PLATE_ARMOR,   ItemKind::ARMOR,  "Guerrero Ejecutor",  4,  9, 0, 0}},
-        {(uint8_t)ItemId::WARRIOR_EPIC_ARMOR,{ItemId::WARRIOR_EPIC_ARMOR,ItemKind::ARMOR,"Guerrero Epico",6, 12, 0, 0}},
-        {(uint8_t)ItemId::PALADIN_MAGIC_ARMOR,{ItemId::PALADIN_MAGIC_ARMOR,ItemKind::ARMOR,"Paladin Magico",5, 11, 0, 0}},
-        {(uint8_t)ItemId::PALADIN_ROYAL_ARMOR,{ItemId::PALADIN_ROYAL_ARMOR,ItemKind::ARMOR,"Paladin Real", 7, 14, 0, 0}},
-
-        // Cascos
-        {(uint8_t)ItemId::HOOD,          {ItemId::HOOD,          ItemKind::HELMET, "Capucha",             1,  4, 0, 0}},
-        {(uint8_t)ItemId::IRON_HELMET,   {ItemId::IRON_HELMET,   ItemKind::HELMET, "Casco de Hierro",     4,  8, 0, 0}},
-        {(uint8_t)ItemId::MAGIC_HAT,     {ItemId::MAGIC_HAT,     ItemKind::HELMET, "Sombrero Mágico",     4, 12, 0, 0}},
-
-        // Escudos
-        {(uint8_t)ItemId::TURTLE_SHIELD, {ItemId::TURTLE_SHIELD, ItemKind::SHIELD, "Escudo Tortuga",      1,  2, 0, 0}},
-        {(uint8_t)ItemId::IRON_SHIELD,   {ItemId::IRON_SHIELD,   ItemKind::SHIELD, "Escudo de Hierro",    1,  4, 0, 0}},
-        {(uint8_t)ItemId::BOCA_SHIELD,   {ItemId::BOCA_SHIELD,   ItemKind::SHIELD, "Escudo Boca",         4,  9, 0, 0}},
-
-        // Pociones
-        {(uint8_t)ItemId::HEALTH_POTION, {ItemId::HEALTH_POTION, ItemKind::POTION, "Poción de Vida",     30, 30, 0, 0}},
-        {(uint8_t)ItemId::MANA_POTION,   {ItemId::MANA_POTION,   ItemKind::POTION, "Poción de Maná",     30, 30, 0, 0}},
-
-        // Oro
-        {(uint8_t)ItemId::GOLD_PILE,     {ItemId::GOLD_PILE,     ItemKind::GOLD,   "Oro",                 0,  0, 0, 0}},
-    };
-    return c;
-}
 
 namespace Items {
 
 const ItemDef& get(ItemId id) {
-    auto it = catalog().find(static_cast<uint8_t>(id));
-    if (it == catalog().end()) throw std::runtime_error("ItemId desconocido");
-    return it->second;
+    // Convertimos ItemConfig → ItemDef on-demand con un cache estático.
+    // La primera vez que se pide un ítem, se construye el ItemDef y se cachea.
+    static std::unordered_map<uint8_t, ItemDef> cache;
+    uint8_t raw = static_cast<uint8_t>(id);
+
+    auto it = cache.find(raw);
+    if (it != cache.end()) return it->second;
+
+    const GameConfig& cfg = GameConfig::get();
+    if (!cfg.item_exists(id)) throw std::runtime_error("ItemId desconocido");
+
+    const ItemConfig& ic = cfg.item(id);
+    ItemDef def;
+    def.id          = ic.id;
+    def.kind        = ic.kind;
+    def.name        = ic.name;
+    def.min_value   = ic.min_value;
+    def.max_value   = ic.max_value;
+    def.mana_cost   = ic.mana_cost;
+    def.range_tiles = ic.range_tiles;
+
+    cache[raw] = def;
+    return cache[raw];
 }
 
 bool exists(ItemId id) {
-    return catalog().count(static_cast<uint8_t>(id)) > 0;
+    return GameConfig::get().item_exists(id);
 }
 
 EquipSlot equip_slot_for(ItemKind kind) {
-    switch (kind) {
-        case ItemKind::WEAPON_MELEE:
-        case ItemKind::WEAPON_RANGED:
-        case ItemKind::WEAPON_MAGIC:  return EquipSlot::WEAPON;
-        case ItemKind::ARMOR:         return EquipSlot::ARMOR;
-        case ItemKind::HELMET:        return EquipSlot::HELMET;
-        case ItemKind::SHIELD:        return EquipSlot::SHIELD;
-        default: throw std::runtime_error("Item no equipable");
-    }
+    return GameConfig::get().equip_slot_for(kind);
 }
 
 } // namespace Items

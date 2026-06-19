@@ -1,0 +1,191 @@
+# ============================================================
+# npcs.toml — Catálogo de NPCs del juego
+#
+# Campos:
+#   name             : nombre visible
+#   max_hp           : vida máxima
+#   dmg_min/max      : daño mínimo/máximo por ataque
+#   defense_min/max  : defensa mínima/máxima
+#   attack_range     : distancia máxima de ataque (tiles)
+#   move_cooldown    : ticks entre movimientos
+#   attack_cooldown  : ticks entre ataques
+#   exp_reward       : EXP fija al matar
+#   gold_min/max     : rango de oro al matar
+#   is_service       : true = NPC de servicio (no combate)
+#   sprite           : ruta al png del NPC
+#   sprite_w/h       : tamaño del frame del sprite
+#   drop_items       : lista de ItemId que puede dropear
+# ============================================================
+
+# ── Enemigos ─────────────────────────────────────────────────
+[npc.1]   # GOBLIN
+name            = "Goblin"
+max_hp          = 40
+dmg_min         = 3
+dmg_max         = 8
+defense_min     = 0
+defense_max     = 2
+attack_range    = 1
+move_cooldown   = 20
+attack_cooldown = 30
+exp_reward      = 50
+gold_min        = 3
+gold_max        = 12
+is_service      = false
+sprite          = "assets/npcs/goblin/duende_ladron.png"
+sprite_w        = 64
+sprite_h        = 64
+drop_items      = [20, 1]   # HOOD=20, SWORD=1
+
+[npc.2]   # SKELETON
+name            = "Esqueleto"
+max_hp          = 60
+dmg_min         = 5
+dmg_max         = 11
+defense_min     = 1
+defense_max     = 3
+attack_range    = 1
+move_cooldown   = 18
+attack_cooldown = 28
+exp_reward      = 80
+gold_min        = 5
+gold_max        = 20
+is_service      = false
+sprite          = "assets/npcs/skeleton/esqueleto_oscuro.png"
+sprite_w        = 64
+sprite_h        = 64
+drop_items      = [21, 2]   # IRON_HELMET=21, AXE=2
+
+[npc.3]   # ZOMBIE
+name            = "Zombie"
+max_hp          = 90
+dmg_min         = 6
+dmg_max         = 12
+defense_min     = 1
+defense_max     = 3
+attack_range    = 1
+move_cooldown   = 30
+attack_cooldown = 32
+exp_reward      = 100
+gold_min        = 6
+gold_max        = 25
+is_service      = false
+sprite          = "assets/npcs/zombie/zombie_comun.png"
+sprite_w        = 64
+sprite_h        = 64
+drop_items      = [10]      # LEATHER_ARMOR=10
+
+[npc.4]   # SPIDER
+name            = "Arana"
+max_hp          = 50
+dmg_min         = 4
+dmg_max         = 10
+defense_min     = 0
+defense_max     = 2
+attack_range    = 1
+move_cooldown   = 12
+attack_cooldown = 24
+exp_reward      = 70
+gold_min        = 2
+gold_max        = 8
+is_service      = false
+sprite          = "assets/npcs/spider/araña_comun.png"
+sprite_w        = 64
+sprite_h        = 64
+drop_items      = [40]      # HEALTH_POTION=40
+
+[npc.5]   # ORC
+name            = "Orco"
+max_hp          = 140
+dmg_min         = 9
+dmg_max         = 18
+defense_min     = 2
+defense_max     = 5
+attack_range    = 1
+move_cooldown   = 22
+attack_cooldown = 30
+exp_reward      = 180
+gold_min        = 10
+gold_max        = 40
+is_service      = false
+sprite          = "assets/npcs/orc/orco_errante.png"
+sprite_w        = 64
+sprite_h        = 64
+drop_items      = [31, 3]   # IRON_SHIELD=31, HAMMER=3
+
+[npc.6]   # GOLEM
+name            = "Golem"
+max_hp          = 250
+dmg_min         = 12
+dmg_max         = 24
+defense_min     = 4
+defense_max     = 8
+attack_range    = 1
+move_cooldown   = 26
+attack_cooldown = 36
+exp_reward      = 400
+gold_min        = 25
+gold_max        = 80
+is_service      = false
+sprite          = "assets/npcs/golem/golem_tierra.png"
+sprite_w        = 64
+sprite_h        = 64
+drop_items      = [11, 31]  # PLATE_ARMOR=11, IRON_SHIELD=31
+
+# ── NPCs de servicio ─────────────────────────────────────────
+[npc.7]   # MERCHANT
+name            = "Comerciante"
+max_hp          = 9999
+dmg_min         = 0
+dmg_max         = 0
+defense_min     = 0
+defense_max     = 0
+attack_range    = 0
+move_cooldown   = 0
+attack_cooldown = 0
+exp_reward      = 0
+gold_min        = 0
+gold_max        = 0
+is_service      = true
+sprite          = "assets/npcs/comerciante/comerciante_ciudad.png"
+sprite_w        = 64
+sprite_h        = 64
+drop_items      = []
+
+[npc.8]   # BANKER
+name            = "Banquero"
+max_hp          = 9999
+dmg_min         = 0
+dmg_max         = 0
+defense_min     = 0
+defense_max     = 0
+attack_range    = 0
+move_cooldown   = 0
+attack_cooldown = 0
+exp_reward      = 0
+gold_min        = 0
+gold_max        = 0
+is_service      = true
+sprite          = "assets/npcs/banquero/banquero_ciudad.png"
+sprite_w        = 64
+sprite_h        = 64
+drop_items      = []
+
+[npc.9]   # PRIEST
+name            = "Sacerdote"
+max_hp          = 9999
+dmg_min         = 0
+dmg_max         = 0
+defense_min     = 0
+defense_max     = 0
+attack_range    = 0
+move_cooldown   = 0
+attack_cooldown = 0
+exp_reward      = 0
+gold_min        = 0
+gold_max        = 0
+is_service      = true
+sprite          = "assets/npcs/sacerdote/sacerdote_ciudad.png"
+sprite_w        = 64
+sprite_h        = 64
+drop_items      = []

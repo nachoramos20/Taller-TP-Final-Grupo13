@@ -5,6 +5,7 @@
 #include "game/ServerGameLoop.h"
 #include "game/QueueMonitor.h"
 #include "game/PersistenceMonitor.h"
+#include "game/GameConfig.h"
 #include "../common/queue.h"
 #include "game/PersistenceThread.h"
 #include "game/MapaBuilder.h"
@@ -17,6 +18,8 @@ int main(int argc, char* argv[]) {
 
     try {
         std::string port = argv[1];
+
+        GameConfig::get().load("config");
 
         Queue<std::shared_ptr<ServerCommand>> command_queue;
         QueueMonitor queue_monitor;

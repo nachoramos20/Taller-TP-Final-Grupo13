@@ -1,0 +1,126 @@
+# ============================================================
+# spells.toml — Catálogo de hechizos por clase
+#
+# Campos:
+#   name            : nombre visible del hechizo
+#   class           : clase que puede usarlo (1=Mago, 2=Clerigo, 3=Paladin)
+#   mana_cost       : mana consumido al lanzar
+#   dmg_multiplier  : multiplicador sobre el daño base del arma
+#   flat_bonus      : daño plano adicional (antes del bonus de INT)
+#   range           : alcance máximo en tiles (manhattan)
+#   sprite          : path del spritesheet de animación
+#   sprite_frames   : cantidad de frames de la animación
+#   sprite_w        : ancho de cada frame (px)
+#   sprite_h        : alto de cada frame (px)
+# ============================================================
+
+# ── Hechizos del Mago (class=1) ──────────────────────────────
+[spell.1]   # BURST
+name           = "Explosion"
+class          = 1
+mana_cost      = 9
+dmg_multiplier = 4.5
+flat_bonus     = 50
+range          = 8
+sprite         = "assets/sprites/spells/explosion.png"
+sprite_frames  = 7
+sprite_w       = 96
+sprite_h       = 96
+
+[spell.2]   # POISON_AREA
+name           = "Area de veneno"
+class          = 1
+mana_cost      = 18
+dmg_multiplier = 3.0
+flat_bonus     = 30
+range          = 6
+sprite         = "assets/sprites/spells/veneno.png"
+sprite_frames  = 6
+sprite_w       = 96
+sprite_h       = 96
+
+[spell.3]   # SKULL_EXPLOSION
+name           = "Explosion calaverica"
+class          = 1
+mana_cost      = 32
+dmg_multiplier = 2.0
+flat_bonus     = 10
+range          = 6
+sprite         = "assets/sprites/spells/calavera.png"
+sprite_frames  = 8
+sprite_w       = 96
+sprite_h       = 96
+
+# ── Hechizos del Clerigo (class=2) ───────────────────────────
+[spell.4]   # ICE_ORB
+name           = "Orbe de hielo"
+class          = 2
+mana_cost      = 8
+dmg_multiplier = 2.8
+flat_bonus     = 25
+range          = 5
+sprite         = "assets/sprites/spells/hielo.png"
+sprite_frames  = 6
+sprite_w       = 96
+sprite_h       = 96
+
+[spell.5]   # GRAVITATIONAL_TORNADO
+name           = "Tornado gravitatorio"
+class          = 2
+mana_cost      = 22
+dmg_multiplier = 2.0
+flat_bonus     = 8
+range          = 5
+sprite         = "assets/sprites/spells/tornado.png"
+sprite_frames  = 8
+sprite_w       = 96
+sprite_h       = 96
+
+[spell.6]   # THUNDERSTORM
+name           = "Tormenta electrica"
+class          = 2
+mana_cost      = 38
+dmg_multiplier = 3.5
+flat_bonus     = 60
+range          = 6
+sprite         = "assets/sprites/spells/rayo.png"
+sprite_frames  = 7
+sprite_w       = 96
+sprite_h       = 96
+
+# ── Hechizos del Paladin (class=3) ───────────────────────────
+[spell.7]   # ORB_OF_EMPTINESS
+name           = "Orbe de vacio"
+class          = 3
+mana_cost      = 10
+dmg_multiplier = 2.5
+flat_bonus     = 20
+range          = 4
+sprite         = "assets/sprites/spells/vacio.png"
+sprite_frames  = 6
+sprite_w       = 96
+sprite_h       = 96
+
+[spell.8]   # VACUUM_GAP
+name           = "Brecha de vacio"
+class          = 3
+mana_cost      = 22
+dmg_multiplier = 3.2
+flat_bonus     = 45
+range          = 4
+sprite         = "assets/sprites/spells/brecha.png"
+sprite_frames  = 8
+sprite_w       = 96
+sprite_h       = 96
+
+[spell.9]   # TORNADO_OF_DARKNESS
+name           = "Tornado de oscuridad"
+class          = 3
+mana_cost      = 40
+dmg_multiplier = 1.8
+flat_bonus     = 6
+range          = 2
+sprite         = "assets/sprites/spells/oscuridad.png"
+sprite_frames  = 7
+sprite_w       = 96
+sprite_h       = 96
