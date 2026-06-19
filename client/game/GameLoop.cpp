@@ -293,28 +293,45 @@ void GameLoop::play_attack_sound(uint8_t weapon_item, uint16_t x, uint16_t y) {
         "assets/sounds/effects/combat/golpe_con_arma_2.wav",
         "assets/sounds/effects/combat/apunalada.wav",
     };
-    static const std::vector<std::string> disparo = {
-        "assets/sounds/effects/combat/flecha.wav",
-        "assets/sounds/effects/combat/disparo.wav",
-        "assets/sounds/effects/combat/disparo_3.wav",
+    static const std::vector<std::string> flecha = {"assets/sounds/effects/combat/flecha.wav"};
+    static const std::vector<std::string> flecha_magica = {"assets/sounds/effects/combat/flecha_magica.wav"};
+    static const std::vector<std::string> curar = {
+        "assets/sounds/effects/magic/sonido_como_de_curacion_divina.wav",
+        "assets/sounds/effects/magic/sonido_como_de_curacion_divina_2.wav",
     };
-    static const std::vector<std::string> disparo_magico = {
-        "assets/sounds/effects/combat/flecha_magica.wav",
+    static const std::vector<std::string> misil = {
+        "assets/sounds/effects/magic/sonido_de_onda.wav",
+        "assets/sounds/effects/magic/sonido_de_onda_2.wav",
     };
+    static const std::vector<std::string> explosion = {"assets/sounds/effects/combat/explosion.wav"};
 
     float dist = dist_to_player_tiles(x, y);
     ItemId item = static_cast<ItemId>(weapon_item);
     if (weapon_item == 0) {
         _audio->play_random_effect_at(generico, dist);
-    } else if (weapon_is_magic(weapon_item)) {
-        _audio->play_random_effect_at(disparo_magico, dist);
-    } else if (weapon_is_ranged(weapon_item)) {
-        _audio->play_random_effect_at(disparo, dist);
-    } else if (item == ItemId::SWORD || item == ItemId::DARK_SWORD) {
+    } else if (item == ItemId::SIMPLE_BOW) {
+        // Arco simple: flecha común.
+        _audio->play_random_effect_at(flecha, dist);
+    } else if (item == ItemId::COMPOUND_BOW) {
+        // Arco compuesto, más poderoso: flecha mágica.
+        _audio->play_random_effect_at(flecha_magica, dist);
+    } else if (item == ItemId::ASH_STICK) {
+        // Vara de fresno: hechizo "flecha mágica".
+        _audio->play_random_effect_at(flecha_magica, dist);
+    } else if (item == ItemId::ELVEN_FLUTE) {
+        // Flauta élfica: hechizo "curar".
+        _audio->play_random_effect_at(curar, dist);
+    } else if (item == ItemId::NUDOSO_STAFF) {
+        // Báculo nudoso: hechizo "misil".
+        _audio->play_random_effect_at(misil, dist);
+    } else if (item == ItemId::GEMMED_STAFF) {
+        // Báculo engarzado: hechizo "explosion".
+        _audio->play_random_effect_at(explosion, dist);
+    } else if (item == ItemId::SWORD) {
         _audio->play_random_effect_at(espada, dist);
-    } else if (item == ItemId::AXE || item == ItemId::EPIC_AXE) {
+    } else if (item == ItemId::AXE) {
         _audio->play_random_effect_at(hacha, dist);
-    } else if (item == ItemId::HAMMER || item == ItemId::EPIC_HAMMER || item == ItemId::LEGENDARY_HAMMER) {
+    } else if (item == ItemId::HAMMER) {
         _audio->play_random_effect_at(martillo, dist);
     } else {
         _audio->play_random_effect_at(generico, dist);
@@ -370,7 +387,7 @@ void GameLoop::play_npc_death_sound(uint8_t npc_sprite_id, uint16_t x, uint16_t 
     uint8_t my_weapon = (_eq_wpn != 0xFF && _eq_wpn < SnapshotDTO::INVENTORY_SIZE)
                          ? _inv[_eq_wpn] : 0;
     ItemId item = static_cast<ItemId>(my_weapon);
-    if (item == ItemId::SWORD || item == ItemId::DARK_SWORD)
+    if (item == ItemId::SWORD)
         _audio->play_random_effect_at(golpe_final, dist);
 }
 
@@ -417,29 +434,20 @@ void GameLoop::load_item_textures() {
     // Mapeo ItemId → path del sprite basado en el catálogo del servidor
     static const std::vector<std::pair<uint8_t, std::string>> item_paths = {
         // Armas cuerpo a cuerpo
-        { static_cast<uint8_t>(ItemId::SWORD),              "assets/sprites/weapons/sword/espada_comun.png" },
-        { static_cast<uint8_t>(ItemId::DARK_SWORD),         "assets/sprites/weapons/sword/espada_oscura.png" },
-        { static_cast<uint8_t>(ItemId::AXE),                "assets/sprites/weapons/axe/hacha_hierro.png" },
-        { static_cast<uint8_t>(ItemId::EPIC_AXE),           "assets/sprites/weapons/axe/hacha_epica.png" },
-        { static_cast<uint8_t>(ItemId::HAMMER),             "assets/sprites/weapons/hammer/martillo_comun.png" },
-        { static_cast<uint8_t>(ItemId::EPIC_HAMMER),        "assets/sprites/weapons/hammer/martillo_epico.png" },
-        { static_cast<uint8_t>(ItemId::LEGENDARY_HAMMER),   "assets/sprites/weapons/hammer/martillo_legendario.png" },
-        
+        { static_cast<uint8_t>(ItemId::SWORD),              "assets/sprites/weapons/sword/espada.png" },
+        { static_cast<uint8_t>(ItemId::AXE),                "assets/sprites/weapons/axe/hacha.png" },
+        { static_cast<uint8_t>(ItemId::HAMMER),             "assets/sprites/weapons/hammer/martillo.png" },
+
         // Armas a distancia
-        { static_cast<uint8_t>(ItemId::SIMPLE_BOW),         "assets/sprites/weapons/bow/arco_simple_madera.png" },
-        { static_cast<uint8_t>(ItemId::AMETHYST_BOW),       "assets/sprites/weapons/bow/arco_simple_amatista.png" },
-        { static_cast<uint8_t>(ItemId::COMPOUND_BOW),       "assets/sprites/weapons/bow/arco_compuesto_oro.png" },
-        { static_cast<uint8_t>(ItemId::INFERNAL_BOW),       "assets/sprites/weapons/bow/arco_compuesto_infernal.png" },
-        
+        { static_cast<uint8_t>(ItemId::SIMPLE_BOW),         "assets/sprites/weapons/bow/arco_simple.png" },
+        { static_cast<uint8_t>(ItemId::COMPOUND_BOW),       "assets/sprites/weapons/bow/arco_compuesto.png" },
+
         // Armas mágicas
         { static_cast<uint8_t>(ItemId::ELVEN_FLUTE),        "assets/sprites/weapons/flute/flauta_elfica.png" },
         { static_cast<uint8_t>(ItemId::ASH_STICK),          "assets/sprites/weapons/stick/vara_fresno.png" },
-        { static_cast<uint8_t>(ItemId::QUARTZ_STICK),       "assets/sprites/weapons/stick/vara_cuarzo.png" },
-        { static_cast<uint8_t>(ItemId::MISTLETOE_STICK),    "assets/sprites/weapons/stick/vara_muerdago.png" },
-        { static_cast<uint8_t>(ItemId::GEMMED_STAFF),       "assets/sprites/weapons/staff/baculo_esmeralda.png" },
-        { static_cast<uint8_t>(ItemId::EGYPTIAN_STAFF),     "assets/sprites/weapons/staff/baculo_egipcio.png" },
-        { static_cast<uint8_t>(ItemId::SKELETAL_STAFF),     "assets/sprites/weapons/staff/baculo_esqueletico.png" },
-        
+        { static_cast<uint8_t>(ItemId::NUDOSO_STAFF),       "assets/sprites/weapons/staff/baculo_nudoso.png" },
+        { static_cast<uint8_t>(ItemId::GEMMED_STAFF),       "assets/sprites/weapons/staff/baculo_engarzado.png" },
+
         // Armaduras
         { static_cast<uint8_t>(ItemId::LEATHER_ARMOR),      "assets/sprites/equipment/armor/clerigo_blanco.png" },
         { static_cast<uint8_t>(ItemId::CLERIC_BLACK_ARMOR), "assets/sprites/equipment/armor/clerigo_negro.png" },
@@ -982,24 +990,15 @@ void GameLoop::render_entities() {
     };
 
     static const std::unordered_map<uint8_t, std::string> weapon_paths = {
-        { static_cast<uint8_t>(ItemId::SWORD),              "assets/sprites/weapons/sword/espada_comun.png" },
-        { static_cast<uint8_t>(ItemId::DARK_SWORD),         "assets/sprites/weapons/sword/espada_oscura.png" },
-        { static_cast<uint8_t>(ItemId::AXE),                "assets/sprites/weapons/axe/hacha_hierro.png" },
-        { static_cast<uint8_t>(ItemId::EPIC_AXE),           "assets/sprites/weapons/axe/hacha_epica.png" },
-        { static_cast<uint8_t>(ItemId::HAMMER),             "assets/sprites/weapons/hammer/martillo_comun.png" },
-        { static_cast<uint8_t>(ItemId::EPIC_HAMMER),        "assets/sprites/weapons/hammer/martillo_epico.png" },
-        { static_cast<uint8_t>(ItemId::LEGENDARY_HAMMER),   "assets/sprites/weapons/hammer/martillo_legendario.png" },
-        { static_cast<uint8_t>(ItemId::SIMPLE_BOW),         "assets/sprites/weapons/bow/arco_simple_madera.png" },
-        { static_cast<uint8_t>(ItemId::AMETHYST_BOW),       "assets/sprites/weapons/bow/arco_simple_amatista.png" },
-        { static_cast<uint8_t>(ItemId::COMPOUND_BOW),       "assets/sprites/weapons/bow/arco_compuesto_oro.png" },
-        { static_cast<uint8_t>(ItemId::INFERNAL_BOW),       "assets/sprites/weapons/bow/arco_compuesto_infernal.png" },
+        { static_cast<uint8_t>(ItemId::SWORD),              "assets/sprites/weapons/sword/espada.png" },
+        { static_cast<uint8_t>(ItemId::AXE),                "assets/sprites/weapons/axe/hacha.png" },
+        { static_cast<uint8_t>(ItemId::HAMMER),             "assets/sprites/weapons/hammer/martillo.png" },
+        { static_cast<uint8_t>(ItemId::SIMPLE_BOW),         "assets/sprites/weapons/bow/arco_simple.png" },
+        { static_cast<uint8_t>(ItemId::COMPOUND_BOW),       "assets/sprites/weapons/bow/arco_compuesto.png" },
         { static_cast<uint8_t>(ItemId::ELVEN_FLUTE),        "assets/sprites/weapons/flute/flauta_elfica.png" },
         { static_cast<uint8_t>(ItemId::ASH_STICK),          "assets/sprites/weapons/stick/vara_fresno.png" },
-        { static_cast<uint8_t>(ItemId::QUARTZ_STICK),       "assets/sprites/weapons/stick/vara_cuarzo.png" },
-        { static_cast<uint8_t>(ItemId::MISTLETOE_STICK),    "assets/sprites/weapons/stick/vara_muerdago.png" },
-        { static_cast<uint8_t>(ItemId::GEMMED_STAFF),       "assets/sprites/weapons/staff/baculo_esmeralda.png" },
-        { static_cast<uint8_t>(ItemId::EGYPTIAN_STAFF),     "assets/sprites/weapons/staff/baculo_egipcio.png" },
-        { static_cast<uint8_t>(ItemId::SKELETAL_STAFF),     "assets/sprites/weapons/staff/baculo_esqueletico.png" },
+        { static_cast<uint8_t>(ItemId::NUDOSO_STAFF),       "assets/sprites/weapons/staff/baculo_nudoso.png" },
+        { static_cast<uint8_t>(ItemId::GEMMED_STAFF),       "assets/sprites/weapons/staff/baculo_engarzado.png" },
     };
 
     for (const auto& e : _last_entities) {
@@ -1011,14 +1010,15 @@ void GameLoop::render_entities() {
             if (e.sprite_id == static_cast<uint8_t>(ItemId::BLOOD_STAIN)) continue;
 
             static const std::unordered_map<uint8_t, std::vector<std::string>> item_variants = {
-                {  1, { "assets/sprites/weapons/sword/espada_comun.png", "assets/sprites/weapons/sword/espada_oscura.png" }},
-                {  2, { "assets/sprites/weapons/axe/hacha_hierro.png", "assets/sprites/weapons/axe/hacha_epica.png" }},
-                {  3, { "assets/sprites/weapons/hammer/martillo_comun.png", "assets/sprites/weapons/hammer/martillo_epico.png", "assets/sprites/weapons/hammer/martillo_legendario.png" }},
-                {  4, { "assets/sprites/weapons/bow/arco_simple_madera.png", "assets/sprites/weapons/bow/arco_simple_amatista.png" }},
-                {  5, { "assets/sprites/weapons/bow/arco_compuesto_oro.png", "assets/sprites/weapons/bow/arco_compuesto_infernal.png" }},
+                {  1, { "assets/sprites/weapons/sword/espada.png" }},
+                {  2, { "assets/sprites/weapons/axe/hacha.png" }},
+                {  3, { "assets/sprites/weapons/hammer/martillo.png" }},
+                {  4, { "assets/sprites/weapons/bow/arco_simple.png" }},
+                {  5, { "assets/sprites/weapons/bow/arco_compuesto.png" }},
                 {  6, { "assets/sprites/weapons/flute/flauta_elfica.png" }},
-                {  7, { "assets/sprites/weapons/staff/baculo_esmeralda.png", "assets/sprites/weapons/staff/baculo_egipcio.png", "assets/sprites/weapons/staff/baculo_esqueletico.png" }},
-                {  8, { "assets/sprites/weapons/stick/vara_fresno.png", "assets/sprites/weapons/stick/vara_cuarzo.png", "assets/sprites/weapons/stick/vara_muerdago.png" }},
+                {  7, { "assets/sprites/weapons/staff/baculo_engarzado.png" }},
+                {  8, { "assets/sprites/weapons/stick/vara_fresno.png" }},
+                {  9, { "assets/sprites/weapons/staff/baculo_nudoso.png" }},
                 { 10, { "assets/sprites/equipment/armor/clerigo_blanco.png", "assets/sprites/equipment/armor/clerigo_negro.png", "assets/sprites/equipment/armor/mago_comun.png", "assets/sprites/equipment/armor/mago_real.png" }},
                 { 11, { "assets/sprites/equipment/armor/guerrero_ejecutor.png", "assets/sprites/equipment/armor/guerrero_epico.png", "assets/sprites/equipment/armor/paladin_magico.png", "assets/sprites/equipment/armor/paladin_real.png" }},
                 { 30, { "assets/sprites/equipment/shield/escudo_tortuga.png" }},

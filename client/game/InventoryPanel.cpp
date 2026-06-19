@@ -10,28 +10,19 @@ const char* InventoryPanel::item_name(uint8_t id) {
     switch (id) {
         // Armas cuerpo a cuerpo
         case static_cast<uint8_t>(ItemId::SWORD):              return "Espada";
-        case static_cast<uint8_t>(ItemId::DARK_SWORD):         return "Espada Oscura";
         case static_cast<uint8_t>(ItemId::AXE):                return "Hacha";
-        case static_cast<uint8_t>(ItemId::EPIC_AXE):           return "Hacha Épica";
         case static_cast<uint8_t>(ItemId::HAMMER):             return "Martillo";
-        case static_cast<uint8_t>(ItemId::EPIC_HAMMER):        return "Martillo Épico";
-        case static_cast<uint8_t>(ItemId::LEGENDARY_HAMMER):   return "Martillo Legendario";
-        
+
         // Armas a distancia
         case static_cast<uint8_t>(ItemId::SIMPLE_BOW):         return "Arco Simple";
-        case static_cast<uint8_t>(ItemId::AMETHYST_BOW):       return "Arco Amatista";
         case static_cast<uint8_t>(ItemId::COMPOUND_BOW):       return "Arco Compuesto";
-        case static_cast<uint8_t>(ItemId::INFERNAL_BOW):       return "Arco Infernal";
-        
+
         // Armas mágicas
         case static_cast<uint8_t>(ItemId::ELVEN_FLUTE):        return "Flauta Élfica";
         case static_cast<uint8_t>(ItemId::ASH_STICK):          return "Vara de Fresno";
-        case static_cast<uint8_t>(ItemId::QUARTZ_STICK):       return "Vara de Cuarzo";
-        case static_cast<uint8_t>(ItemId::MISTLETOE_STICK):    return "Vara de Muérdago";
+        case static_cast<uint8_t>(ItemId::NUDOSO_STAFF):       return "Báculo Nudoso";
         case static_cast<uint8_t>(ItemId::GEMMED_STAFF):       return "Báculo Engarzado";
-        case static_cast<uint8_t>(ItemId::EGYPTIAN_STAFF):     return "Báculo Egipcio";
-        case static_cast<uint8_t>(ItemId::SKELETAL_STAFF):     return "Báculo Esquelético";
-        
+
         // Armaduras
         case static_cast<uint8_t>(ItemId::LEATHER_ARMOR):      return "Túnica de Clérigo";
         case static_cast<uint8_t>(ItemId::CLERIC_BLACK_ARMOR): return "Túnica Negra";
@@ -68,28 +59,19 @@ const char* InventoryPanel::item_abbr(uint8_t id) {
     switch (id) {
         // Armas cuerpo a cuerpo
         case static_cast<uint8_t>(ItemId::SWORD):              return "ESP";
-        case static_cast<uint8_t>(ItemId::DARK_SWORD):         return "EOS";
         case static_cast<uint8_t>(ItemId::AXE):                return "HAC";
-        case static_cast<uint8_t>(ItemId::EPIC_AXE):           return "HAE";
         case static_cast<uint8_t>(ItemId::HAMMER):             return "MAR";
-        case static_cast<uint8_t>(ItemId::EPIC_HAMMER):        return "MAE";
-        case static_cast<uint8_t>(ItemId::LEGENDARY_HAMMER):   return "MAL";
-        
+
         // Armas a distancia
         case static_cast<uint8_t>(ItemId::SIMPLE_BOW):         return "ARS";
-        case static_cast<uint8_t>(ItemId::AMETHYST_BOW):       return "ARA";
         case static_cast<uint8_t>(ItemId::COMPOUND_BOW):       return "ARC";
-        case static_cast<uint8_t>(ItemId::INFERNAL_BOW):       return "ARI";
-        
+
         // Armas mágicas
         case static_cast<uint8_t>(ItemId::ELVEN_FLUTE):        return "FLA";
         case static_cast<uint8_t>(ItemId::ASH_STICK):          return "VFR";
-        case static_cast<uint8_t>(ItemId::QUARTZ_STICK):       return "VCU";
-        case static_cast<uint8_t>(ItemId::MISTLETOE_STICK):    return "VMU";
+        case static_cast<uint8_t>(ItemId::NUDOSO_STAFF):       return "BNU";
         case static_cast<uint8_t>(ItemId::GEMMED_STAFF):       return "BAE";
-        case static_cast<uint8_t>(ItemId::EGYPTIAN_STAFF):     return "BAG";
-        case static_cast<uint8_t>(ItemId::SKELETAL_STAFF):     return "BES";
-        
+
         // Armaduras
         case static_cast<uint8_t>(ItemId::LEATHER_ARMOR):      return "TCL";
         case static_cast<uint8_t>(ItemId::CLERIC_BLACK_ARMOR): return "TNE";
@@ -127,19 +109,19 @@ const char* InventoryPanel::item_kind(uint8_t id) {
     uint8_t item_enum = id;
     
     // Clasificar por tipo de item según Items.h
-    // WEAPON_MELEE: 1-7
-    if (item_enum >= static_cast<uint8_t>(ItemId::SWORD) && 
-        item_enum <= static_cast<uint8_t>(ItemId::LEGENDARY_HAMMER))
+    // WEAPON_MELEE: 1-3
+    if (item_enum >= static_cast<uint8_t>(ItemId::SWORD) &&
+        item_enum <= static_cast<uint8_t>(ItemId::HAMMER))
         return "Arma Melee";
-    
-    // WEAPON_RANGED: 8-11
-    if (item_enum >= static_cast<uint8_t>(ItemId::SIMPLE_BOW) && 
-        item_enum <= static_cast<uint8_t>(ItemId::INFERNAL_BOW))
+
+    // WEAPON_RANGED: 4-5
+    if (item_enum >= static_cast<uint8_t>(ItemId::SIMPLE_BOW) &&
+        item_enum <= static_cast<uint8_t>(ItemId::COMPOUND_BOW))
         return "Arma Ranged";
-    
-    // WEAPON_MAGIC: 12-18
-    if (item_enum >= static_cast<uint8_t>(ItemId::ELVEN_FLUTE) && 
-        item_enum <= static_cast<uint8_t>(ItemId::SKELETAL_STAFF))
+
+    // WEAPON_MAGIC: 6-9
+    if (item_enum >= static_cast<uint8_t>(ItemId::ELVEN_FLUTE) &&
+        item_enum <= static_cast<uint8_t>(ItemId::NUDOSO_STAFF))
         return "Arma Mágica";
     
     // ARMOR: 19-26

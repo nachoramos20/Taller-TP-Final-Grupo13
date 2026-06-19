@@ -55,23 +55,14 @@ enum class ItemId : uint8_t {
     SWORD             = 1,
     AXE               = 2,
     HAMMER            = 3,
-    DARK_SWORD        = 9,
-    EPIC_AXE          = 12,
-    EPIC_HAMMER       = 13,
-    LEGENDARY_HAMMER  = 14,
-    // Armas a distancia físicas
+    // Armas a distancia físicas (flechas infinitas)
     SIMPLE_BOW        = 4,
     COMPOUND_BOW      = 5,
-    AMETHYST_BOW      = 15,
-    INFERNAL_BOW      = 16,
-    // Armas mágicas  (consumen mana en ataque básico Y habilitan hechizos)
-    ELVEN_FLUTE       = 6,
-    GEMMED_STAFF      = 7,
-    ASH_STICK        = 8,   // vara mágica — nuevo
-    EGYPTIAN_STAFF    = 17,
-    SKELETAL_STAFF    = 18,
-    QUARTZ_STICK      = 19,
-    MISTLETOE_STICK   = 23,
+    // Armas mágicas (consumen mana en ataque básico Y habilitan su hechizo)
+    ELVEN_FLUTE       = 6,   // "curar"
+    GEMMED_STAFF      = 7,   // "explosion"
+    ASH_STICK         = 8,   // "flecha mágica"
+    NUDOSO_STAFF      = 9,   // "misil"
     // Armaduras
     LEATHER_ARMOR     = 10,
     PLATE_ARMOR       = 11,
@@ -132,11 +123,8 @@ inline bool npc_is_service(NpcId id) {
 inline bool weapon_enables_spells(uint8_t item_id) {
     return item_id == static_cast<uint8_t>(ItemId::ELVEN_FLUTE)  ||
            item_id == static_cast<uint8_t>(ItemId::GEMMED_STAFF) ||
-           item_id == static_cast<uint8_t>(ItemId::ASH_STICK) ||
-           item_id == static_cast<uint8_t>(ItemId::EGYPTIAN_STAFF) ||
-           item_id == static_cast<uint8_t>(ItemId::SKELETAL_STAFF) ||
-           item_id == static_cast<uint8_t>(ItemId::QUARTZ_STICK) ||
-           item_id == static_cast<uint8_t>(ItemId::MISTLETOE_STICK);
+           item_id == static_cast<uint8_t>(ItemId::ASH_STICK)    ||
+           item_id == static_cast<uint8_t>(ItemId::NUDOSO_STAFF);
 }
 
 // Devuelve true si el item es un arma mágica que consume mana en ataque básico
@@ -149,7 +137,5 @@ inline bool weapon_is_magic(uint8_t item_id) {
 inline bool weapon_is_ranged(uint8_t item_id) {
     return item_id == static_cast<uint8_t>(ItemId::SIMPLE_BOW)   ||
            item_id == static_cast<uint8_t>(ItemId::COMPOUND_BOW) ||
-           item_id == static_cast<uint8_t>(ItemId::AMETHYST_BOW) ||
-           item_id == static_cast<uint8_t>(ItemId::INFERNAL_BOW) ||
            weapon_is_magic(item_id);
 }

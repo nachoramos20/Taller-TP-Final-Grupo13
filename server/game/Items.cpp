@@ -7,28 +7,19 @@ static const std::unordered_map<uint8_t, ItemDef>& catalog() {
         // id, kind, name, min_dmg, max_dmg, mana_cost, range_tiles
 
         // Armas cuerpo a cuerpo (sin mana, rango 1)
-        {(uint8_t)ItemId::SWORD,         {ItemId::SWORD,         ItemKind::WEAPON_MELEE,  "Espada",              4, 12,  0, 1}},
-        {(uint8_t)ItemId::DARK_SWORD,    {ItemId::DARK_SWORD,    ItemKind::WEAPON_MELEE,  "Espada Oscura",       7, 17,  0, 1}},
-        {(uint8_t)ItemId::AXE,           {ItemId::AXE,           ItemKind::WEAPON_MELEE,  "Hacha",               5, 14,  0, 1}},
-        {(uint8_t)ItemId::EPIC_AXE,      {ItemId::EPIC_AXE,      ItemKind::WEAPON_MELEE,  "Hacha Epica",         9, 21,  0, 1}},
-        {(uint8_t)ItemId::HAMMER,        {ItemId::HAMMER,        ItemKind::WEAPON_MELEE,  "Martillo",            6, 16,  0, 1}},
-        {(uint8_t)ItemId::EPIC_HAMMER,   {ItemId::EPIC_HAMMER,   ItemKind::WEAPON_MELEE,  "Martillo Epico",      9, 22,  0, 1}},
-        {(uint8_t)ItemId::LEGENDARY_HAMMER,{ItemId::LEGENDARY_HAMMER,ItemKind::WEAPON_MELEE,"Martillo Legendario",12, 28, 0, 1}},
+        {(uint8_t)ItemId::SWORD,         {ItemId::SWORD,         ItemKind::WEAPON_MELEE,  "Espada",              2,  5,  0, 1}},
+        {(uint8_t)ItemId::AXE,           {ItemId::AXE,           ItemKind::WEAPON_MELEE,  "Hacha",               4,  5,  0, 1}},
+        {(uint8_t)ItemId::HAMMER,        {ItemId::HAMMER,        ItemKind::WEAPON_MELEE,  "Martillo",            1,  9,  0, 1}},
 
-        // Armas a distancia físicas (sin mana)
-        {(uint8_t)ItemId::SIMPLE_BOW,    {ItemId::SIMPLE_BOW,    ItemKind::WEAPON_RANGED, "Arco Simple",         3, 10,  0, 6}},
-        {(uint8_t)ItemId::AMETHYST_BOW,  {ItemId::AMETHYST_BOW,  ItemKind::WEAPON_RANGED, "Arco Amatista",       5, 13,  0, 7}},
-        {(uint8_t)ItemId::COMPOUND_BOW,  {ItemId::COMPOUND_BOW,  ItemKind::WEAPON_RANGED, "Arco Compuesto",      5, 14,  0, 8}},
-        {(uint8_t)ItemId::INFERNAL_BOW,  {ItemId::INFERNAL_BOW,  ItemKind::WEAPON_RANGED, "Arco Infernal",       8, 19,  0, 8}},
+        // Armas a distancia físicas (sin mana, flechas infinitas)
+        {(uint8_t)ItemId::SIMPLE_BOW,    {ItemId::SIMPLE_BOW,    ItemKind::WEAPON_RANGED, "Arco Simple",         1,  4,  0, 6}},
+        {(uint8_t)ItemId::COMPOUND_BOW,  {ItemId::COMPOUND_BOW,  ItemKind::WEAPON_RANGED, "Arco Compuesto",      4, 16,  0, 8}},
 
-        // Armas mágicas (consumen mana en ataque básico, habilitan hechizos)
-        {(uint8_t)ItemId::ELVEN_FLUTE,   {ItemId::ELVEN_FLUTE,   ItemKind::WEAPON_MAGIC,  "Flauta Élfica",       4,  9,  5, 6}},
-        {(uint8_t)ItemId::ASH_STICK,     {ItemId::ASH_STICK,     ItemKind::WEAPON_MAGIC,  "Vara Mágica",         6, 13,  8, 5}},
-        {(uint8_t)ItemId::QUARTZ_STICK,  {ItemId::QUARTZ_STICK,  ItemKind::WEAPON_MAGIC,  "Vara de Cuarzo",      8, 16, 10, 6}},
-        {(uint8_t)ItemId::MISTLETOE_STICK,{ItemId::MISTLETOE_STICK,ItemKind::WEAPON_MAGIC,"Vara de Muerdago",   10, 20, 12, 6}},
-        {(uint8_t)ItemId::GEMMED_STAFF,  {ItemId::GEMMED_STAFF,  ItemKind::WEAPON_MAGIC,  "Báculo Engarzado",    10, 22, 12, 6}},
-        {(uint8_t)ItemId::EGYPTIAN_STAFF,{ItemId::EGYPTIAN_STAFF,ItemKind::WEAPON_MAGIC,  "Báculo Egipcio",      12, 26, 14, 7}},
-        {(uint8_t)ItemId::SKELETAL_STAFF,{ItemId::SKELETAL_STAFF,ItemKind::WEAPON_MAGIC,  "Báculo Esqueletico",  14, 30, 16, 7}},
+        // Armas mágicas (consumen mana en ataque básico, habilitan su hechizo)
+        {(uint8_t)ItemId::ASH_STICK,     {ItemId::ASH_STICK,     ItemKind::WEAPON_MAGIC,  "Vara de Fresno",      2,  4,   5, 5}}, // "flecha magica"
+        {(uint8_t)ItemId::ELVEN_FLUTE,   {ItemId::ELVEN_FLUTE,   ItemKind::WEAPON_MAGIC,  "Flauta Élfica",      20, 40, 100, 6}}, // "curar"
+        {(uint8_t)ItemId::NUDOSO_STAFF,  {ItemId::NUDOSO_STAFF,  ItemKind::WEAPON_MAGIC,  "Báculo Nudoso",       4,  8,  15, 6}}, // "misil"
+        {(uint8_t)ItemId::GEMMED_STAFF,  {ItemId::GEMMED_STAFF,  ItemKind::WEAPON_MAGIC,  "Báculo Engarzado",    8, 20,  30, 6}}, // "explosion"
 
         // Armaduras
         {(uint8_t)ItemId::LEATHER_ARMOR, {ItemId::LEATHER_ARMOR, ItemKind::ARMOR,  "Tunica de Clerigo",   1,  4, 0, 0}},
