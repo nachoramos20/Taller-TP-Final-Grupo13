@@ -49,7 +49,7 @@ base_int   = 24
 base_const = 16
 
 # ── Clases ───────────────────────────────────────────────────
-# can_use_weapon_melee / ranged / armor_heavy: 0 = no, 1 = sí
+# can_use_weapon_melee / ranged / armor_heavy: false / true
 # can_meditate: si la clase puede recuperar MP meditando
 [class.1]   # MAGE = 1
 name                 = "Mago"
@@ -87,67 +87,41 @@ can_use_weapon_ranged= true
 can_use_armor_heavy  = true
 can_meditate         = false
 
-# ── Progresión de nivel ──────────────────────────────────────
-[leveling]
-# EXP requerida para subir al nivel N = exp_base * N^exp_exponent
-exp_base     = 1000.0
-exp_exponent = 1.8
+# ── Módulo Único de Ecuaciones y Balance ─────────────────────
+# Centraliza todas las variables numéricas utilizadas por las fórmulas del juego
+[formulas]
+# Progresión de nivel (EXP requerida = exp_base * N^exp_exponent)
+exp_base               = 1000.0
+exp_exponent           = 1.8
 
-# Nivel mínimo para PvP y delta máximo entre niveles
-pvp_min_level   = 12
-pvp_max_level_delta = 10
+# Reglas Fair-Play PvP
+pvp_min_level          = 12
+pvp_max_level_delta    = 10
 
-# ── Fórmulas de combate ──────────────────────────────────────
-[combat]
-# Ataque base: fuerza * rand(dmin, dmax)
-# No hay constante adicional — el escalado lo hacen las armas
-
-# Daño crítico: multiplica el daño resultante por este factor
-crit_multiplier = 2.0
-
-# Probabilidad de crítico (0.0–1.0)
-crit_chance = 0.05
-
-# Evasión: chance = min(dodge_cap, agility * dodge_per_agi)
-dodge_cap     = 0.30
-dodge_per_agi = 0.005
-
-# Cooldown de ataque (ticks)
+# Mecánicas de Combate Físico y Evasión
+crit_multiplier        = 2.0
+crit_chance            = 0.05
+dodge_cap              = 0.30
+dodge_per_agi          = 0.005
 attack_cooldown_melee  = 10
 attack_cooldown_spell  = 12
 
-# ── Fórmulas de EXP ──────────────────────────────────────────
-[exp_formulas]
-# EXP por daño hecho: damage * max(other_lvl - my_lvl + base_factor, 0)
+# Sistema de Recompensas de Experiencia (Daño y Kills)
 per_damage_base_factor = 10
+kill_exp_rand_max      = 0.1
 
-# EXP por kill: rand(0, kill_exp_rand_max) * other_max_hp * factor
-kill_exp_rand_max = 0.1
+# Sistema de Drops de NPCs (Rangos de Oro y Probabilidades Acumuladas)
+gold_drop_min_frac     = 0.01
+gold_drop_max_frac     = 0.20
+drop_chance_nothing    = 0.80   # [0.00, 0.80) → Nada
+drop_chance_gold       = 0.88   # [0.80, 0.88) → Oro
+drop_chance_potion     = 0.89   # [0.88, 0.89) → Poción
+drop_chance_item       = 0.90   # [0.89, 0.90) → Ítem de drop_table
 
-# ── Drops de oro de NPCs ─────────────────────────────────────
-[npc_drops]
-# Oro por kill: rand(0, gold_rand_max) * npc_max_hp
-gold_rand_max = 0.2
+# Regeneración por Meditación (MP por tick)
+mp_regen_per_tick      = 2
 
-# Probabilidades acumuladas de tipo de drop (0–1)
-drop_chance_nothing  = 0.80   # [0.00, 0.80) → nada
-drop_chance_gold     = 0.88   # [0.80, 0.88) → oro
-drop_chance_potion   = 0.89   # [0.88, 0.89) → poción
-drop_chance_item     = 0.90   # [0.89, 0.90) → item de drop_table
-
-# Rango de oro al dropear (como fracción de max_hp del NPC)
-gold_drop_min_frac = 0.01
-gold_drop_max_frac = 0.20
-
-# ── Meditación ───────────────────────────────────────────────
-[meditation]
-# MP recuperado por tick mientras se medita (plano)
-mp_regen_per_tick = 2
-
-# ── Resurrección ─────────────────────────────────────────────
-[resurrection]
-# Coordenadas de spawn de ciudad (sacerdote)
-respawn_x = 40
-respawn_y = 25
-# HP restaurado al resucitar (fracción del max_hp)
-hp_fraction = 0.25
+# Mecánica de Resurrección (Sacerdote de la ciudad)
+respawn_x              = 40
+respawn_y              = 25
+hp_fraction            = 0.25   # Fracción del max_hp restaurada
