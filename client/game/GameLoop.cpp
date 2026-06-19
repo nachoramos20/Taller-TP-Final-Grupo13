@@ -285,18 +285,17 @@ float GameLoop::dist_to_player_tiles(uint16_t x, uint16_t y) const {
 
 void GameLoop::play_attack_sound(uint8_t weapon_item, uint16_t x, uint16_t y) {
     if (!_audio) return;
-    static const std::vector<std::string> melee = {
-        "assets/sounds/effects/combat/espadazo.wav",
+    static const std::vector<std::string> espada = {"assets/sounds/effects/combat/espadazo.wav"};
+    static const std::vector<std::string> hacha   = {"assets/sounds/effects/combat/hachazo_y_golpe_de_clavado.wav"};
+    static const std::vector<std::string> martillo = {"assets/sounds/effects/combat/martillazo.wav"};
+    static const std::vector<std::string> generico = {
         "assets/sounds/effects/combat/golpe_con_arma.wav",
         "assets/sounds/effects/combat/golpe_con_arma_2.wav",
-        "assets/sounds/effects/combat/martillazos.wav",
-        "assets/sounds/effects/combat/hachazo_y_golpe_de_clavado.wav",
         "assets/sounds/effects/combat/apunalada.wav",
     };
     static const std::vector<std::string> disparo = {
         "assets/sounds/effects/combat/flecha.wav",
         "assets/sounds/effects/combat/disparo.wav",
-        "assets/sounds/effects/combat/disparo_2.wav",
         "assets/sounds/effects/combat/disparo_3.wav",
     };
     static const std::vector<std::string> disparo_magico = {
@@ -304,15 +303,21 @@ void GameLoop::play_attack_sound(uint8_t weapon_item, uint16_t x, uint16_t y) {
     };
 
     float dist = dist_to_player_tiles(x, y);
+    ItemId item = static_cast<ItemId>(weapon_item);
     if (weapon_item == 0) {
-        _audio->play_random_effect_at(melee, dist);
+        _audio->play_random_effect_at(generico, dist);
     } else if (weapon_is_magic(weapon_item)) {
         _audio->play_random_effect_at(disparo_magico, dist);
     } else if (weapon_is_ranged(weapon_item)) {
         _audio->play_random_effect_at(disparo, dist);
+    } else if (item == ItemId::SWORD || item == ItemId::DARK_SWORD) {
+        _audio->play_random_effect_at(espada, dist);
+    } else if (item == ItemId::AXE || item == ItemId::EPIC_AXE) {
+        _audio->play_random_effect_at(hacha, dist);
+    } else if (item == ItemId::HAMMER || item == ItemId::EPIC_HAMMER || item == ItemId::LEGENDARY_HAMMER) {
+        _audio->play_random_effect_at(martillo, dist);
     } else {
-        // Arma cuerpo a cuerpo (espada/hacha/martillo): sonido de golpe.
-        _audio->play_random_effect_at(melee, dist);
+        _audio->play_random_effect_at(generico, dist);
     }
 }
 
@@ -346,6 +351,10 @@ void GameLoop::play_npc_death_sound(uint8_t npc_sprite_id, uint16_t x, uint16_t 
     static const std::vector<std::string> zombie = {"assets/sounds/effects/creatures/zombie.wav"};
     static const std::vector<std::string> esqueleto = {"assets/sounds/effects/creatures/sonido_no_muerto.wav"};
 
+    static const std::vector<std::string> golpe_final = {
+        "assets/sounds/effects/combat/espadazo_y_sangre_cayendo.wav",
+    };
+
     float dist = dist_to_player_tiles(x, y);
     switch (static_cast<NpcId>(npc_sprite_id)) {
         case NpcId::ORC:      _audio->play_random_effect_at(orco, dist);     break;
@@ -356,6 +365,13 @@ void GameLoop::play_npc_death_sound(uint8_t npc_sprite_id, uint16_t x, uint16_t 
         case NpcId::GOLEM:    _audio->play_random_effect_at(bestia, dist);   break;
         default: break;
     }
+
+    // Golpe final con sangre: solo si tengo la espada equipada.
+    uint8_t my_weapon = (_eq_wpn != 0xFF && _eq_wpn < SnapshotDTO::INVENTORY_SIZE)
+                         ? _inv[_eq_wpn] : 0;
+    ItemId item = static_cast<ItemId>(my_weapon);
+    if (item == ItemId::SWORD || item == ItemId::DARK_SWORD)
+        _audio->play_random_effect_at(golpe_final, dist);
 }
 
 void GameLoop::play_player_death_sound(uint16_t x, uint16_t y) {
@@ -709,7 +725,7 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
     if (snap.messages) {
         for (const auto& m : *snap.messages) {
             if (_chat) _chat->add_message(m.text);
-            if (_audio && m.text.rfind("Compraste ", 0) == 0) {
+            if (_audio && (m.text.rfind("Compraste ", 0) == 0 || m.text.rfind("Vendiste ", 0) == 0)) {
                 static const std::vector<std::string> monedas = {
                     "assets/sounds/effects/economy/monedas.wav",
                 };
