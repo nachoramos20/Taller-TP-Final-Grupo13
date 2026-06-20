@@ -16,8 +16,9 @@ static constexpr int   MIN_EFFECT_VOLUME   = 0;
 static constexpr int   MAX_EFFECT_VOLUME   = 110;    
 static constexpr uint32_t EFFECT_COOLDOWN_MS = 80;   
 
-static constexpr int TOTAL_CHANNELS = 16;
-static constexpr int SPEECH_CHANNEL = 0;  
+static constexpr int TOTAL_CHANNELS  = 16;
+static constexpr int SPEECH_CHANNEL  = 0;  
+static constexpr int AMBIENT_CHANNEL = 1; 
 
 AudioManager::AudioManager() {
     if (Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == 0)
@@ -27,7 +28,7 @@ AudioManager::AudioManager() {
         throw std::runtime_error(std::string("Mix_OpenAudio: ") + Mix_GetError());
 
     Mix_AllocateChannels(TOTAL_CHANNELS);
-    Mix_ReserveChannels(1);
+    Mix_ReserveChannels(2);
 
     Mix_VolumeMusic(DEFAULT_MUSIC_VOLUME);
 }
@@ -36,6 +37,8 @@ AudioManager::~AudioManager() {
     for (auto& [path, chunk] : _chunk_cache)
         Mix_FreeChunk(chunk);
     for (auto& [path, chunk] : _speech_chunk_cache)
+        Mix_FreeChunk(chunk);
+    for (auto& [path, chunk] : _ambient_chunk_cache)
         Mix_FreeChunk(chunk);
     if (_music) Mix_FreeMusic(_music);
     Mix_CloseAudio();
@@ -67,9 +70,11 @@ Mix_Chunk* AudioManager::load_chunk(const std::string& path) {
     return chunk;
 }
 
-// Recorta ese silencio analizando la energía del audio, dejando un pequeño
-// margen para no comerse consonantes suaves.
-Mix_Chunk* AudioManager::trim_silence(Mix_Chunk* chunk) const {
+// Recorta ese silencio analizando la energía del audio. lead_pad_ms/
+// tail_pad_ms dejan un margen para no comerse el ataque/decaimiento del
+// sonido: para voz conviene generoso (no cortar consonantes), para un loop
+// ambiente conviene ajustado (que el empalme se note lo menos posible).
+Mix_Chunk* AudioManager::trim_silence(Mix_Chunk* chunk, uint32_t lead_pad_ms, uint32_t tail_pad_ms) const {
     if (!chunk || chunk->alen < 4) return chunk;
 
     int freq = 0, channels = 0;
@@ -80,8 +85,6 @@ Mix_Chunk* AudioManager::trim_silence(Mix_Chunk* chunk) const {
 
     static constexpr int16_t SILENCE_THRESHOLD = 50;   // umbral de amplitud (escala 0-32767)
     static constexpr uint32_t WINDOW_MS = 20;
-    static constexpr uint32_t LEAD_PAD_MS = 30;
-    static constexpr uint32_t TAIL_PAD_MS = 80;
 
     const auto* samples = reinterpret_cast<const int16_t*>(chunk->abuf);
     uint32_t total_samples = chunk->alen / sizeof(int16_t);
@@ -106,8 +109,8 @@ Mix_Chunk* AudioManager::trim_silence(Mix_Chunk* chunk) const {
     }
     if (first_loud == UINT32_MAX) return chunk;  // todo silencio: no tocar
 
-    uint32_t lead_pad   = static_cast<uint32_t>(freq) * LEAD_PAD_MS / 1000;
-    uint32_t tail_pad   = static_cast<uint32_t>(freq) * TAIL_PAD_MS / 1000;
+    uint32_t lead_pad   = static_cast<uint32_t>(freq) * lead_pad_ms / 1000;
+    uint32_t tail_pad   = static_cast<uint32_t>(freq) * tail_pad_ms / 1000;
     uint32_t start_frame = (first_loud > lead_pad) ? first_loud - lead_pad : 0;
     uint32_t end_frame   = std::min(total_frames, last_loud + tail_pad);
     if (end_frame <= start_frame || (start_frame == 0 && end_frame == total_frames))
@@ -138,9 +141,22 @@ Mix_Chunk* AudioManager::load_speech_chunk(const std::string& path) {
     Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
     if (!chunk) return nullptr;
 
-    chunk = trim_silence(chunk);
+    chunk = trim_silence(chunk, 30, 80);
 
     _speech_chunk_cache.emplace(path, chunk);
+    return chunk;
+}
+
+Mix_Chunk* AudioManager::load_ambient_chunk(const std::string& path) {
+    auto it = _ambient_chunk_cache.find(path);
+    if (it != _ambient_chunk_cache.end()) return it->second;
+
+    Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
+    if (!chunk) return nullptr;
+
+    chunk = trim_silence(chunk, 5, 5);  // margen mínimo: que el loop empalme casi sin corte
+
+    _ambient_chunk_cache.emplace(path, chunk);
     return chunk;
 }
 
@@ -226,6 +242,28 @@ void AudioManager::speak_random(const std::vector<std::string>& paths, float dis
     if (paths.empty()) return;
     const std::string& chosen = paths[static_cast<size_t>(rand()) % paths.size()];
     speak({chosen}, dist_tiles, gap_ms);
+}
+
+void AudioManager::set_ambient_loop(const std::string& path, float dist_tiles) {
+    if (dist_tiles > MAX_AUDIBLE_TILES) {
+        if (!_ambient_path.empty()) {
+            Mix_HaltChannel(AMBIENT_CHANNEL);
+            _ambient_path.clear();
+        }
+        return;
+    }
+
+    if (_ambient_path != path) {
+        Mix_Chunk* chunk = load_ambient_chunk(path);
+        if (!chunk) return;
+        Mix_HaltChannel(AMBIENT_CHANNEL);
+        Mix_PlayChannel(AMBIENT_CHANNEL, chunk, -1);  // loop infinito
+        _ambient_path = path;
+    }
+
+    float t = dist_tiles / MAX_AUDIBLE_TILES;  // 0 (cerca) .. 1 (limite audible)
+    int volume = static_cast<int>(MAX_EFFECT_VOLUME - t * (MAX_EFFECT_VOLUME - MIN_EFFECT_VOLUME));
+    Mix_Volume(AMBIENT_CHANNEL, volume);
 }
 
 void AudioManager::update() {

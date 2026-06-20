@@ -283,6 +283,37 @@ float GameLoop::dist_to_player_tiles(uint16_t x, uint16_t y) const {
     return std::sqrt(dx * dx + dy * dy);
 }
 
+// Busca el tile de agua más cercano al jugador en un radio acotado
+float GameLoop::dist_to_nearest_water_tiles() const {
+    static constexpr uint16_t FLOOR_AGUA      = 44;
+    static constexpr int      SEARCH_RADIUS   = 18;
+    static constexpr float    NOT_FOUND_DIST  = 999.0f;
+
+    if (!_map_loaded) return NOT_FOUND_DIST;
+
+    int map_w = _map.width;
+    int map_h = _map.height;
+    int px = _player.tile_x;
+    int py = _player.tile_y;
+
+    int x0 = std::max(0, px - SEARCH_RADIUS);
+    int x1 = std::min(map_w - 1, px + SEARCH_RADIUS);
+    int y0 = std::max(0, py - SEARCH_RADIUS);
+    int y1 = std::min(map_h - 1, py + SEARCH_RADIUS);
+
+    float best = NOT_FOUND_DIST;
+    for (int y = y0; y <= y1; ++y) {
+        for (int x = x0; x <= x1; ++x) {
+            if (_map.tiles[static_cast<size_t>(y) * map_w + x].floor_id != FLOOR_AGUA) continue;
+            float dx = static_cast<float>(x - px);
+            float dy = static_cast<float>(y - py);
+            float d = std::sqrt(dx * dx + dy * dy);
+            if (d < best) best = d;
+        }
+    }
+    return best;
+}
+
 void GameLoop::play_attack_sound(uint8_t weapon_item, uint16_t x, uint16_t y) {
     if (!_audio) return;
     static const std::vector<std::string> espada = {"assets/sounds/effects/combat/espadazo.wav"};
@@ -690,7 +721,11 @@ void GameLoop::update(float dt) {
     _player.update(dt);
     _camera.follow(_player);
     _pos_label->update(_player.tile_x, _player.tile_y);
-    if (_audio) _audio->update();
+    if (_audio) {
+        _audio->update();
+        static const std::string olas_del_mar = "assets/sounds/effects/ambient/mar_2.wav";
+        _audio->set_ambient_loop(olas_del_mar, dist_to_nearest_water_tiles());
+    }
 }
 
 void GameLoop::apply_map(const MapaDTO& map) {

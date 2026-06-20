@@ -45,6 +45,13 @@ public:
     // sola frase con variantes, p. ej. "lo pides lo tienes").
     void speak_random(const std::vector<std::string>& paths, float dist_tiles, uint32_t gap_ms = 200);
 
+    // Sonido ambiente continuo (p. ej. olas del mar): arranca en loop si no
+    // estaba sonando, ajusta el volumen según la distancia cada vez que se
+    // llama (así se escucha más fuerte a medida que el jugador se acerca) y
+    // lo corta solo si dist_tiles supera el rango audible. Pensado para
+    // llamarse todos los frames con la distancia actual al punto de interés.
+    void set_ambient_loop(const std::string& path, float dist_tiles);
+
     void update();
 
 private:
@@ -56,7 +63,8 @@ private:
 
     Mix_Chunk* load_chunk(const std::string& path);
     Mix_Chunk* load_speech_chunk(const std::string& path);
-    Mix_Chunk* trim_silence(Mix_Chunk* chunk) const;
+    Mix_Chunk* load_ambient_chunk(const std::string& path);
+    Mix_Chunk* trim_silence(Mix_Chunk* chunk, uint32_t lead_pad_ms, uint32_t tail_pad_ms) const;
     bool should_throttle(const std::string& path);
     void play_effect_now(const std::string& path, float dist_tiles);
     void play_speech_now(const std::string& path, float dist_tiles);
@@ -64,7 +72,9 @@ private:
 
     Mix_Music* _music = nullptr;
     std::unordered_map<std::string, Mix_Chunk*> _chunk_cache;
-    std::unordered_map<std::string, Mix_Chunk*> _speech_chunk_cache;  // version recortada (sin silencios)
+    std::unordered_map<std::string, Mix_Chunk*> _speech_chunk_cache;  
+    std::unordered_map<std::string, Mix_Chunk*> _ambient_chunk_cache;  
     std::unordered_map<std::string, uint32_t> _last_played_ms;
     std::vector<QueuedSpeech> _speech_queue;  // resto de la secuencia actual, pendiente
+    std::string _ambient_path;  // qué está sonando en el canal ambiente (vacío = nada)
 };

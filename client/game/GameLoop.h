@@ -96,6 +96,7 @@ private:
                           uint16_t to_x, uint16_t to_y, bool is_magic);
 
     float dist_to_player_tiles(uint16_t x, uint16_t y) const;
+    float dist_to_nearest_water_tiles() const;
     void play_attack_sound(uint8_t weapon_item, uint16_t x, uint16_t y);
     void play_spell_sound(uint8_t spell_id, uint16_t x, uint16_t y);
     void play_npc_death_sound(uint8_t npc_sprite_id, uint16_t entity_id, uint16_t x, uint16_t y);
