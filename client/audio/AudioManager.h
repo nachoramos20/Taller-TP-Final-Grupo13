@@ -30,13 +30,21 @@ public:
     void play_effect_at(const std::string& path, float dist_tiles);
 
     // Igual que play_effect_at pero elige un archivo al azar de la lista
-    // (para variantes de un mismo sonido, p. ej. voces de NPC).
+    // (para variantes de un mismo sonido, p. ej. sonidos de NPC al morir).
     void play_random_effect_at(const std::vector<std::string>& paths, float dist_tiles);
 
-    // Encola varias frases para que se reproduzcan una después de la otra
-    // (no superpuestas), p. ej. el saludo de varias líneas de un NPC.
-    // Hay que llamar a update() todos los frames para que avance la cola.
-    void queue_speech_sequence(const std::vector<std::string>& paths, float dist_tiles);
+    // Diálogo de NPC: corta de inmediato cualquier frase que esté sonando o
+    // pendiente (saludo, despedida, etc.) y empieza esta secuencia ya mismo.
+    // Usa un canal de audio reservado, así nunca pisa efectos de combate u
+    // otros sonidos. Hay que llamar a update() todos los frames para que las
+    // frases siguientes de la secuencia se vayan disparando en orden.
+    // gap_ms es la pausa entre una frase y la siguiente dentro de la secuencia.
+    void speak(const std::vector<std::string>& paths, float dist_tiles, uint32_t gap_ms = 200);
+
+    // Igual que speak pero elige un archivo al azar de la lista (para una
+    // sola frase con variantes, p. ej. "lo pides lo tienes").
+    void speak_random(const std::vector<std::string>& paths, float dist_tiles, uint32_t gap_ms = 200);
+
     void update();
 
 private:
@@ -47,12 +55,16 @@ private:
     };
 
     Mix_Chunk* load_chunk(const std::string& path);
+    Mix_Chunk* load_speech_chunk(const std::string& path);
+    Mix_Chunk* trim_silence(Mix_Chunk* chunk) const;
     bool should_throttle(const std::string& path);
     void play_effect_now(const std::string& path, float dist_tiles);
+    void play_speech_now(const std::string& path, float dist_tiles);
     uint32_t chunk_duration_ms(Mix_Chunk* chunk) const;
 
     Mix_Music* _music = nullptr;
     std::unordered_map<std::string, Mix_Chunk*> _chunk_cache;
+    std::unordered_map<std::string, Mix_Chunk*> _speech_chunk_cache;  // version recortada (sin silencios)
     std::unordered_map<std::string, uint32_t> _last_played_ms;
-    std::vector<QueuedSpeech> _speech_queue;
+    std::vector<QueuedSpeech> _speech_queue;  // resto de la secuencia actual, pendiente
 };

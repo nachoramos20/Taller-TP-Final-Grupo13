@@ -74,12 +74,12 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                 static const std::vector<std::string> busco = {
                     "assets/sounds/effects/npcs/comerciante/lo_pides_lo_tienes.wav",
                 };
-                _audio->play_random_effect_at(busco, dist);
+                _audio->speak_random(busco, dist);
             } else if (text.rfind("/comprar", 0) == 0) {
                 static const std::vector<std::string> elijo = {
                     "assets/sounds/effects/npcs/comerciante/una_gran_eleccion.wav",
                 };
-                _audio->play_random_effect_at(elijo, dist);
+                _audio->speak_random(elijo, dist);
             }
         }
 
@@ -92,12 +92,12 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                 static const std::vector<std::string> depositar = {
                     "assets/sounds/effects/npcs/banquero/cuidamos_sus_cosas_mejor_que_usted.wav",
                 };
-                _audio->play_random_effect_at(depositar, dist);
+                _audio->speak_random(depositar, dist);
             } else if (text.rfind("/retirar", 0) == 0) {
                 static const std::vector<std::string> retirar = {
                     "assets/sounds/effects/npcs/banquero/puede_confiar_en_nosotros.wav",
                 };
-                _audio->play_random_effect_at(retirar, dist);
+                _audio->speak_random(retirar, dist);
             }
         }
 
@@ -111,12 +111,12 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                     "assets/sounds/effects/npcs/sacerdote/orare_por_ti.wav",
                     "assets/sounds/effects/npcs/sacerdote/curar.wav",
                 };
-                _audio->queue_speech_sequence(curar, dist);
+                _audio->speak(curar, dist);
             } else if (text.rfind("/resucitar", 0) == 0) {
                 static const std::vector<std::string> resucitar = {
                     "assets/sounds/effects/npcs/sacerdote/resucitar_con_sacerdote.wav",
                 };
-                _audio->play_random_effect_at(resucitar, dist);
+                _audio->speak_random(resucitar, dist);
             }
         }
     });
@@ -729,13 +729,25 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
                 static const std::vector<std::string> vuelve_pronto = {
                     "assets/sounds/effects/npcs/comerciante/vuelve_pronto.wav",
                 };
-                _audio->play_random_effect_at(vuelve_pronto, 0.0f);
+                _audio->speak_random(vuelve_pronto, 0.0f);
             }
             _shop_npc_id = -1;
         }
     }
 
-    // Si me alejé del sacerdote con el que estaba hablando, despedida en 2 frases.
+    // me alejé del banquero pero no tiene saludo, asique si vuelvo a tocarlo debe darme saludo inical devuelta.
+    if (_bank_npc_id != -1) {
+        static constexpr float BANK_RANGE_TILES = 2.0f;
+        const EntityDTO* bank_npc = nullptr;
+        for (const auto& e : _last_entities)
+            if (e.entity_id == _bank_npc_id) { bank_npc = &e; break; }
+
+        bool left = (bank_npc == nullptr)
+                  || (dist_to_player_tiles(bank_npc->pos_x, bank_npc->pos_y) > BANK_RANGE_TILES);
+        if (left) _bank_npc_id = -1;
+    }
+
+    // Si me alejé del sacerdote con el que estaba hablando, tiene que dar despedida.
     if (_priest_npc_id != -1) {
         static constexpr float PRIEST_RANGE_TILES = 2.0f;
         const EntityDTO* priest_npc = nullptr;
@@ -750,7 +762,7 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
                     "assets/sounds/effects/npcs/sacerdote/ten_cuidado_ahi_fuera.wav",
                     "assets/sounds/effects/npcs/sacerdote/que_la_luz_guie_tu_camino.wav",
                 };
-                _audio->queue_speech_sequence(despedida, 0.0f);
+                _audio->speak(despedida, 0.0f);
             }
             _priest_npc_id = -1;
         }
@@ -1307,7 +1319,7 @@ void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
                         "assets/sounds/effects/npcs/comerciante/bienvenido_a_mi_tienda.wav",
                         "assets/sounds/effects/npcs/comerciante/como_puedo_ayudar.wav",
                     };
-                    _audio->queue_speech_sequence(saludo, dist_to_player_tiles(e.pos_x, e.pos_y));
+                    _audio->speak(saludo, dist_to_player_tiles(e.pos_x, e.pos_y));
                 }
             } else if (static_cast<NpcId>(e.sprite_id) == NpcId::BANKER) {
                 // si ya estoy hablando con este mismo banquero, no repetir el saludo.
@@ -1318,7 +1330,7 @@ void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
                         "assets/sounds/effects/npcs/banquero/bienvenido_al_banco.wav",
                         "assets/sounds/effects/npcs/banquero/que_transaccion_desea_realizar_hoy.wav",
                     };
-                    _audio->queue_speech_sequence(saludo, dist_to_player_tiles(e.pos_x, e.pos_y));
+                    _audio->speak(saludo, dist_to_player_tiles(e.pos_x, e.pos_y), 10);
                 }
             } else if (static_cast<NpcId>(e.sprite_id) == NpcId::PRIEST) {
                 bool already_talking = (_priest_npc_id == static_cast<int32_t>(e.entity_id));
@@ -1327,7 +1339,7 @@ void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
                     static const std::vector<std::string> saludo = {
                         "assets/sounds/effects/npcs/sacerdote/oigo_tus_plegarias.wav",
                     };
-                    _audio->play_random_effect_at(saludo, dist_to_player_tiles(e.pos_x, e.pos_y));
+                    _audio->speak_random(saludo, dist_to_player_tiles(e.pos_x, e.pos_y));
                 }
             }
         } else if (_stats && _stats->cast_mode_active() && _stats->selected_spell() != 0) {

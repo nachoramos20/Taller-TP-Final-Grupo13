@@ -1,7 +1,9 @@
 #include "AudioManager.h"
 #include <SDL.h>
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <stdexcept>
 
 static constexpr int MIXER_FREQUENCY = MIX_DEFAULT_FREQUENCY;
@@ -14,6 +16,9 @@ static constexpr int   MIN_EFFECT_VOLUME   = 0;
 static constexpr int   MAX_EFFECT_VOLUME   = 110;    
 static constexpr uint32_t EFFECT_COOLDOWN_MS = 80;   
 
+static constexpr int TOTAL_CHANNELS = 16;
+static constexpr int SPEECH_CHANNEL = 0;  
+
 AudioManager::AudioManager() {
     if (Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == 0)
         throw std::runtime_error(std::string("Mix_Init: ") + Mix_GetError());
@@ -21,11 +26,16 @@ AudioManager::AudioManager() {
     if (Mix_OpenAudio(MIXER_FREQUENCY, MIX_DEFAULT_FORMAT, MIXER_CHANNELS, MIXER_CHUNKSIZE) != 0)
         throw std::runtime_error(std::string("Mix_OpenAudio: ") + Mix_GetError());
 
+    Mix_AllocateChannels(TOTAL_CHANNELS);
+    Mix_ReserveChannels(1);
+
     Mix_VolumeMusic(DEFAULT_MUSIC_VOLUME);
 }
 
 AudioManager::~AudioManager() {
     for (auto& [path, chunk] : _chunk_cache)
+        Mix_FreeChunk(chunk);
+    for (auto& [path, chunk] : _speech_chunk_cache)
         Mix_FreeChunk(chunk);
     if (_music) Mix_FreeMusic(_music);
     Mix_CloseAudio();
@@ -54,6 +64,83 @@ Mix_Chunk* AudioManager::load_chunk(const std::string& path) {
     if (!chunk) return nullptr;
 
     _chunk_cache.emplace(path, chunk);
+    return chunk;
+}
+
+// Recorta ese silencio analizando la energía del audio, dejando un pequeño
+// margen para no comerse consonantes suaves.
+Mix_Chunk* AudioManager::trim_silence(Mix_Chunk* chunk) const {
+    if (!chunk || chunk->alen < 4) return chunk;
+
+    int freq = 0, channels = 0;
+    Uint16 format = 0;
+    if (Mix_QuerySpec(&freq, &format, &channels) == 0 || freq <= 0 || channels <= 0)
+        return chunk;
+    if (format != AUDIO_S16LSB && format != AUDIO_S16MSB) return chunk;  // solo soporta PCM de 16 bits
+
+    static constexpr int16_t SILENCE_THRESHOLD = 50;   // umbral de amplitud (escala 0-32767)
+    static constexpr uint32_t WINDOW_MS = 20;
+    static constexpr uint32_t LEAD_PAD_MS = 30;
+    static constexpr uint32_t TAIL_PAD_MS = 80;
+
+    const auto* samples = reinterpret_cast<const int16_t*>(chunk->abuf);
+    uint32_t total_samples = chunk->alen / sizeof(int16_t);
+    uint32_t total_frames  = total_samples / static_cast<uint32_t>(channels);
+    uint32_t window_frames = std::max<uint32_t>(1, static_cast<uint32_t>(freq) * WINDOW_MS / 1000);
+
+    uint32_t first_loud = UINT32_MAX, last_loud = 0;
+    for (uint32_t f = 0; f < total_frames; f += window_frames) {
+        uint32_t end_f = std::min(total_frames, f + window_frames);
+        int64_t sum_sq = 0;
+        uint32_t count = 0;
+        for (uint32_t s = f * channels; s < end_f * channels; ++s) {
+            sum_sq += static_cast<int64_t>(samples[s]) * samples[s];
+            ++count;
+        }
+        if (count == 0) continue;
+        double rms = std::sqrt(static_cast<double>(sum_sq) / count);
+        if (rms > SILENCE_THRESHOLD) {
+            if (first_loud == UINT32_MAX) first_loud = f;
+            last_loud = end_f;
+        }
+    }
+    if (first_loud == UINT32_MAX) return chunk;  // todo silencio: no tocar
+
+    uint32_t lead_pad   = static_cast<uint32_t>(freq) * LEAD_PAD_MS / 1000;
+    uint32_t tail_pad   = static_cast<uint32_t>(freq) * TAIL_PAD_MS / 1000;
+    uint32_t start_frame = (first_loud > lead_pad) ? first_loud - lead_pad : 0;
+    uint32_t end_frame   = std::min(total_frames, last_loud + tail_pad);
+    if (end_frame <= start_frame || (start_frame == 0 && end_frame == total_frames))
+        return chunk;  // nada para recortar
+
+    uint32_t frame_size = static_cast<uint32_t>(channels) * sizeof(int16_t);
+    uint32_t new_len = (end_frame - start_frame) * frame_size;
+
+    Uint8* new_buf = static_cast<Uint8*>(SDL_malloc(new_len));
+    if (!new_buf) return chunk;
+    std::memcpy(new_buf, chunk->abuf + start_frame * frame_size, new_len);
+
+    Mix_Chunk* trimmed = static_cast<Mix_Chunk*>(SDL_malloc(sizeof(Mix_Chunk)));
+    if (!trimmed) { SDL_free(new_buf); return chunk; }
+    trimmed->allocated = 1;
+    trimmed->abuf       = new_buf;
+    trimmed->alen       = new_len;
+    trimmed->volume     = chunk->volume;
+
+    Mix_FreeChunk(chunk);
+    return trimmed;
+}
+
+Mix_Chunk* AudioManager::load_speech_chunk(const std::string& path) {
+    auto it = _speech_chunk_cache.find(path);
+    if (it != _speech_chunk_cache.end()) return it->second;
+
+    Mix_Chunk* chunk = Mix_LoadWAV(path.c_str());
+    if (!chunk) return nullptr;
+
+    chunk = trim_silence(chunk);
+
+    _speech_chunk_cache.emplace(path, chunk);
     return chunk;
 }
 
@@ -106,25 +193,46 @@ uint32_t AudioManager::chunk_duration_ms(Mix_Chunk* chunk) const {
     return samples * 1000u / static_cast<uint32_t>(freq);
 }
 
-void AudioManager::queue_speech_sequence(const std::vector<std::string>& paths, float dist_tiles) {
-    static constexpr uint32_t GAP_MS = 200;  // pequeño respiro entre frases
+void AudioManager::play_speech_now(const std::string& path, float dist_tiles) {
+    if (dist_tiles > MAX_AUDIBLE_TILES) return;
 
-    uint32_t when = SDL_GetTicks();
-    for (const auto& path : paths) {
-        _speech_queue.push_back({path, dist_tiles, when});
-        when += chunk_duration_ms(load_chunk(path)) + GAP_MS;
+    Mix_Chunk* chunk = load_speech_chunk(path);
+    if (!chunk) return;
+
+    float t = dist_tiles / MAX_AUDIBLE_TILES;
+    int volume = static_cast<int>(MAX_EFFECT_VOLUME - t * (MAX_EFFECT_VOLUME - MIN_EFFECT_VOLUME));
+
+    Mix_PlayChannel(SPEECH_CHANNEL, chunk, 0);
+    Mix_Volume(SPEECH_CHANNEL, volume);
+}
+
+void AudioManager::speak(const std::vector<std::string>& paths, float dist_tiles, uint32_t gap_ms) {
+    if (paths.empty()) return;
+
+    // Corta lo que esté sonando o pendiente y arranca esta secuencia ya.
+    _speech_queue.clear();
+    Mix_HaltChannel(SPEECH_CHANNEL);
+
+    play_speech_now(paths[0], dist_tiles);
+
+    uint32_t when = SDL_GetTicks() + chunk_duration_ms(load_speech_chunk(paths[0])) + gap_ms;
+    for (size_t i = 1; i < paths.size(); ++i) {
+        _speech_queue.push_back({paths[i], dist_tiles, when});
+        when += chunk_duration_ms(load_speech_chunk(paths[i])) + gap_ms;
     }
+}
+
+void AudioManager::speak_random(const std::vector<std::string>& paths, float dist_tiles, uint32_t gap_ms) {
+    if (paths.empty()) return;
+    const std::string& chosen = paths[static_cast<size_t>(rand()) % paths.size()];
+    speak({chosen}, dist_tiles, gap_ms);
 }
 
 void AudioManager::update() {
     if (_speech_queue.empty()) return;
     uint32_t now = SDL_GetTicks();
-    for (auto it = _speech_queue.begin(); it != _speech_queue.end();) {
-        if (now >= it->fire_at_ms) {
-            play_effect_now(it->path, it->dist_tiles);
-            it = _speech_queue.erase(it);
-        } else {
-            ++it;
-        }
+    if (now >= _speech_queue.front().fire_at_ms) {
+        play_speech_now(_speech_queue.front().path, _speech_queue.front().dist_tiles);
+        _speech_queue.erase(_speech_queue.begin());
     }
 }
