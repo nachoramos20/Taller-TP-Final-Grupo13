@@ -104,8 +104,8 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
     const SDL2pp::Rect& head_src = _head_rects[dir_idx];
 
     SDL2pp::Rect body_dst(
-        screen_x - BodyLayout::FRAME_W / 2 + TILE_SIZE / 2,
-        screen_y - body_src.h + TILE_SIZE,
+        screen_x - BodyLayout::FRAME_W / 2 + tile_size() / 2,
+        screen_y - body_src.h + tile_size(),
         BodyLayout::FRAME_W,
         body_src.h
     );
@@ -188,13 +188,13 @@ SpriteBounds AnimationSystem::render_npc(SDL2pp::Renderer& renderer,
 
     SDL2pp::Rect src(frame * frame_w, dir_idx * frame_h, frame_w, frame_h);
 
-    int dst_h = static_cast<int>(TILE_SIZE * scale);
+    int dst_h = static_cast<int>(tile_size() * scale);
     int dst_w = (frame_h > 0) ? (dst_h * frame_w / frame_h) : dst_h;
 
-    int top_y = screen_y + TILE_SIZE - dst_h;
+    int top_y = screen_y + tile_size() - dst_h;
 
     SDL2pp::Rect dst(
-        screen_x + (TILE_SIZE - dst_w) / 2,
+        screen_x + (tile_size() - dst_w) / 2,
         top_y + draw_offset_y,
         dst_w,
         dst_h

@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) try {
         if (hs != HandshakeResult::OK) {
             shutdown_net(connected, command_queue, snapshot_queue, map_queue, sender, receiver);
             pending_error = error_msg.empty()
-                ? "Usuario invalido o ya existente."
+                ? races_classes_config.get_login_messages().invalid_user
                 : error_msg;
             continue;
         }

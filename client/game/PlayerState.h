@@ -1,8 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include "../config/ClientConfig.h"
 
-static constexpr int TILE_SIZE = 64;
+inline int tile_size() { return ClientConfig::instance().rendering.tile_size; }
 static constexpr float MOVE_DURATION = 0.25f;
 
 enum class Direction : uint8_t {
@@ -24,14 +25,14 @@ struct PlayerState {
     bool is_moving() const { return move_progress < 1.0f; }
 
     float pixel_x() const {
-        float from = static_cast<float>(prev_tile_x * TILE_SIZE);
-        float to   = static_cast<float>(tile_x * TILE_SIZE);
+        float from = static_cast<float>(prev_tile_x * tile_size());
+        float to   = static_cast<float>(tile_x * tile_size());
         return from + (to - from) * move_progress;
     }
 
     float pixel_y() const {
-        float from = static_cast<float>(prev_tile_y * TILE_SIZE);
-        float to   = static_cast<float>(tile_y * TILE_SIZE);
+        float from = static_cast<float>(prev_tile_y * tile_size());
+        float to   = static_cast<float>(tile_y * tile_size());
         return from + (to - from) * move_progress;
     }
 

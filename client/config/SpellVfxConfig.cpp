@@ -27,10 +27,9 @@ bool SpellVfxConfig::load(const std::string& config_path) {
 
         // Cargar cada spell de spell_effect.X
         for (int i = 1; i <= 9; i++) {
-            std::string effect_key = "spell_effect." + std::to_string(i);
-            std::string render_key = "spell_render." + std::to_string(i);
+            std::string idx_str = std::to_string(i);
 
-            if (auto effect_table = config[effect_key]; effect_table) {
+            if (auto effect_table = config["spell_effect"][idx_str]; effect_table) {
                 SpellVFX vfx;
 
                 // Cargar effect
@@ -49,7 +48,7 @@ bool SpellVfxConfig::load(const std::string& config_path) {
                 }
 
                 // Cargar render
-                if (auto render_table = config[render_key]; render_table) {
+                if (auto render_table = config["spell_render"][idx_str]; render_table) {
                     vfx.render.display_w = render_table["display_w"].value_or(64);
                     vfx.render.display_h = render_table["display_h"].value_or(64);
                     vfx.render.offset_x = render_table["offset_x"].value_or(0);
@@ -61,8 +60,6 @@ bool SpellVfxConfig::load(const std::string& config_path) {
             }
         }
 
-        std::cout << "[SpellVfxConfig] Configuración cargada exitosamente desde: " << config_path 
-                  << " (" << spells.size() << " spells)" << std::endl;
         return true;
     } catch (const std::exception& e) {
         std::cerr << "[SpellVfxConfig] Error cargando configuración: " << e.what() << std::endl;

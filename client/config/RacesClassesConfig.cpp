@@ -28,8 +28,7 @@ bool RacesClassesConfig::load(const std::string& config_path) {
 
         // Cargar razas
         for (int i = 1; i <= 4; i++) {
-            std::string race_key = "race." + std::to_string(i);
-            if (auto race_table = config[race_key]; race_table) {
+            if (auto race_table = config["race"][std::to_string(i)]; race_table) {
                 Race race;
                 race.id = race_table["id"].value_or(static_cast<uint8_t>(i));
                 race.name = race_table["name"].value_or(std::string(""));
@@ -41,8 +40,7 @@ bool RacesClassesConfig::load(const std::string& config_path) {
 
         // Cargar clases
         for (int i = 1; i <= 4; i++) {
-            std::string class_key = "class." + std::to_string(i);
-            if (auto class_table = config[class_key]; class_table) {
+            if (auto class_table = config["class"][std::to_string(i)]; class_table) {
                 Class cls;
                 cls.id = class_table["id"].value_or(static_cast<uint8_t>(i));
                 cls.name = class_table["name"].value_or(std::string(""));
@@ -59,8 +57,6 @@ bool RacesClassesConfig::load(const std::string& config_path) {
             login_messages.invalid_user = messages_table["invalid_user"].value_or(std::string("Invalid username or password"));
         }
 
-        std::cout << "[RacesClassesConfig] Configuración cargada exitosamente desde: " << config_path 
-                  << " (" << races.size() << " razas, " << classes.size() << " clases)" << std::endl;
         return true;
     } catch (const std::exception& e) {
         std::cerr << "[RacesClassesConfig] Error cargando configuración: " << e.what() << std::endl;

@@ -27,10 +27,9 @@ bool ClientConfig::load(const std::string& config_path) {
             fonts.default_size = fonts_table["default_size"].value_or(12);
             fonts.chat_font_path = fonts_table["chat_font_path"].value_or(std::string(""));
             fonts.chat_font_size = fonts_table["chat_font_size"].value_or(12);
-            fonts.npc_font_path = fonts_table["npc_font_path"].value_or(std::string(""));
-            fonts.npc_font_size = fonts_table["npc_font_size"].value_or(11);
-            fonts.login_font_path = fonts_table["login_font_path"].value_or(std::string(""));
-            fonts.login_font_size = fonts_table["login_font_size"].value_or(14);
+            fonts.title_font_size = fonts_table["title_font_size"].value_or(22);
+            fonts.medium_font_size = fonts_table["medium_font_size"].value_or(14);
+            fonts.small_font_size = fonts_table["small_font_size"].value_or(11);
         }
 
         // Cargar music
@@ -63,6 +62,8 @@ bool ClientConfig::load(const std::string& config_path) {
             death_effects.death_frame_ms = death_table["death_frame_ms"].value_or(150);
             death_effects.death_linger_ms = death_table["death_linger_ms"].value_or(2000);
             death_effects.death_duration_ms = death_table["death_duration_ms"].value_or(2900);
+            death_effects.sprite_base_path = death_table["sprite_base_path"]
+                .value_or(std::string("assets/sprites/stage/sangre_"));
         }
 
         // Cargar camera
@@ -72,11 +73,10 @@ bool ClientConfig::load(const std::string& config_path) {
         }
 
         // Cargar projectiles
-        if (auto projectiles_table = config["projectiles"]) {
-            projectiles.duration_ticks = projectiles_table["duration_ticks"].value_or(30);
+        if (auto rendering_table = config["rendering"]) {
+            projectiles.duration_ticks = rendering_table["projectile_duration_ticks"].value_or(30);
         }
 
-        std::cout << "[ClientConfig] Configuración cargada exitosamente desde: " << config_path << std::endl;
         return true;
     } catch (const std::exception& e) {
         std::cerr << "[ClientConfig] Error cargando configuración: " << e.what() << std::endl;

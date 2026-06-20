@@ -1,6 +1,7 @@
 #ifndef CLIENT_CONFIG_H
 #define CLIENT_CONFIG_H
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -23,10 +24,9 @@ public:
         int default_size;
         std::string chat_font_path;
         int chat_font_size;
-        std::string npc_font_path;
-        int npc_font_size;
-        std::string login_font_path;
-        int login_font_size;
+        int title_font_size;
+        int medium_font_size;
+        int small_font_size;
     };
 
     // Estructura para música
@@ -59,6 +59,7 @@ public:
         uint32_t death_frame_ms;
         uint32_t death_linger_ms;
         uint32_t death_duration_ms;
+        std::string sprite_base_path; 
     };
 
     // Estructura para camera

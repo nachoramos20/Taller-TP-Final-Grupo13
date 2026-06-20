@@ -83,15 +83,38 @@ aranas          = ["assets/sounds/effects/creatures/arañas.wav"]
 [npc_sounds.merchant]
 lo_pides_lo_tienes = ["assets/sounds/effects/npcs/comerciante/lo_pides_lo_tienes.wav"]
 una_gran_eleccion  = ["assets/sounds/effects/npcs/comerciante/una_gran_eleccion.wav"]
+saludo             = [
+    "assets/sounds/effects/npcs/comerciante/buenos_dias.wav",
+    "assets/sounds/effects/npcs/comerciante/bienvenido_a_mi_tienda.wav",
+    "assets/sounds/effects/npcs/comerciante/como_puedo_ayudar.wav"
+]
+despedida          = ["assets/sounds/effects/npcs/comerciante/vuelve_pronto.wav"]
 
 [npc_sounds.banker]
 cuidamos_sus_cosas = ["assets/sounds/effects/npcs/banquero/cuidamos_sus_cosas_mejor_que_usted.wav"]
 puede_confiar      = ["assets/sounds/effects/npcs/banquero/puede_confiar_en_nosotros.wav"]
+saludo             = [
+    "assets/sounds/effects/npcs/banquero/bienvenido_al_banco.wav",
+    "assets/sounds/effects/npcs/banquero/que_transaccion_desea_realizar_hoy.wav"
+]
 
 [npc_sounds.priest]
 orare_por_ti       = ["assets/sounds/effects/npcs/sacerdote/orare_por_ti.wav"]
 curar              = ["assets/sounds/effects/npcs/sacerdote/curar.wav"]
 resucitar          = ["assets/sounds/effects/npcs/sacerdote/resucitar_con_sacerdote.wav"]
+saludo             = ["assets/sounds/effects/npcs/sacerdote/oigo_tus_plegarias.wav"]
+despedida          = [
+    "assets/sounds/effects/npcs/sacerdote/ten_cuidado_ahi_fuera.wav",
+    "assets/sounds/effects/npcs/sacerdote/que_la_luz_guie_tu_camino.wav"
+]
+
+# ── Sonidos de Economía ───────────────────────────────────────
+[economy_sounds]
+monedas            = ["assets/sounds/effects/economy/monedas.wav"]
+
+# ── Sonidos de Interfaz ───────────────────────────────────────
+[ui_sounds]
+level_up           = ["assets/sounds/effects/ui/sonido_al_subir_de_lvl.wav"]
 
 # ── Rangos de Interacción con NPCs ───────────────────────────
 [npc_interaction]

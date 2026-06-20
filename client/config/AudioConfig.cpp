@@ -2,6 +2,21 @@
 #include <toml++/toml.h>
 #include <iostream>
 
+static void load_sound_table(toml::node_view<toml::node> table_view,
+                              std::unordered_map<std::string, std::vector<std::string>>& target) {
+    auto table = table_view.as_table();
+    if (!table) return;
+    for (auto& [key, val] : *table) {
+        auto arr = val.as_array();
+        if (!arr) continue;
+        std::vector<std::string> sounds;
+        for (auto& elem : *arr) {
+            if (auto s = elem.as_string()) sounds.push_back(s->get());
+        }
+        target[std::string(key)] = std::move(sounds);
+    }
+}
+
 AudioConfig& AudioConfig::instance() {
     static AudioConfig instance;
     return instance;
@@ -28,76 +43,28 @@ bool AudioConfig::load(const std::string& config_path) {
         }
 
         // Cargar combat_sounds.melee
-        if (auto melee_table = config["combat_sounds"]["melee"].as_table()) {
-            for (auto& [key, val] : *melee_table) {
-                if (auto str_val = val.as_string()) {
-                    combat_melee_sounds[std::string(key)] = str_val->get();
-                }
-            }
-        }
+        load_sound_table(config["combat_sounds"]["melee"], combat_melee_sounds);
 
         // Cargar combat_sounds.ranged
-        if (auto ranged_table = config["combat_sounds"]["ranged"].as_table()) {
-            for (auto& [key, val] : *ranged_table) {
-                if (auto str_val = val.as_string()) {
-                    combat_ranged_sounds[std::string(key)] = str_val->get();
-                }
-            }
-        }
+        load_sound_table(config["combat_sounds"]["ranged"], combat_ranged_sounds);
 
         // Cargar magic_sounds.spells
-        if (auto magic_table = config["magic_sounds"]["spells"].as_table()) {
-            for (auto& [key, val] : *magic_table) {
-                if (auto str_val = val.as_string()) {
-                    magic_sounds[std::string(key)] = str_val->get();
-                }
-            }
-        }
+        load_sound_table(config["magic_sounds"]["spells"], magic_sounds);
 
         // Cargar death_sounds
-        if (auto death_table = config["death_sounds"].as_table()) {
-            for (auto& [key, val] : *death_table) {
-                if (auto str_val = val.as_string()) {
-                    death_sounds[std::string(key)] = str_val->get();
-                }
-            }
-        }
+        load_sound_table(config["death_sounds"], death_sounds);
 
         // Cargar creature_sounds
-        if (auto creature_table = config["creature_sounds"].as_table()) {
-            for (auto& [key, val] : *creature_table) {
-                if (auto str_val = val.as_string()) {
-                    creature_sounds[std::string(key)] = str_val->get();
-                }
-            }
-        }
+        load_sound_table(config["creature_sounds"], creature_sounds);
 
-        // Cargar npc_sounds.merchant
-        if (auto merchant_table = config["npc_sounds"]["merchant"].as_table()) {
-            for (auto& [key, val] : *merchant_table) {
-                if (auto str_val = val.as_string()) {
-                    npc_merchant_sounds[std::string(key)] = str_val->get();
-                }
-            }
-        }
+        // Cargar npc_sounds.merchant/banker/priest
+        load_sound_table(config["npc_sounds"]["merchant"], npc_merchant_sounds);
+        load_sound_table(config["npc_sounds"]["banker"], npc_banker_sounds);
+        load_sound_table(config["npc_sounds"]["priest"], npc_priest_sounds);
 
-        // Cargar npc_sounds.banker
-        if (auto banker_table = config["npc_sounds"]["banker"].as_table()) {
-            for (auto& [key, val] : *banker_table) {
-                if (auto str_val = val.as_string()) {
-                    npc_banker_sounds[std::string(key)] = str_val->get();
-                }
-            }
-        }
-
-        // Cargar npc_sounds.priest
-        if (auto priest_table = config["npc_sounds"]["priest"].as_table()) {
-            for (auto& [key, val] : *priest_table) {
-                if (auto str_val = val.as_string()) {
-                    npc_priest_sounds[std::string(key)] = str_val->get();
-                }
-            }
-        }
+        // Cargar economy_sounds y ui_sounds
+        load_sound_table(config["economy_sounds"], economy_sounds);
+        load_sound_table(config["ui_sounds"], ui_sounds);
 
         // Cargar interaction
         if (auto interaction_table = config["npc_interaction"]) {
@@ -105,7 +72,6 @@ bool AudioConfig::load(const std::string& config_path) {
             interaction.priest_range_tiles = interaction_table["priest_range_tiles"].value_or(3);
         }
 
-        std::cout << "[AudioConfig] Configuración cargada exitosamente desde: " << config_path << std::endl;
         return true;
     } catch (const std::exception& e) {
         std::cerr << "[AudioConfig] Error cargando configuración: " << e.what() << std::endl;
@@ -113,34 +79,56 @@ bool AudioConfig::load(const std::string& config_path) {
     }
 }
 
-std::string AudioConfig::get_combat_melee_sound(const std::string& weapon) const {
+const std::vector<std::string>& AudioConfig::lookup(
+        const std::unordered_map<std::string, std::vector<std::string>>& sounds,
+        const std::string& key) {
+    static const std::vector<std::string> EMPTY;
+    auto it = sounds.find(key);
+    return it != sounds.end() ? it->second : EMPTY;
+}
+
+const std::vector<std::string>& AudioConfig::get_combat_melee_sound(const std::string& weapon) const {
     auto it = combat_melee_sounds.find(weapon);
-    if (it != combat_melee_sounds.end()) {
-        return it->second;
-    }
-    return combat_melee_sounds.at("generico");
+    if (it != combat_melee_sounds.end()) return it->second;
+    return lookup(combat_melee_sounds, "generico");
 }
 
-std::string AudioConfig::get_combat_ranged_sound(const std::string& weapon) const {
+const std::vector<std::string>& AudioConfig::get_combat_ranged_sound(const std::string& weapon) const {
     auto it = combat_ranged_sounds.find(weapon);
-    if (it != combat_ranged_sounds.end()) {
-        return it->second;
-    }
-    return combat_ranged_sounds.at("flecha");
+    if (it != combat_ranged_sounds.end()) return it->second;
+    return lookup(combat_ranged_sounds, "flecha");
 }
 
-std::string AudioConfig::get_magic_sound(const std::string& spell_name) const {
+const std::vector<std::string>& AudioConfig::get_magic_sound(const std::string& spell_name) const {
     auto it = magic_sounds.find(spell_name);
-    if (it != magic_sounds.end()) {
-        return it->second;
-    }
-    return magic_sounds.at("hechizo_generico");
+    if (it != magic_sounds.end()) return it->second;
+    return lookup(magic_sounds, "hechizo_generico");
 }
 
-std::string AudioConfig::get_creature_sound(const std::string& creature_type) const {
-    auto it = creature_sounds.find(creature_type);
-    if (it != creature_sounds.end()) {
-        return it->second;
-    }
-    return "";
+const std::vector<std::string>& AudioConfig::get_creature_sound(const std::string& creature_type) const {
+    return lookup(creature_sounds, creature_type);
+}
+
+const std::vector<std::string>& AudioConfig::get_death_sound(const std::string& key) const {
+    return lookup(death_sounds, key);
+}
+
+const std::vector<std::string>& AudioConfig::get_npc_merchant_sound(const std::string& key) const {
+    return lookup(npc_merchant_sounds, key);
+}
+
+const std::vector<std::string>& AudioConfig::get_npc_banker_sound(const std::string& key) const {
+    return lookup(npc_banker_sounds, key);
+}
+
+const std::vector<std::string>& AudioConfig::get_npc_priest_sound(const std::string& key) const {
+    return lookup(npc_priest_sounds, key);
+}
+
+const std::vector<std::string>& AudioConfig::get_economy_sound(const std::string& key) const {
+    return lookup(economy_sounds, key);
+}
+
+const std::vector<std::string>& AudioConfig::get_ui_sound(const std::string& key) const {
+    return lookup(ui_sounds, key);
 }

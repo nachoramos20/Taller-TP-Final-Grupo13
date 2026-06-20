@@ -18,7 +18,7 @@ creatures_dir    = "assets/sounds/effects/creatures/"
 default_path     = "assets/fonts/DejaVuSans.ttf"
 default_size     = 10
 chat_font_path   = "assets/fonts/DejaVuSans.ttf"
-chat_font_size   = 10
+chat_font_size   = 14
 title_font_size  = 22
 medium_font_size = 14
 small_font_size  = 11
@@ -48,6 +48,7 @@ death_frames             = 5        # Número de frames de animación de muerte
 death_frame_ms           = 150      # Milisegundos por frame 1-4
 death_linger_ms          = 2500     # Milisegundos que dura el frame 5 (sangre)
 death_duration_ms        = 3100     # death_frame_ms * (DEATH_FRAMES - 1) + DEATH_LINGER_MS
+sprite_base_path         = "assets/sprites/stage/sangre_"  # sangre_{frame}.png
 
 # ── Interfaz de Usuario ──────────────────────────────────────
 [ui]
