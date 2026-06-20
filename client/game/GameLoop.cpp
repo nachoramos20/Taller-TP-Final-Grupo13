@@ -300,8 +300,7 @@ void GameLoop::play_attack_sound(uint8_t weapon_item, uint16_t x, uint16_t y) {
         "assets/sounds/effects/magic/sonido_como_de_curacion_divina_2.wav",
     };
     static const std::vector<std::string> misil = {
-        "assets/sounds/effects/magic/sonido_de_onda.wav",
-        "assets/sounds/effects/magic/sonido_de_onda_2.wav",
+        "assets/sounds/effects/magic/orbe_de_hielo_baculo_nudoso.wav",
     };
     static const std::vector<std::string> explosion = {"assets/sounds/effects/combat/explosion.wav"};
 
@@ -340,20 +339,37 @@ void GameLoop::play_attack_sound(uint8_t weapon_item, uint16_t x, uint16_t y) {
 
 void GameLoop::play_spell_sound(uint8_t spell_id, uint16_t x, uint16_t y) {
     if (!_audio || spell_id == 0) return;
-    static const std::vector<std::string> hechizo = {
-        "assets/sounds/effects/combat/explosion.wav",
-        "assets/sounds/effects/magic/sonido_similar_al_de_lanzar_un_hechizo.wav",
-        "assets/sounds/effects/magic/sonido_similar_al_de_lanzar_un_hechizo_2.wav",
-        "assets/sounds/effects/magic/sonido_similar_al_de_lanzar_un_hechizo_3.wav",
-        "assets/sounds/effects/magic/apertura_magica.wav",
-        "assets/sounds/effects/magic/sonido_de_onda.wav",
-        "assets/sounds/effects/magic/sonido_de_onda_2.wav",
-        "assets/sounds/effects/magic/resorte_explosivo.wav",
-        "assets/sounds/effects/magic/sonido_como_de_portal_magico.wav",
-        "assets/sounds/effects/magic/sonido_como_de_portal_magico_2.wav",
-        "assets/sounds/effects/magic/sonido_de_runa.wav",
-    };
-    _audio->play_random_effect_at(hechizo, dist_to_player_tiles(x, y));
+    float dist = dist_to_player_tiles(x, y);
+    switch (static_cast<SpellId>(spell_id)) {
+        case SpellId::BURST:
+            _audio->play_effect_at("assets/sounds/effects/magic/explosion.wav", dist);
+            break;
+        case SpellId::POISON_AREA:
+            _audio->play_effect_at("assets/sounds/effects/magic/area_veneno.wav", dist);
+            break;
+        case SpellId::SKULL_EXPLOSION:
+            _audio->play_effect_at("assets/sounds/effects/magic/explosion_calaverica.wav", dist);
+            break;
+        case SpellId::ICE_ORB:
+            _audio->play_effect_at("assets/sounds/effects/magic/orbe_de_hielo_baculo_nudoso.wav", dist);
+            break;
+        case SpellId::GRAVITATIONAL_TORNAD:
+            _audio->play_effect_at("assets/sounds/effects/magic/tornado_gravitatorio.wav", dist);
+            break;
+        case SpellId::THUNDERSTORM: 
+            _audio->play_effect_at("assets/sounds/effects/magic/tormenta_electrica.wav", dist);
+            break;
+        case SpellId::ORB_OF_EMPTINESS:
+            _audio->play_effect_at("assets/sounds/effects/magic/orbe_de_vacio.wav", dist);
+            break;
+        case SpellId::VACUUM_GAP:
+            _audio->play_effect_at("assets/sounds/effects/magic/brecha_vacio.wav", dist);
+            break;
+        case SpellId::TORNADO_OF_DARKNESS:
+            _audio->play_effect_at("assets/sounds/effects/magic/tornado_oscuridad.wav", dist);
+            break;
+        default: break;
+    }
 }
 
 void GameLoop::play_npc_death_sound(uint8_t npc_sprite_id, uint16_t entity_id, uint16_t x, uint16_t y) {
