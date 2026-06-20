@@ -1,0 +1,8 @@
+# ============================================================
+# projectiles.toml — Configuración de proyectiles
+# Define timing y velocidad de proyectiles (flechas, misiles, etc)
+# ============================================================
+
+[projectiles]
+# Ticks que tarda un proyectil en viajar de origen a destino
+duration_ticks  = 8

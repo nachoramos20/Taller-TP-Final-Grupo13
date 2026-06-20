@@ -15,6 +15,10 @@ target_sources(argentum_grupo13_client
     net/SenderThread.cpp
     net/ReceiverThread.cpp
     audio/AudioManager.cpp
+    config/AudioConfig.cpp
+    config/ClientConfig.cpp
+    config/SpellVfxConfig.cpp
+    config/RacesClassesConfig.cpp
 )
 
 target_include_directories(argentum_grupo13_client

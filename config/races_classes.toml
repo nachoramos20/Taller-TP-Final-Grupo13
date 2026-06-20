@@ -1,0 +1,60 @@
+# ============================================================
+# races_classes.toml — Información de razas y clases del Login
+# Define los datos mostrados en la pantalla de selección
+# ============================================================
+
+# ── Razas (Race Selection Screen) ────────────────────────────
+[race.1]   # HUMAN
+id            = 1
+name          = "Humano"
+sprite_path   = "assets/sprites/skins/humano.png"
+description   = "Raza equilibrada. Buenos stats en todas las areas.\nStr:18  Agi:18  Int:18  Con:18"
+
+[race.2]   # ELF
+id            = 2
+name          = "Elfo"
+sprite_path   = "assets/sprites/skins/elfo.png"
+description   = "Muy inteligentes y agiles, pero constitucion fragil.\nStr:14  Agi:22  Int:22  Con:18"
+
+[race.3]   # DWARF
+id            = 3
+name          = "Enano"
+sprite_path   = "assets/sprites/skins/enano.png"
+description   = "Muy fuertes y resistentes. Poca agilidad.\nStr:22  Agi:14  Int:14  Con:22"
+
+[race.4]   # GNOME
+id            = 4
+name          = "Gnomo"
+sprite_path   = "assets/sprites/skins/gnomo.png"
+description   = "Inteligentes y resistentes. Menos agiles que los elfos.\nStr:14  Agi:18  Int:24  Con:16"
+
+# ── Clases (Class Selection Screen) ──────────────────────────
+[class.1]   # MAGE
+id            = 1
+name          = "Mago"
+flavor        = "Maestro de la magia. Gran poder arcano\npero cuerpo debil."
+benefits      = "HP bajo | MP muy alto | Puede meditar\nArma: Baculo / Vara"
+
+[class.2]   # CLERIC
+id            = 2
+name          = "Clerigo"
+flavor        = "Sanador y combatiente. Mezcla de magia\ny fuerza fisica."
+benefits      = "HP medio | MP alto | Puede meditar\nArma: Baculo / Armas cuerpo a cuerpo"
+
+[class.3]   # PALADIN
+id            = 3
+name          = "Paladin"
+flavor        = "Guerrero sagrado. Fuerte y resistente,\ncon algo de magia."
+benefits      = "HP alto | MP medio | Puede meditar\nArma: Cualquiera | Armadura pesada"
+
+[class.4]   # WARRIOR
+id            = 4
+name          = "Guerrero"
+flavor        = "Especialista en combate. El mas fuerte,\npero SIN magia ni mana."
+benefits      = "HP muy alto | MP: 0 (sin magia)\nArma: Cualquiera | Armadura pesada"
+
+# ── Mensajes de Login ────────────────────────────────────────
+[login_messages]
+welcome         = "Bienvenido. Enter para chatear."
+connected       = "Conectado. Enter para chatear. Click izq sobre enemigo para atacar."
+invalid_user    = "Usuario invalido o ya existente."

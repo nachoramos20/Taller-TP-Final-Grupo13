@@ -1,27 +1,20 @@
 #include "AudioManager.h"
+#include "../config/AudioConfig.h"
 #include <SDL.h>
 #include <cmath>
 #include <cstdlib>
 #include <stdexcept>
 
-static constexpr int MIXER_FREQUENCY = MIX_DEFAULT_FREQUENCY;
-static constexpr int MIXER_CHANNELS  = 2;
-static constexpr int MIXER_CHUNKSIZE = 1024;
-static constexpr int DEFAULT_MUSIC_VOLUME = 20;  // 0-128 (MIX_MAX_VOLUME);
-
-static constexpr float MAX_AUDIBLE_TILES   = 18.0f;  
-static constexpr int   MIN_EFFECT_VOLUME   = 0;
-static constexpr int   MAX_EFFECT_VOLUME   = 110;    
-static constexpr uint32_t EFFECT_COOLDOWN_MS = 80;   
-
 AudioManager::AudioManager() {
+    const AudioConfig& config = AudioConfig::instance();
+
     if (Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == 0)
         throw std::runtime_error(std::string("Mix_Init: ") + Mix_GetError());
 
-    if (Mix_OpenAudio(MIXER_FREQUENCY, MIX_DEFAULT_FORMAT, MIXER_CHANNELS, MIXER_CHUNKSIZE) != 0)
+    if (Mix_OpenAudio(config.mixer.frequency, MIX_DEFAULT_FORMAT, config.mixer.channels, config.mixer.chunksize) != 0)
         throw std::runtime_error(std::string("Mix_OpenAudio: ") + Mix_GetError());
 
-    Mix_VolumeMusic(DEFAULT_MUSIC_VOLUME);
+    Mix_VolumeMusic(config.mixer.default_music_volume);
 }
 
 AudioManager::~AudioManager() {
@@ -58,22 +51,25 @@ Mix_Chunk* AudioManager::load_chunk(const std::string& path) {
 }
 
 bool AudioManager::should_throttle(const std::string& path) {
+    const AudioConfig& config = AudioConfig::instance();
     uint32_t now = SDL_GetTicks();
     auto it = _last_played_ms.find(path);
-    if (it != _last_played_ms.end() && (now - it->second) < EFFECT_COOLDOWN_MS)
+    if (it != _last_played_ms.end() && (now - it->second) < config.effect_volumes.effect_cooldown_ms)
         return true;
     _last_played_ms[path] = now;
     return false;
 }
 
 void AudioManager::play_effect_now(const std::string& path, float dist_tiles) {
-    if (dist_tiles > MAX_AUDIBLE_TILES) return;
+    const AudioConfig& config = AudioConfig::instance();
+    if (dist_tiles > config.effect_volumes.max_audible_tiles) return;
 
     Mix_Chunk* chunk = load_chunk(path);
     if (!chunk) return;
 
-    float t = dist_tiles / MAX_AUDIBLE_TILES;  // 0 (cerca) .. 1 (limite audible)
-    int volume = static_cast<int>(MAX_EFFECT_VOLUME - t * (MAX_EFFECT_VOLUME - MIN_EFFECT_VOLUME));
+    float t = dist_tiles / config.effect_volumes.max_audible_tiles;  // 0 (cerca) .. 1 (limite audible)
+    int volume = static_cast<int>(config.effect_volumes.max_effect_volume - t * 
+                 (config.effect_volumes.max_effect_volume - config.effect_volumes.min_effect_volume));
 
     int channel = Mix_PlayChannel(-1, chunk, 0);
     if (channel >= 0) Mix_Volume(channel, volume);
