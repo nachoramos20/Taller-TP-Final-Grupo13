@@ -42,19 +42,6 @@ curacion       = [
 ]
 misil          = ["assets/sounds/effects/magic/orbe_de_hielo_baculo_nudoso.wav"]
 explosion      = ["assets/sounds/effects/combat/explosion.wav"]
-hechizo_generico = [
-    "assets/sounds/effects/combat/explosion.wav",
-    "assets/sounds/effects/magic/sonido_similar_al_de_lanzar_un_hechizo.wav",
-    "assets/sounds/effects/magic/sonido_similar_al_de_lanzar_un_hechizo_2.wav",
-    "assets/sounds/effects/magic/sonido_similar_al_de_lanzar_un_hechizo_3.wav",
-    "assets/sounds/effects/magic/apertura_magica.wav",
-    "assets/sounds/effects/magic/sonido_de_onda.wav",
-    "assets/sounds/effects/magic/sonido_de_onda_2.wav",
-    "assets/sounds/effects/magic/resorte_explosivo.wav",
-    "assets/sounds/effects/magic/sonido_como_de_portal_magico.wav",
-    "assets/sounds/effects/magic/sonido_como_de_portal_magico_2.wav",
-    "assets/sounds/effects/magic/sonido_de_runa.wav"
-]
 
 # ── Sonidos de Muerte ────────────────────────────────────────
 [death_sounds]
