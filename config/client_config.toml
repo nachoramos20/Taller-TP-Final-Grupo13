@@ -40,6 +40,10 @@ obj_sup_ticks_per_frame  = 8    # Ticks entre frames de animación de objetos su
 spell_ticks_per_frame    = 4    # Ticks entre frames de animación de hechizos
 water_floor_id           = 44   # id de tile de piso "agua" (para sonido ambiente)
 water_search_radius_tiles = 18  # radio de búsqueda de agua cercana, en tiles
+grass_floor_id_min       = 2    # rango de ids de tile de piso "pasto" (para sonido de pasos)
+grass_floor_id_max       = 9
+city_stone_floor_id      = 1    # id de tile de piso "piedra" de la ciudad (para sonido de pasos)
+dirt_floor_id            = 10   # id de tile de piso "tierra" del pueblo (usa el mismo sonido que pasto)
 
 # ── Efectos de Muerte ────────────────────────────────────────
 [death_effects]

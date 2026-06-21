@@ -105,6 +105,15 @@ level_up           = ["assets/sounds/effects/ui/sonido_al_subir_de_lvl.wav"]
 ocean              = ["assets/sounds/effects/ambient/mar_2.wav"]
 meditation         = ["assets/sounds/effects/ambient/meditacion.wav"]
 
+# ── Sonidos de Movimiento ─────────────────────────────────────
+[movement_sounds]
+paso_pasto         = [
+    "assets/sounds/effects/movement/paso_pasto_1.wav",
+    "assets/sounds/effects/movement/paso_pasto_2.wav",
+    "assets/sounds/effects/movement/paso_pasto_5.wav"
+]
+pasos_en_grava     = ["assets/sounds/effects/movement/pasos_en_grava.wav"]
+
 # ── Rangos de Interacción con NPCs ───────────────────────────
 [npc_interaction]
 shop_range_tiles   = 2.0     # Rango en tiles para interactuar con tienda

@@ -47,6 +47,10 @@ public:
         int spell_ticks_per_frame;
         uint16_t water_floor_id;
         int water_search_radius_tiles;
+        uint16_t grass_floor_id_min;
+        uint16_t grass_floor_id_max;
+        uint16_t city_stone_floor_id;
+        uint16_t dirt_floor_id;
     };
 
     // Estructura para atajos de teclado (se cargan por nombre desde el TOML,

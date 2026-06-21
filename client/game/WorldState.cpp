@@ -42,6 +42,31 @@ float distance_to_nearest_water_tile(const WorldState& state, const PlayerState&
     return best;
 }
 
+bool is_floor_grass(const WorldState& state, uint16_t x, uint16_t y) {
+    if (!state.map_loaded) return false;
+    if (x >= state.map.width || y >= state.map.height) return false;
+
+    const auto& rendering = ClientConfig::instance().rendering;
+    uint16_t floor_id = state.map.tiles[static_cast<size_t>(y) * state.map.width + x].floor_id;
+    return floor_id >= rendering.grass_floor_id_min && floor_id <= rendering.grass_floor_id_max;
+}
+
+bool is_floor_dirt(const WorldState& state, uint16_t x, uint16_t y) {
+    if (!state.map_loaded) return false;
+    if (x >= state.map.width || y >= state.map.height) return false;
+
+    uint16_t floor_id = state.map.tiles[static_cast<size_t>(y) * state.map.width + x].floor_id;
+    return floor_id == ClientConfig::instance().rendering.dirt_floor_id;
+}
+
+bool is_floor_city_stone(const WorldState& state, uint16_t x, uint16_t y) {
+    if (!state.map_loaded) return false;
+    if (x >= state.map.width || y >= state.map.height) return false;
+
+    uint16_t floor_id = state.map.tiles[static_cast<size_t>(y) * state.map.width + x].floor_id;
+    return floor_id == ClientConfig::instance().rendering.city_stone_floor_id;
+}
+
 uint8_t own_weapon_item(const WorldState& state) {
     return (state.eq_weapon != 0xFF && state.eq_weapon < SnapshotDTO::INVENTORY_SIZE)
                ? state.inventory[state.eq_weapon]

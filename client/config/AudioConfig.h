@@ -40,6 +40,7 @@ public:
     std::unordered_map<std::string, std::vector<std::string>> economy_sounds;
     std::unordered_map<std::string, std::vector<std::string>> ui_sounds;
     std::unordered_map<std::string, std::vector<std::string>> ambient_sounds;
+    std::unordered_map<std::string, std::vector<std::string>> movement_sounds;
 
     // Datos de interacción
     struct Interaction {
@@ -67,6 +68,7 @@ public:
     const std::vector<std::string>& get_economy_sound(const std::string& key) const;
     const std::vector<std::string>& get_ui_sound(const std::string& key) const;
     const std::vector<std::string>& get_ambient_sound(const std::string& key) const;
+    const std::vector<std::string>& get_movement_sound(const std::string& key) const;
 
 private:
     static const std::vector<std::string>& lookup(

@@ -100,6 +100,10 @@ void GameLoop::update(float dt) {
     if (_audio) {
         _audio->update();
         _audio_service.update_ocean_ambient(distance_to_nearest_water_tile(_state, _player));
+        bool walking_on_city_stone = _player.is_moving()
+            && is_floor_city_stone(_state, static_cast<uint16_t>(_player.tile_x),
+                                    static_cast<uint16_t>(_player.tile_y));
+        _audio_service.update_city_stone_footsteps(walking_on_city_stone);
     }
 }
 

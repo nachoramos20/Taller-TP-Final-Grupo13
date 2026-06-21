@@ -19,6 +19,7 @@ static constexpr uint32_t EFFECT_COOLDOWN_MS = 80;
 static constexpr int TOTAL_CHANNELS  = 16;
 static constexpr int SPEECH_CHANNEL  = 0;  // reservado: diálogo de NPC
 static constexpr int AMBIENT_CHANNEL = 1;  // reservado: sonido ambiente en loop (olas, etc.)
+static constexpr int LOOPING_CHANNEL = 2;  // reservado: loop gateado por condición (pasos largos, etc.)
 
 AudioManager::AudioManager() {
     if (Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == 0)
@@ -28,7 +29,7 @@ AudioManager::AudioManager() {
         throw std::runtime_error(std::string("Mix_OpenAudio: ") + Mix_GetError());
 
     Mix_AllocateChannels(TOTAL_CHANNELS);
-    Mix_ReserveChannels(2);
+    Mix_ReserveChannels(3);
 
     Mix_VolumeMusic(DEFAULT_MUSIC_VOLUME);
 }
@@ -169,28 +170,28 @@ bool AudioManager::should_throttle(const std::string& path) {
     return false;
 }
 
-void AudioManager::play_effect_now(const std::string& path, float dist_tiles) {
+void AudioManager::play_effect_now(const std::string& path, float dist_tiles, float volume_scale) {
     if (dist_tiles > MAX_AUDIBLE_TILES) return;
 
     Mix_Chunk* chunk = load_chunk(path);
     if (!chunk) return;
 
     float t = dist_tiles / MAX_AUDIBLE_TILES;  // 0 (cerca) .. 1 (limite audible)
-    int volume = static_cast<int>(MAX_EFFECT_VOLUME - t * (MAX_EFFECT_VOLUME - MIN_EFFECT_VOLUME));
+    int volume = static_cast<int>((MAX_EFFECT_VOLUME - t * (MAX_EFFECT_VOLUME - MIN_EFFECT_VOLUME)) * volume_scale);
 
     int channel = Mix_PlayChannel(-1, chunk, 0);
     if (channel >= 0) Mix_Volume(channel, volume);
 }
 
-void AudioManager::play_effect_at(const std::string& path, float dist_tiles) {
+void AudioManager::play_effect_at(const std::string& path, float dist_tiles, float volume_scale) {
     if (should_throttle(path)) return;
-    play_effect_now(path, dist_tiles);
+    play_effect_now(path, dist_tiles, volume_scale);
 }
 
-void AudioManager::play_random_effect_at(const std::vector<std::string>& paths, float dist_tiles) {
+void AudioManager::play_random_effect_at(const std::vector<std::string>& paths, float dist_tiles, float volume_scale) {
     if (paths.empty()) return;
     const std::string& chosen = paths[static_cast<size_t>(rand()) % paths.size()];
-    play_effect_at(chosen, dist_tiles);
+    play_effect_at(chosen, dist_tiles, volume_scale);
 }
 
 uint32_t AudioManager::chunk_duration_ms(Mix_Chunk* chunk) const {
@@ -264,6 +265,25 @@ void AudioManager::set_ambient_loop(const std::string& path, float dist_tiles) {
     float t = dist_tiles / MAX_AUDIBLE_TILES;  // 0 (cerca) .. 1 (limite audible)
     int volume = static_cast<int>(MAX_EFFECT_VOLUME - t * (MAX_EFFECT_VOLUME - MIN_EFFECT_VOLUME));
     Mix_Volume(AMBIENT_CHANNEL, volume);
+}
+
+void AudioManager::set_looping_while(const std::string& path, bool active, float volume_scale) {
+    if (!active) {
+        if (!_looping_path.empty()) {
+            Mix_HaltChannel(LOOPING_CHANNEL);
+            _looping_path.clear();
+        }
+        return;
+    }
+
+    if (_looping_path != path) {
+        Mix_Chunk* chunk = load_ambient_chunk(path);
+        if (!chunk) return;
+        Mix_HaltChannel(LOOPING_CHANNEL);
+        Mix_PlayChannel(LOOPING_CHANNEL, chunk, -1);  // loop infinito
+        Mix_Volume(LOOPING_CHANNEL, static_cast<int>(MAX_EFFECT_VOLUME * volume_scale));
+        _looping_path = path;
+    }
 }
 
 void AudioManager::update() {

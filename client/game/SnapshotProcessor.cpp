@@ -30,7 +30,7 @@ void SnapshotProcessor::apply_snapshot(WorldState& state, PlayerState& player, c
     update_progression_sounds(state, snap);
     update_panels(snap);
     sync_own_equipment(state, snap);
-    sync_own_position(player, snap);
+    sync_own_position(state, player, snap);
 }
 
 void SnapshotProcessor::detect_deaths(WorldState& state, const PlayerState& player, const SnapshotDTO& snap) {
@@ -135,13 +135,15 @@ void SnapshotProcessor::sync_own_equipment(WorldState& state, const SnapshotDTO&
     state.eq_shield = snap.equipped_shld;
 }
 
-void SnapshotProcessor::sync_own_position(PlayerState& player, const SnapshotDTO& snap) {
+void SnapshotProcessor::sync_own_position(const WorldState& state, PlayerState& player, const SnapshotDTO& snap) {
     if (!snap.entities) return;
     for (const auto& e : *snap.entities) {
         if (e.entity_id != snap.self_entity_id) continue;
         if (e.pos_x != static_cast<uint16_t>(player.tile_x) || e.pos_y != static_cast<uint16_t>(player.tile_y)) {
             Direction dir = static_cast<Direction>(e.direction);
             player.move_to(e.pos_x, e.pos_y, dir);
+            if (is_floor_grass(state, e.pos_x, e.pos_y) || is_floor_dirt(state, e.pos_x, e.pos_y))
+                _audio.footstep_grass();
         }
         break;
     }

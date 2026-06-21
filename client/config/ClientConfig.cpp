@@ -65,6 +65,10 @@ bool ClientConfig::load(const std::string& config_path) {
             rendering.spell_ticks_per_frame = rendering_table["spell_ticks_per_frame"].value_or(4);
             rendering.water_floor_id = rendering_table["water_floor_id"].value_or<uint16_t>(44);
             rendering.water_search_radius_tiles = rendering_table["water_search_radius_tiles"].value_or(18);
+            rendering.grass_floor_id_min = rendering_table["grass_floor_id_min"].value_or<uint16_t>(2);
+            rendering.grass_floor_id_max = rendering_table["grass_floor_id_max"].value_or<uint16_t>(9);
+            rendering.city_stone_floor_id = rendering_table["city_stone_floor_id"].value_or<uint16_t>(1);
+            rendering.dirt_floor_id = rendering_table["dirt_floor_id"].value_or<uint16_t>(10);
         }
 
         // Cargar UI

@@ -5,11 +5,22 @@
 #include "../render/ItemVisualConfig.h"
 #include "../render/NpcVisualConfig.h"
 
+namespace {
+constexpr float FOOTSTEP_VOLUME_SCALE = 0.4f;  // los pasos suenan más bajo que el resto de los efectos
+}
+
 GameAudioService::GameAudioService(AudioManager* audio) : _audio(audio) {}
 
-void GameAudioService::play_random(const std::vector<std::string>& paths, float dist_tiles) {
+void GameAudioService::play_random(const std::vector<std::string>& paths, float dist_tiles, float volume_scale) {
     if (!_audio || paths.empty()) return;
-    _audio->play_random_effect_at(paths, dist_tiles);
+    _audio->play_random_effect_at(paths, dist_tiles, volume_scale);
+}
+
+void GameAudioService::play_sequential(const std::vector<std::string>& paths, float dist_tiles,
+                                        size_t& index, float volume_scale) {
+    if (!_audio || paths.empty()) return;
+    _audio->play_effect_at(paths[index % paths.size()], dist_tiles, volume_scale);
+    index++;
 }
 
 void GameAudioService::speak_sequence(const std::vector<std::string>& lines, float dist_tiles, uint32_t gap_ms) {
@@ -86,6 +97,18 @@ void GameAudioService::update_ocean_ambient(float dist_tiles) {
     const auto& ocean = AudioConfig::instance().get_ambient_sound("ocean");
     if (ocean.empty()) return;
     _audio->set_ambient_loop(ocean.front(), dist_tiles);
+}
+
+void GameAudioService::footstep_grass() {
+    play_sequential(AudioConfig::instance().get_movement_sound("paso_pasto"), 0.0f,
+                     _footstep_grass_index, FOOTSTEP_VOLUME_SCALE);
+}
+
+void GameAudioService::update_city_stone_footsteps(bool walking_on_city_stone) {
+    if (!_audio) return;
+    const auto& paths = AudioConfig::instance().get_movement_sound("pasos_en_grava");
+    if (paths.empty()) return;
+    _audio->set_looping_while(paths.front(), walking_on_city_stone, FOOTSTEP_VOLUME_SCALE);
 }
 
 void GameAudioService::merchant_greet(float dist_tiles) {

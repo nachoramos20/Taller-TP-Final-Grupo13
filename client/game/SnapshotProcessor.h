@@ -33,7 +33,7 @@ private:
     void update_progression_sounds(WorldState& state, const SnapshotDTO& snap);
     void update_panels(const SnapshotDTO& snap);
     void sync_own_equipment(WorldState& state, const SnapshotDTO& snap);
-    void sync_own_position(PlayerState& player, const SnapshotDTO& snap);
+    void sync_own_position(const WorldState& state, PlayerState& player, const SnapshotDTO& snap);
 
     GameAudioService& _audio;
     StatsPanel*     _stats;
