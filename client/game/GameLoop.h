@@ -119,6 +119,7 @@ private:
     Uint32                 _last_move_tick;
     uint32_t               _current_tick;
     bool                    _was_ghost = false;
+    bool                    _was_meditating = false;
     uint8_t                 _last_level = 0;
     bool                    _level_initialized = false;
     int32_t                 _shop_npc_id = -1; 

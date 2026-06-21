@@ -836,6 +836,14 @@ void GameLoop::apply_snapshot(const SnapshotDTO& snap) {
                                  static_cast<uint16_t>(_player.tile_y));
     _was_ghost = (snap.is_ghost != 0);
 
+    if (_audio && snap.meditating != 0 && !_was_meditating) {
+        static const std::vector<std::string> meditacion = {
+            "assets/sounds/effects/ambient/meditacion.wav",
+        };
+        _audio->play_random_effect_at(meditacion, 0.0f);
+    }
+    _was_meditating = (snap.meditating != 0);
+
     if (_audio && _level_initialized && snap.level > _last_level) {
         static const std::vector<std::string> subir_nivel = {
             "assets/sounds/effects/ui/sonido_al_subir_de_lvl.wav",
