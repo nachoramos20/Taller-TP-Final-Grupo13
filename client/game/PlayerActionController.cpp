@@ -14,8 +14,6 @@ void PlayerActionController::handle_world_click(int tile_x, int tile_y) {
     for (const auto& e : _state.entities) {
         if (e.entity_id == _state.my_entity_id) continue;
         if (e.pos_x != tile_x || e.pos_y != tile_y) continue;
-        // Los items en el piso (oro, sangre, drops) no son objetivos válidos:
-        // si comparten tile con un NPC/jugador, no deben tapar el click sobre él.
         if (e.entity_type == static_cast<uint8_t>(EntityType::ITEM_FLOOR)) continue;
 
         float dist = dist_to_player_tiles(_player, e.pos_x, e.pos_y);
@@ -41,6 +39,25 @@ void PlayerActionController::handle_world_click(int tile_x, int tile_y) {
                 if (!already_talking) _audio.priest_greet(dist);
             }
         } else if (_stats && _stats->cast_mode_active() && _stats->selected_spell() != 0) {
+            // BUG FIX anim hechizo: validar maná y rango ANTES de spawnear el VFX.
+            // El servidor sigue siendo la fuente de verdad — si pasa este check
+            // pero el servidor rechaza (e.g. por lag), simplemente no habrá daño;
+            // pero al menos no spawnear el efecto cuando claramente no es posible.
+            uint16_t spell_mana = _stats ? _stats->selected_spell_mana_cost() : 0;
+            int      spell_range = _stats ? _stats->selected_spell_range()     : 0;
+
+            bool enough_mana = (_stats->current_mp() >= spell_mana);
+            bool in_range    = (spell_range <= 0 || static_cast<int>(dist) <= spell_range);
+
+            if (!enough_mana) {
+                if (_chat) _chat->add_message("Maná insuficiente para lanzar el hechizo.");
+                return;
+            }
+            if (!in_range) {
+                if (_chat) _chat->add_message("El objetivo está fuera de rango.");
+                return;
+            }
+
             uint8_t spell = _stats->selected_spell();
             if (_command_queue) _command_queue->push(Command::cast_spell(e.entity_id, spell));
             spawn_spell_effect(_state, spell, e.pos_x, e.pos_y);
@@ -49,18 +66,50 @@ void PlayerActionController::handle_world_click(int tile_x, int tile_y) {
                 _chat->add_message("Lanzando hechizo a " + (e.username.empty()
                     ? std::string("#") + std::to_string(e.entity_id) : e.username));
         } else {
-            if (_command_queue) _command_queue->push(Command::attack(e.entity_id));
-            if (_chat)
-                _chat->add_message("Atacando a " + (e.username.empty()
-                    ? std::string("#") + std::to_string(e.entity_id) : e.username));
-
+            // BUG FIX anim proyectil: validar rango y (para armas mágicas) maná
+            // antes de spawnear el proyectil.
             uint8_t my_weapon = own_weapon_item(_state);
+
             if (weapon_is_ranged(my_weapon)) {
+                int weapon_range = weapon_client_range(my_weapon);
+                bool in_range = (static_cast<int>(dist) <= weapon_range);
+
+                // Para armas mágicas también verificar maná mínimo (≥1)
+                bool has_mana = true;
+                if (weapon_is_magic(my_weapon) && _stats) {
+                    has_mana = (_stats->current_mp() > 0);
+                }
+
+                if (!in_range) {
+                    if (_chat) _chat->add_message("El objetivo está fuera de rango.");
+                    // Igual enviamos el comando al servidor (él responde con mensaje de error),
+                    // pero no spawneamos el proyectil visual.
+                    if (_command_queue) _command_queue->push(Command::attack(e.entity_id));
+                    return;
+                }
+                if (!has_mana) {
+                    if (_chat) _chat->add_message("Sin maná para disparar el arma mágica.");
+                    if (_command_queue) _command_queue->push(Command::attack(e.entity_id));
+                    return;
+                }
+
+                // Rango y maná OK: spawnear proyectil
+                if (_command_queue) _command_queue->push(Command::attack(e.entity_id));
                 spawn_projectile(_state, static_cast<uint16_t>(_player.tile_x),
                                  static_cast<uint16_t>(_player.tile_y),
                                  e.pos_x, e.pos_y, weapon_is_magic(my_weapon));
+                _audio.attack(my_weapon, dist);
+                if (_chat)
+                    _chat->add_message("Atacando a " + (e.username.empty()
+                        ? std::string("#") + std::to_string(e.entity_id) : e.username));
+            } else {
+                // Arma melee: sin proyectil, sin validación de rango client-side
+                if (_command_queue) _command_queue->push(Command::attack(e.entity_id));
+                if (_chat)
+                    _chat->add_message("Atacando a " + (e.username.empty()
+                        ? std::string("#") + std::to_string(e.entity_id) : e.username));
+                _audio.attack(my_weapon, dist);
             }
-            _audio.attack(my_weapon, dist);
         }
         return;
     }

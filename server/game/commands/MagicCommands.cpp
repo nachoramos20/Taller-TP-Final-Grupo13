@@ -90,6 +90,8 @@ void CastSpellCommand::execute(World& world) {
         return;
     }
 
+    // BUG FIX #1: verificar maná ANTES de hacer cualquier cosa
+    // (antes esto ya estaba, pero se deja explícito con mensaje claro)
     if (caster->mp < sd.mana_cost) {
         world.push_message(client_id, 0, "Maná insuficiente para " + sd.name + ".");
         return;
@@ -119,11 +121,13 @@ void CastSpellCommand::execute(World& world) {
         }
     }
 
+    // BUG FIX #1 (cont.): verificar rango ANTES de consumir maná/disparar animación
     if (Equations::manhattan_distance(caster->pos_x, caster->pos_y, tx, ty) > sd.range) {
         world.push_message(client_id, 0, "Objetivo fuera de alcance para " + sd.name + ".");
         return;
     }
 
+    // Recién acá se confirma el hechizo: salir de meditación y consumir maná
     caster->meditating = false;
     caster->mp -= sd.mana_cost;
 
@@ -140,16 +144,30 @@ void CastSpellCommand::execute(World& world) {
             world.update_occupied({target_p->pos_x, target_p->pos_y}, false);
             world.drop_player_loot(*target_p);
             world.push_message(target_id, 1, "¡Moriste por " + sd.name + "!");
+
+            // EXP por matar jugador con hechizo
+            caster->exp += Equations::exp_on_kill(target_p->max_hp, caster->level, target_p->level);
         } else {
             target_p->hp -= damage;
         }
+        // EXP por daño a jugador
+        caster->exp += Equations::exp_per_damage(damage, caster->level, target_p->level);
     } else if (target_n) {
         if (target_n->hp <= damage) {
+            // BUG FIX #2: otorgar EXP al matar NPC con hechizo
+            const NpcTemplate& tpl = Npcs::tpl(target_n->type);
+            caster->exp += Equations::exp_on_kill(target_n->max_hp, caster->level, 1) + tpl.exp_reward;
+
+            uint32_t gold = Equations::gold_drop_npc(target_n->max_hp);
+            caster->gold += gold;
+
             world.update_occupied({target_n->pos_x, target_n->pos_y}, false);
             target_n->hp = 0;
-            world.push_message(client_id, 1, "¡Mataste al objetivo con " + sd.name + "!");
+            world.push_message(client_id, 1, "¡Mataste al objetivo con " + sd.name + "! +" + std::to_string(gold) + " oro.");
         } else {
             target_n->hp -= damage;
+            // EXP por daño a NPC
+            caster->exp += Equations::exp_per_damage(damage, caster->level, 1);
         }
     }
 

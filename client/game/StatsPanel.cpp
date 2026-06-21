@@ -38,24 +38,40 @@ void StatsPanel::update(uint16_t hp, uint16_t max_hp, uint16_t mp, uint16_t max_
 }
 
 std::vector<StatsPanel::SpellInfo> StatsPanel::spells_for_class(uint8_t cls) const {
+    // BUG FIX anim: rangos espejados del config/spells.toml del servidor.
+    // Formato: { spell_id, label, mana_cost, range_tiles }
     switch (static_cast<Class>(cls)) {
         case Class::MAGE: return {
-            { (uint8_t)SpellId::BURST,                     "Explosión",                     9 },
-            { (uint8_t)SpellId::POISON_AREA,               "Area de veneno",               18 },
-            { (uint8_t)SpellId::SKULL_EXPLOSION,           "Explosión calavérica",         32 },
+            { (uint8_t)SpellId::BURST,                     "Explosión",                     9,  8 },
+            { (uint8_t)SpellId::POISON_AREA,               "Area de veneno",               18,  6 },
+            { (uint8_t)SpellId::SKULL_EXPLOSION,           "Explosión calavérica",         32,  6 },
         };
         case Class::CLERIC: return {
-            { (uint8_t)SpellId::ICE_ORB,                   "Orbe de hielo",                 8 },
-            { (uint8_t)SpellId::GRAVITATIONAL_TORNAD,      "Tornado gravitatorio",         22 },
-            { (uint8_t)SpellId::THUNDERSTORM,              "Tormenta eléctrica",           38 },
+            { (uint8_t)SpellId::ICE_ORB,                   "Orbe de hielo",                 8,  5 },
+            { (uint8_t)SpellId::GRAVITATIONAL_TORNAD,      "Tornado gravitatorio",         22,  5 },
+            { (uint8_t)SpellId::THUNDERSTORM,              "Tormenta eléctrica",           38,  6 },
         };
         case Class::PALADIN: return {
-            { (uint8_t)SpellId::ORB_OF_EMPTINESS,          "Orbe de vacío",                10 },
-            { (uint8_t)SpellId::VACUUM_GAP,                "Brecha de vacío",              22 },
-            { (uint8_t)SpellId::TORNADO_OF_DARKNESS,       "Tornado de oscuridad",         40 },
+            { (uint8_t)SpellId::ORB_OF_EMPTINESS,          "Orbe de vacío",                10,  4 },
+            { (uint8_t)SpellId::VACUUM_GAP,                "Brecha de vacío",              22,  4 },
+            { (uint8_t)SpellId::TORNADO_OF_DARKNESS,       "Tornado de oscuridad",         40,  2 },
         };
         default: return {};
     }
+}
+
+uint16_t StatsPanel::selected_spell_mana_cost() const {
+    if (!_cast_mode || _selected_spell == 0) return 0;
+    for (const auto& s : spells_for_class(_cls))
+        if (s.id == _selected_spell) return s.mana;
+    return 0;
+}
+
+int StatsPanel::selected_spell_range() const {
+    if (!_cast_mode || _selected_spell == 0) return 0;
+    for (const auto& s : spells_for_class(_cls))
+        if (s.id == _selected_spell) return s.range;
+    return 0;
 }
 
 bool StatsPanel::handle_event(const SDL_Event& e) {
