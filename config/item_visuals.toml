@@ -1,0 +1,205 @@
+# ============================================================
+# item_visuals.toml — Datos visuales y de sonido de ítems (solo cliente)
+#
+# Complementa a config/items.toml (catálogo de gameplay compartido con el
+# servidor) con todo lo que sólo le importa al cliente para dibujar:
+#   icon_path   : ícono en el panel de inventario
+#   equip_path  : overlay dibujado sobre el personaje al equiparse (vacío si
+#                 el ítem no se ve sobre el cuerpo, p. ej. pociones/oro)
+#   attack_sound_category/key : dónde buscar en audio_config.toml el sonido
+#                 de ataque básico de esta arma ("melee" | "ranged" | "magic")
+#   melee_finisher_sound_key  : sonido extra al dar el golpe final con esta
+#                 arma equipada (sólo la espada lo tiene)
+#   [item.N.helmet] : sólo para cascos — rect de origen en el spritesheet y
+#                 offset por raza/dirección (orden: sur, norte, oeste, este)
+# ============================================================
+
+# ── Armas cuerpo a cuerpo ────────────────────────────────────
+[item.1]   # SWORD
+icon_path  = "assets/sprites/weapons/sword/espada.png"
+equip_path = "assets/sprites/weapons/sword/espada.png"
+attack_sound_category   = "melee"
+attack_sound_key         = "espada"
+melee_finisher_sound_key = "golpe_final_espada"
+
+[item.2]   # AXE
+icon_path  = "assets/sprites/weapons/axe/hacha.png"
+equip_path = "assets/sprites/weapons/axe/hacha.png"
+attack_sound_category = "melee"
+attack_sound_key       = "hacha"
+
+[item.3]   # HAMMER
+icon_path  = "assets/sprites/weapons/hammer/martillo.png"
+equip_path = "assets/sprites/weapons/hammer/martillo.png"
+attack_sound_category = "melee"
+attack_sound_key       = "martillo"
+
+# ── Armas a distancia físicas ────────────────────────────────
+[item.4]   # SIMPLE_BOW
+icon_path  = "assets/sprites/weapons/bow/arco_simple.png"
+equip_path = "assets/sprites/weapons/bow/arco_simple.png"
+attack_sound_category = "ranged"
+attack_sound_key       = "flecha"
+
+[item.5]   # COMPOUND_BOW
+icon_path  = "assets/sprites/weapons/bow/arco_compuesto.png"
+equip_path = "assets/sprites/weapons/bow/arco_compuesto.png"
+attack_sound_category = "ranged"
+attack_sound_key       = "flecha_magica"
+
+# ── Armas mágicas ────────────────────────────────────────────
+[item.6]   # ELVEN_FLUTE — hechizo "curar"
+icon_path  = "assets/sprites/weapons/flute/flauta_elfica.png"
+equip_path = "assets/sprites/weapons/flute/flauta_elfica.png"
+attack_sound_category = "magic"
+attack_sound_key       = "curacion"
+
+[item.7]   # GEMMED_STAFF — hechizo "explosion"
+icon_path  = "assets/sprites/weapons/staff/baculo_engarzado.png"
+equip_path = "assets/sprites/weapons/staff/baculo_engarzado.png"
+attack_sound_category = "magic"
+attack_sound_key       = "explosion"
+
+[item.8]   # ASH_STICK — hechizo "flecha magica"
+icon_path  = "assets/sprites/weapons/stick/vara_fresno.png"
+equip_path = "assets/sprites/weapons/stick/vara_fresno.png"
+attack_sound_category = "ranged"
+attack_sound_key       = "flecha_magica"
+
+[item.9]   # NUDOSO_STAFF — hechizo "misil"
+icon_path  = "assets/sprites/weapons/staff/baculo_nudoso.png"
+equip_path = "assets/sprites/weapons/staff/baculo_nudoso.png"
+attack_sound_category = "magic"
+attack_sound_key       = "misil"
+
+# ── Armaduras ────────────────────────────────────────────────
+[item.10]  # LEATHER_ARMOR
+icon_path  = "assets/sprites/equipment/armor/clerigo_blanco.png"
+equip_path = "assets/sprites/equipment/armor/clerigo_blanco.png"
+
+[item.24]  # CLERIC_BLACK_ARMOR
+icon_path  = "assets/sprites/equipment/armor/clerigo_negro.png"
+equip_path = "assets/sprites/equipment/armor/clerigo_negro.png"
+
+[item.25]  # MAGE_COMMON_ARMOR
+icon_path  = "assets/sprites/equipment/armor/mago_comun.png"
+equip_path = "assets/sprites/equipment/armor/mago_comun.png"
+
+[item.26]  # MAGE_ROYAL_ARMOR
+icon_path  = "assets/sprites/equipment/armor/mago_real.png"
+equip_path = "assets/sprites/equipment/armor/mago_real.png"
+
+[item.11]  # PLATE_ARMOR
+icon_path  = "assets/sprites/equipment/armor/guerrero_ejecutor.png"
+equip_path = "assets/sprites/equipment/armor/guerrero_ejecutor.png"
+
+[item.27]  # WARRIOR_EPIC_ARMOR
+icon_path  = "assets/sprites/equipment/armor/guerrero_epico.png"
+equip_path = "assets/sprites/equipment/armor/guerrero_epico.png"
+
+[item.28]  # PALADIN_MAGIC_ARMOR
+icon_path  = "assets/sprites/equipment/armor/paladin_magico.png"
+equip_path = "assets/sprites/equipment/armor/paladin_magico.png"
+
+[item.29]  # PALADIN_ROYAL_ARMOR
+icon_path  = "assets/sprites/equipment/armor/paladin_real.png"
+equip_path = "assets/sprites/equipment/armor/paladin_real.png"
+
+# ── Cascos (icono "_tirado" plano; equip_path es el spritesheet real) ──
+[item.20]  # HOOD
+icon_path  = "assets/sprites/equipment/helmet/capucha_tirada.png"
+equip_path = "assets/sprites/equipment/helmet/capucha.png"
+[item.20.helmet]
+src_x = 0
+src_y = 0
+src_w = 17
+src_h = 21   # 85 / 4
+offset_y_human = [-2, -2, -1, 0]
+offset_y_elf   = [-2, -2, -1, -1]
+offset_y_dwarf = [-2, -2, -1, -1]
+offset_y_gnome = [-2, -2, -6, -4]
+offset_x_human = [0, 0, 0, 0]
+offset_x_elf   = [0, 0, 0, -1]
+offset_x_dwarf = [0, 0, 0, 0]
+offset_x_gnome = [0, 1, 1, -1]
+
+[item.21]  # IRON_HELMET
+icon_path  = "assets/sprites/equipment/helmet/casco_de_hierro_tirado.png"
+equip_path = "assets/sprites/equipment/helmet/casco_de_hierro.png"
+[item.21.helmet]
+src_x = 0
+src_y = 0
+src_w = 19
+src_h = 27   # 110 / 4
+offset_y_human = [-8, -7, -5, -6]
+offset_y_elf   = [-8, -7, -6, -10]
+offset_y_dwarf = [-9, -7, -6, -9]
+offset_y_gnome = [-10, -7, -11, -13]
+offset_x_human = [0, 0, 2, -2]
+offset_x_elf   = [0, 0, 1, -2]
+offset_x_dwarf = [0, 0, 1, -1]
+offset_x_gnome = [0, 1, 2, -2]
+
+[item.22]  # MAGIC_HAT
+icon_path  = "assets/sprites/equipment/helmet/sombrero_mago_tirado.png"
+equip_path = "assets/sprites/equipment/helmet/sombrero_magico.png"
+[item.22.helmet]
+src_x = 0
+src_y = 0
+src_w = 25
+src_h = 28   # 113 / 4
+offset_y_human = [-12, -9, -10, -7]
+offset_y_elf   = [-12, -9, -12, -11]
+offset_y_dwarf = [-12, -9, -12, -11]
+offset_y_gnome = [-12, -9, -16, -13]
+offset_x_human = [-1, -1, 1, -1]
+offset_x_elf   = [-1, -1, 1, -1]
+offset_x_dwarf = [-1, -1, 1, 0]
+offset_x_gnome = [-1, -1, 1, -1]
+
+# ── Escudos ──────────────────────────────────────────────────
+[item.30]  # TURTLE_SHIELD
+icon_path  = "assets/sprites/equipment/shield/escudo_tortuga.png"
+equip_path = "assets/sprites/equipment/shield/escudo_tortuga.png"
+
+[item.31]  # IRON_SHIELD
+icon_path  = "assets/sprites/equipment/shield/escudo_hierro.png"
+equip_path = "assets/sprites/equipment/shield/escudo_hierro.png"
+
+[item.32]  # BOCA_SHIELD
+icon_path  = "assets/sprites/equipment/shield/escudo_boca.png"
+equip_path = "assets/sprites/equipment/shield/escudo_boca.png"
+
+# ── Pociones y oro (sin overlay sobre el personaje) ───────────
+[item.40]  # HEALTH_POTION
+icon_path = "assets/sprites/items/pocion_vida.png"
+
+[item.41]  # MANA_POTION
+icon_path = "assets/sprites/items/pocion_mana.png"
+
+[item.50]  # GOLD_PILE
+icon_path = "assets/sprites/items/oro.png"
+
+# ============================================================
+# Variantes visuales al estar tirado en el piso. La clave es la categoría de
+# sprite que manda el servidor para ITEM_FLOOR (no siempre coincide 1:1 con
+# un ItemId puntual: 10/11/30/31 son grupos genéricos de armadura/escudo). El
+# cliente elige la variante con `direction % cantidad_de_variantes`.
+# ============================================================
+[floor_item_variants]
+1  = ["assets/sprites/weapons/sword/espada.png"]
+2  = ["assets/sprites/weapons/axe/hacha.png"]
+3  = ["assets/sprites/weapons/hammer/martillo.png"]
+4  = ["assets/sprites/weapons/bow/arco_simple.png"]
+5  = ["assets/sprites/weapons/bow/arco_compuesto.png"]
+6  = ["assets/sprites/weapons/flute/flauta_elfica.png"]
+7  = ["assets/sprites/weapons/staff/baculo_engarzado.png"]
+8  = ["assets/sprites/weapons/stick/vara_fresno.png"]
+9  = ["assets/sprites/weapons/staff/baculo_nudoso.png"]
+10 = ["assets/sprites/equipment/armor/clerigo_blanco.png", "assets/sprites/equipment/armor/clerigo_negro.png", "assets/sprites/equipment/armor/mago_comun.png", "assets/sprites/equipment/armor/mago_real.png"]
+11 = ["assets/sprites/equipment/armor/guerrero_ejecutor.png", "assets/sprites/equipment/armor/guerrero_epico.png", "assets/sprites/equipment/armor/paladin_magico.png", "assets/sprites/equipment/armor/paladin_real.png"]
+30 = ["assets/sprites/equipment/shield/escudo_tortuga.png"]
+31 = ["assets/sprites/equipment/shield/escudo_hierro.png", "assets/sprites/equipment/shield/escudo_boca.png"]
+40 = ["assets/sprites/items/pocion_vida.png"]
+41 = ["assets/sprites/items/pocion_mana.png"]
+50 = ["assets/sprites/items/oro.png"]

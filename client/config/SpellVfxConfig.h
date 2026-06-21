@@ -15,6 +15,7 @@ public:
         int frame_w;
         int frame_h;
         std::vector<int> frame_indices;
+        std::string sound_path;  // sonido al impactar el hechizo (vacío = sin sonido)
     };
 
     // Estructura para información de render de un spell

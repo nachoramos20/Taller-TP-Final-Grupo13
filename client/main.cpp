@@ -21,6 +21,8 @@
 #include "config/AudioConfig.h"
 #include "config/SpellVfxConfig.h"
 #include "config/RacesClassesConfig.h"
+#include "render/ItemVisualConfig.h"
+#include "render/NpcVisualConfig.h"
 
 // Detiene y joinea todos los threads de red de forma segura.
 static void shutdown_net(std::atomic<bool>& connected,
@@ -52,6 +54,8 @@ int main(int argc, char* argv[]) try {
     AudioConfig& audio_config = AudioConfig::instance();
     SpellVfxConfig& spell_vfx_config = SpellVfxConfig::instance();
     RacesClassesConfig& races_classes_config = RacesClassesConfig::instance();
+    ItemVisualConfig& item_visual_config = ItemVisualConfig::instance();
+    NpcVisualConfig& npc_visual_config = NpcVisualConfig::instance();
 
     if (!client_config.load("config/client_config.toml")) {
         std::cerr << "Error: no se pudo cargar config/client_config.toml\n";
@@ -67,6 +71,14 @@ int main(int argc, char* argv[]) try {
     }
     if (!races_classes_config.load("config/races_classes.toml")) {
         std::cerr << "Error: no se pudo cargar config/races_classes.toml\n";
+        return 1;
+    }
+    if (!item_visual_config.load("config/item_visuals.toml")) {
+        std::cerr << "Error: no se pudo cargar config/item_visuals.toml\n";
+        return 1;
+    }
+    if (!npc_visual_config.load("config/npc_visuals.toml")) {
+        std::cerr << "Error: no se pudo cargar config/npc_visuals.toml\n";
         return 1;
     }
 

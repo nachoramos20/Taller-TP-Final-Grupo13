@@ -7,14 +7,22 @@ target_sources(argentum_grupo13_client
     game/StatsPanel.cpp
     game/InventoryPanel.cpp
     game/PositionLabel.cpp
+    game/WorldState.cpp
+    game/SnapshotProcessor.cpp
+    game/WorldRenderer.cpp
+    game/InputController.cpp
+    game/PlayerActionController.cpp
     render/Camera.cpp
     render/AssetManager.cpp
     render/AnimationSystem.cpp
     render/SpriteConfig.cpp
     render/ObjectSupConfig.cpp
+    render/ItemVisualConfig.cpp
+    render/NpcVisualConfig.cpp
     net/SenderThread.cpp
     net/ReceiverThread.cpp
     audio/AudioManager.cpp
+    audio/GameAudioService.cpp
     config/AudioConfig.cpp
     config/ClientConfig.cpp
     config/SpellVfxConfig.cpp

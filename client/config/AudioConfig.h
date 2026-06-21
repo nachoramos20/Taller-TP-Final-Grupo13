@@ -39,11 +39,13 @@ public:
     std::unordered_map<std::string, std::vector<std::string>> npc_priest_sounds;
     std::unordered_map<std::string, std::vector<std::string>> economy_sounds;
     std::unordered_map<std::string, std::vector<std::string>> ui_sounds;
+    std::unordered_map<std::string, std::vector<std::string>> ambient_sounds;
 
     // Datos de interacción
     struct Interaction {
-        int shop_range_tiles;
-        int priest_range_tiles;
+        float shop_range_tiles;
+        float bank_range_tiles;
+        float priest_range_tiles;
     };
     Interaction interaction;
 
@@ -64,6 +66,7 @@ public:
     const std::vector<std::string>& get_npc_priest_sound(const std::string& key) const;
     const std::vector<std::string>& get_economy_sound(const std::string& key) const;
     const std::vector<std::string>& get_ui_sound(const std::string& key) const;
+    const std::vector<std::string>& get_ambient_sound(const std::string& key) const;
 
 private:
     static const std::vector<std::string>& lookup(

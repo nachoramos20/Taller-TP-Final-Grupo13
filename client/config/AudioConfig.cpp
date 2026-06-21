@@ -66,10 +66,14 @@ bool AudioConfig::load(const std::string& config_path) {
         load_sound_table(config["economy_sounds"], economy_sounds);
         load_sound_table(config["ui_sounds"], ui_sounds);
 
+        // Cargar ambient_sounds
+        load_sound_table(config["ambient_sounds"], ambient_sounds);
+
         // Cargar interaction
         if (auto interaction_table = config["npc_interaction"]) {
-            interaction.shop_range_tiles = interaction_table["shop_range_tiles"].value_or(3);
-            interaction.priest_range_tiles = interaction_table["priest_range_tiles"].value_or(3);
+            interaction.shop_range_tiles = interaction_table["shop_range_tiles"].value_or(3.0f);
+            interaction.bank_range_tiles = interaction_table["bank_range_tiles"].value_or(3.0f);
+            interaction.priest_range_tiles = interaction_table["priest_range_tiles"].value_or(3.0f);
         }
 
         return true;
@@ -131,4 +135,8 @@ const std::vector<std::string>& AudioConfig::get_economy_sound(const std::string
 
 const std::vector<std::string>& AudioConfig::get_ui_sound(const std::string& key) const {
     return lookup(ui_sounds, key);
+}
+
+const std::vector<std::string>& AudioConfig::get_ambient_sound(const std::string& key) const {
+    return lookup(ambient_sounds, key);
 }

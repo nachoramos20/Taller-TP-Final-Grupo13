@@ -40,10 +40,7 @@ curacion       = [
     "assets/sounds/effects/magic/sonido_como_de_curacion_divina.wav",
     "assets/sounds/effects/magic/sonido_como_de_curacion_divina_2.wav"
 ]
-misil          = [
-    "assets/sounds/effects/magic/sonido_de_onda.wav",
-    "assets/sounds/effects/magic/sonido_de_onda_2.wav"
-]
+misil          = ["assets/sounds/effects/magic/orbe_de_hielo_baculo_nudoso.wav"]
 explosion      = ["assets/sounds/effects/combat/explosion.wav"]
 hechizo_generico = [
     "assets/sounds/effects/combat/explosion.wav",
@@ -116,7 +113,13 @@ monedas            = ["assets/sounds/effects/economy/monedas.wav"]
 [ui_sounds]
 level_up           = ["assets/sounds/effects/ui/sonido_al_subir_de_lvl.wav"]
 
+# ── Sonidos Ambiente ──────────────────────────────────────────
+[ambient_sounds]
+ocean              = ["assets/sounds/effects/ambient/mar_2.wav"]
+meditation         = ["assets/sounds/effects/ambient/meditacion.wav"]
+
 # ── Rangos de Interacción con NPCs ───────────────────────────
 [npc_interaction]
 shop_range_tiles   = 2.0     # Rango en tiles para interactuar con tienda
+bank_range_tiles   = 2.0     # Rango en tiles para interactuar con el banco
 priest_range_tiles = 2.0     # Rango en tiles para interactuar con sacerdote

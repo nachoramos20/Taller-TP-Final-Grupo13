@@ -1,6 +1,23 @@
 #include "ClientConfig.h"
 #include <toml++/toml.hpp>
 #include <iostream>
+#include <SDL2/SDL_keyboard.h>
+
+static SDL_Keycode parse_key(toml::node_view<toml::node> node, const char* default_name) {
+    std::string name = node.value_or(std::string(default_name));
+    return SDL_GetKeyFromName(name.c_str());
+}
+
+static std::vector<SDL_Scancode> parse_scancodes(toml::node_view<toml::node> node) {
+    std::vector<SDL_Scancode> result;
+    if (auto arr = node.as_array()) {
+        for (auto& elem : *arr) {
+            if (auto name = elem.value<std::string>())
+                result.push_back(SDL_GetScancodeFromName(name->c_str()));
+        }
+    }
+    return result;
+}
 
 ClientConfig& ClientConfig::instance() {
     static ClientConfig instance;
@@ -44,8 +61,10 @@ bool ClientConfig::load(const std::string& config_path) {
             rendering.map_size = rendering_table["map_size"].value_or(100);
             rendering.obj_sup_tiles = rendering_table["obj_sup_tiles"].value_or(10);
             rendering.obj_sup_size = rendering_table["obj_sup_size"].value_or(20);
-            rendering.obj_sup_ticks_per_frame = rendering_table["obj_sup_ticks_per_frame"].value_or(5);
+            rendering.obj_sup_ticks_per_frame = rendering_table["obj_sup_ticks_per_frame"].value_or(8);
             rendering.spell_ticks_per_frame = rendering_table["spell_ticks_per_frame"].value_or(4);
+            rendering.water_floor_id = rendering_table["water_floor_id"].value_or<uint16_t>(44);
+            rendering.water_search_radius_tiles = rendering_table["water_search_radius_tiles"].value_or(18);
         }
 
         // Cargar UI
@@ -75,6 +94,22 @@ bool ClientConfig::load(const std::string& config_path) {
         // Cargar projectiles
         if (auto rendering_table = config["rendering"]) {
             projectiles.duration_ticks = rendering_table["projectile_duration_ticks"].value_or(30);
+        }
+
+        // Cargar keybindings
+        if (auto kb_table = config["keybindings"]) {
+            keybindings.toggle_position_label = parse_key(kb_table["toggle_position_label"], "X");
+            keybindings.toggle_inventory      = parse_key(kb_table["toggle_inventory"], "I");
+            keybindings.drop_item             = parse_key(kb_table["drop_item"], "Q");
+            keybindings.meditate              = parse_key(kb_table["meditate"], "M");
+            keybindings.resurrect             = parse_key(kb_table["resurrect"], "R");
+            keybindings.pick_item             = parse_key(kb_table["pick_item"], "E");
+            keybindings.quit                  = parse_key(kb_table["quit"], "Escape");
+
+            keybindings.move_up    = parse_scancodes(kb_table["move_up"]);
+            keybindings.move_down  = parse_scancodes(kb_table["move_down"]);
+            keybindings.move_left  = parse_scancodes(kb_table["move_left"]);
+            keybindings.move_right = parse_scancodes(kb_table["move_right"]);
         }
 
         return true;

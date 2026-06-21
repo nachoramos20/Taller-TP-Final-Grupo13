@@ -4,7 +4,7 @@
 #include <SDL2/SDL.h>
 #include <atomic>
 #include <memory>
-#include <vector>
+#include <string>
 
 #include "../game/PlayerState.h"
 #include "../game/ChatWidget.h"
@@ -12,42 +12,26 @@
 #include "../game/InventoryPanel.h"
 #include "../game/PositionLabel.h"
 #include "../render/Camera.h"
-#include "../render/AssetManager.h"
-#include "../render/AnimationSystem.h"
-#include "../render/SpriteConfig.h"
-#include "../render/ObjectSupConfig.h"
 #include "../audio/AudioManager.h"
+#include "../audio/GameAudioService.h"
 #include "../../common/queue.h"
 #include "../../common/protocol/dtos.h"
 #include "../../common/MapaDTO.h"
 #include "../net/Command.h"
+#include "WorldState.h"
+#include "SnapshotProcessor.h"
+#include "WorldRenderer.h"
+#include "InputController.h"
+#include "PlayerActionController.h"
 
-// Efecto visual de hechizo (solo cliente)
-struct SpellEffect {
-    uint8_t  spell_id;
-    uint16_t pos_x, pos_y;   // posición del caster en tiles
-    uint32_t start_tick;
-    int      sheet_cols;
-    int      frame_w, frame_h;
-    std::vector<int> frame_indices;
-    std::string path;
-};
-
-// Animación de proyectil para ataques a distancia (solo cliente, sin sprite
-// propio: se dibuja como una marca viajando del atacante al objetivo).
-struct Projectile {
-    uint16_t from_x, from_y;
-    uint16_t to_x, to_y;
-    uint32_t start_tick;
-    bool     is_magic;  // color distinto para distinguir flecha de hechizo
-};
-
-// Animación de muerte de NPC
-struct DeathEffect {
-    uint16_t pos_x, pos_y;
-    uint32_t start_ms;   // SDL_GetTicks() al crear el efecto
-};
-
+// Orquestador del juego: corre el loop principal y delega todo el trabajo
+// pesado a colaboradores con responsabilidad única —
+//   InputController        : eventos SDL + atajos de teclado + movimiento
+//   PlayerActionController : qué pasa al clickear el mundo / comandos de chat
+//   SnapshotProcessor       : interpreta los snapshots del servidor
+//   WorldRenderer           : dibuja el mundo
+//   GameAudioService        : único punto de acceso a sonido
+// GameLoop sólo los construye, los conecta entre sí, y corre run()/update()/render().
 class GameLoop {
 public:
     GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer);
@@ -63,38 +47,19 @@ public:
     void stop();
 
 private:
-    void handle_events();
-    void handle_input();
-    void handle_mouse_click(int mouse_x, int mouse_y);
-    void update(float dt);
-    void apply_snapshot(const SnapshotDTO& snap);
-    void apply_map(const MapaDTO& map);
-    void render();
-    void render_floor();
-    void render_objects();
-    void render_entities();
-    void render_entity_healthbar(const EntityDTO& entity, const SpriteBounds& bounds);
-    void render_obj_sup();
-    void render_spells();
-    void render_projectiles();
-    void render_deaths();
-    void load_item_textures();
-    void spawn_spell_effect(uint8_t spell_id, uint16_t pos_x, uint16_t pos_y);
-    void spawn_projectile(uint16_t from_x, uint16_t from_y,
-                          uint16_t to_x, uint16_t to_y, bool is_magic);
+    GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
+              Queue<Command>* command_queue, Queue<SnapshotDTO>* snapshot_queue,
+              Queue<MapaDTO>* map_queue, std::atomic<bool>* connected,
+              AudioManager* audio, const std::string& welcome_message);
 
-    float dist_to_player_tiles(uint16_t x, uint16_t y) const;
-    float dist_to_nearest_water_tiles() const;
-    void play_attack_sound(uint8_t weapon_item, uint16_t x, uint16_t y);
-    void play_spell_sound(uint8_t spell_id, uint16_t x, uint16_t y);
-    void play_npc_death_sound(uint8_t npc_sprite_id, uint16_t entity_id, uint16_t x, uint16_t y);
-    void play_player_death_sound(uint16_t x, uint16_t y);
+    void update(float dt);
+    void render();
 
     SDL2pp::Window&     _window;
     SDL2pp::Renderer&   _renderer;
     Camera              _camera;
     PlayerState         _player;
-    bool                _running;
+    bool                _running = false;
 
     Queue<Command>*      _command_queue;
     Queue<SnapshotDTO>*  _snapshot_queue;
@@ -102,42 +67,16 @@ private:
     std::atomic<bool>*   _connected;
     AudioManager*        _audio;
 
-    std::vector<EntityDTO> _last_entities;
-    uint16_t               _my_entity_id;
-    Uint32                 _last_move_tick;
-    uint32_t               _current_tick;
-    bool                    _was_ghost = false;
-    bool                    _was_meditating = false;
-    uint8_t                 _last_level = 0;
-    bool                    _level_initialized = false;
-    int32_t                 _shop_npc_id = -1; 
-    int32_t                 _bank_npc_id = -1; 
-    int32_t                 _priest_npc_id = -1;
+    WorldState _state;
 
-    // Equipo del jugador propio (slots de inventario, 0xFF = vacío)
-    uint8_t _inv[SnapshotDTO::INVENTORY_SIZE] {};
-    uint8_t _eq_wpn  = 0xFF;
-    uint8_t _eq_arm  = 0xFF;
-    uint8_t _eq_helm = 0xFF;
-    uint8_t _eq_shld = 0xFF;
+    std::unique_ptr<ChatWidget>     _chat;
+    std::unique_ptr<StatsPanel>     _stats;
+    std::unique_ptr<InventoryPanel> _inventory;
+    std::unique_ptr<PositionLabel>  _pos_label;
 
-    // Efectos visuales de hechizos (solo cliente)
-    std::vector<SpellEffect> _spell_effects;
-    std::vector<Projectile>  _projectiles;
-    std::vector<DeathEffect> _death_effects;
-
-    MapaDTO   _map;
-    bool      _map_loaded;
-
-    AssetManager     _assets;
-    AnimationSystem  _anim;
-    SpriteConfig     _sprite_config;
-    TileConfig       _tile_config;
-    ObjectSupConfig  _obj_sup_config;
-    TTF_Font*        _small_font = nullptr;  // Para nombres y barras de vida
-
-    std::unique_ptr<ChatWidget>        _chat;
-    std::unique_ptr<StatsPanel>        _stats;
-    std::unique_ptr<InventoryPanel>    _inventory;
-    std::unique_ptr<PositionLabel>     _pos_label;
+    GameAudioService       _audio_service;
+    SnapshotProcessor       _snapshot_processor;
+    WorldRenderer           _world_renderer;
+    InputController         _input;
+    PlayerActionController  _actions;
 };

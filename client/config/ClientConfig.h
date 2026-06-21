@@ -1,6 +1,8 @@
 #ifndef CLIENT_CONFIG_H
 #define CLIENT_CONFIG_H
 
+#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_scancode.h>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -43,6 +45,25 @@ public:
         int obj_sup_size;
         int obj_sup_ticks_per_frame;
         int spell_ticks_per_frame;
+        uint16_t water_floor_id;
+        int water_search_radius_tiles;
+    };
+
+    // Estructura para atajos de teclado (se cargan por nombre desde el TOML,
+    // p. ej. "I", "Up", "Escape", y se resuelven una sola vez a códigos SDL).
+    struct Keybindings {
+        SDL_Keycode toggle_position_label = SDLK_UNKNOWN;
+        SDL_Keycode toggle_inventory       = SDLK_UNKNOWN;
+        SDL_Keycode drop_item              = SDLK_UNKNOWN;
+        SDL_Keycode meditate               = SDLK_UNKNOWN;
+        SDL_Keycode resurrect              = SDLK_UNKNOWN;
+        SDL_Keycode pick_item              = SDLK_UNKNOWN;
+        SDL_Keycode quit                   = SDLK_UNKNOWN;
+
+        std::vector<SDL_Scancode> move_up;
+        std::vector<SDL_Scancode> move_down;
+        std::vector<SDL_Scancode> move_left;
+        std::vector<SDL_Scancode> move_right;
     };
 
     // Estructura para UI
@@ -82,6 +103,7 @@ public:
     DeathEffects death_effects;
     Camera camera;
     Projectiles projectiles;
+    Keybindings keybindings;
 
     // Singleton
     static ClientConfig& instance();
