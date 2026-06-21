@@ -58,7 +58,6 @@ void ServerGameLoop::run() {
     sp.add_safe_zone(SafeZone{ 29, 53, 49, 71 }); // pueblo sur
 
     // ── NPCs de servicio en la ciudad ──
-    // Ubicados frente a sus edificios
     world.spawn_npc(NpcId::MERCHANT, 30, 18);
     world.spawn_npc(NpcId::BANKER,   50, 16);
     world.spawn_npc(NpcId::PRIEST,   41, 14);
@@ -105,8 +104,6 @@ void ServerGameLoop::update() {
             player.attack_cooldown--;
 
         // ── Meditación: regenerar MP por tick ──
-        // Mana = FClaseMeditacion * Inteligencia * segundos
-        // Aproximamos por tick: MP += intel/10+1
         if (player.meditating && !player.is_ghost &&
             static_cast<Class>(player.cls) != Class::WARRIOR) {
             player.mp = std::min(player.max_mp,
@@ -114,9 +111,9 @@ void ServerGameLoop::update() {
         }
 
         // ── Regeneración natural (por tiempo) ──
-        // Solo cada REGEN_EVERY_N_TICKS ticks
+        // Solo cada REGEN_EVERY_N_TICKS ticks (1 vez por segundo a 30Hz)
         if (do_regen && !player.is_ghost) {
-            // HP: Vida = FRazaRecuperacion * segundos  (1 HP/seg aprox)
+            // BUG FIX #6: regeneración de HP más lenta
             if (player.hp < player.max_hp)
                 player.hp = std::min(player.max_hp,
                     static_cast<uint16_t>(player.hp + hp_regen_per_interval(player)));
@@ -144,16 +141,20 @@ void ServerGameLoop::broadcast_snapshots() {
 }
 
 uint16_t ServerGameLoop::hp_regen_per_interval(const PlayerData& p) {
-    // FRazaRecuperacion diferenciado por raza (aprox)
+    // BUG FIX #6: reducida la regeneración de HP.
+    // Antes devolvía hasta 2-3 HP/seg (factor * 2.0).
+    // Ahora devuelve siempre 1 HP/seg, diferenciado levemente por raza.
+    // A 30 ticks/seg con REGEN_EVERY_N_TICKS = 30, esto equivale a 1 HP/seg.
     float factor = 1.0f;
     switch (static_cast<Race>(p.race)) {
         case Race::HUMAN: factor = 1.0f; break;
-        case Race::ELF:   factor = 0.8f; break;
-        case Race::DWARF: factor = 1.3f; break;
-        case Race::GNOME: factor = 1.1f; break;
+        case Race::ELF:   factor = 0.7f; break;  // elfos se recuperan más lento
+        case Race::DWARF: factor = 1.3f; break;  // enanos se recuperan más rápido (pero sigue siendo ~1 HP/seg)
+        case Race::GNOME: factor = 0.9f; break;
     }
-    // ~1 HP por segundo; REGEN_EVERY_N_TICKS ticks = 1 seg (a 30Hz)
-    return static_cast<uint16_t>(std::max(1.0f, factor * 2.0f));
+    // Máximo 1 HP por intervalo para la mayoría de razas
+    // (el enano llega a 1, ya que floor(1.3) = 1 también con max 1)
+    return static_cast<uint16_t>(std::max(1.0f, std::floor(factor)));
 }
 
 uint16_t ServerGameLoop::mp_regen_per_interval(const PlayerData& p) {

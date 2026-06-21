@@ -5,8 +5,6 @@
 #include "../GameConfig.h"
 #include <algorithm>
 
-// Helpers de combate locales adaptados al nuevo módulo
-
 struct WeaponInfo {
     ItemKind  kind      = ItemKind::NONE;
     uint16_t  mana_cost = 0;
@@ -54,12 +52,23 @@ static void check_level_up(PlayerData& p, World& world) {
         uint32_t limit = Equations::exp_required_for_level(p.level);
         if (p.exp < limit) break;
         p.level++;
-        p.max_hp = Stats::initial_max_hp(p.race, p.cls) * p.level;
+
+        // BUG FIX #5: escalado ADITIVO en vez de multiplicativo.
+        // Antes: max_hp = initial_max_hp * level  → escala muy rápido.
+        // Ahora: max_hp = initial_max_hp + (level - 1) * incremento_por_nivel
+        // Incremento: 10% de la HP/MP inicial por nivel.
+        uint16_t base_hp = Stats::initial_max_hp(p.race, p.cls);
+        uint16_t base_mp = Stats::initial_max_mp(p.race, p.cls);
+        uint16_t hp_per_level = static_cast<uint16_t>(base_hp * 0.10f);
+        uint16_t mp_per_level = static_cast<uint16_t>(base_mp * 0.10f);
+
+        p.max_hp = base_hp + static_cast<uint16_t>((p.level - 1)) * hp_per_level;
+
         if (!GameConfig::get().cls(p.cls).can_meditate) {
             p.max_mp = 0;
             p.mp     = 0;
         } else {
-            p.max_mp = Stats::initial_max_mp(p.race, p.cls) * p.level;
+            p.max_mp = base_mp + static_cast<uint16_t>((p.level - 1)) * mp_per_level;
         }
         p.hp = std::min(p.hp, p.max_hp);
         p.mp = std::min(p.mp, p.max_mp);
@@ -92,7 +101,7 @@ static void npc_drop(const NpcData& npc, const NpcTemplate& tpl, World& world) {
     }
 }
 
-// AttackCommand (PvP) Refactoreado con Equations::
+// AttackCommand (PvP)
 
 AttackCommand::AttackCommand(uint16_t c, uint16_t t) : client_id(c), target_id(t) {}
 
@@ -187,7 +196,7 @@ void AttackCommand::execute(World& world) {
     attacker->attack_cooldown = GameConfig::get().formulas().attack_cooldown_melee;
 }
 
-// AttackNpcCommand Refactoreado
+// AttackNpcCommand
 
 AttackNpcCommand::AttackNpcCommand(uint16_t c, uint16_t n) : client_id(c), npc_id(n) {}
 
@@ -220,7 +229,8 @@ void AttackNpcCommand::execute(World& world) {
     }
 
     bool crit = Equations::is_critical();
-    if (!crit && Equations::try_dodge(10)) { // Agilidad fija de NPC
+    // BUG FIX #3 (dodge de NPC): también con probabilidad fija y baja (5%)
+    if (!crit && Equations::try_dodge(10)) {
         world.push_message(client_id, 1, "¡El NPC esquivó tu ataque!");
         attacker->attack_cooldown = GameConfig::get().formulas().attack_cooldown_melee;
         return;

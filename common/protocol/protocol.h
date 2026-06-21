@@ -139,3 +139,17 @@ inline bool weapon_is_ranged(uint8_t item_id) {
            item_id == static_cast<uint8_t>(ItemId::COMPOUND_BOW) ||
            weapon_is_magic(item_id);
 }
+
+// Rango de ataque del arma en tiles (client-side, espejado de items.toml).
+// Usado para validación visual antes de spawnear proyectiles/hechizos.
+inline int weapon_client_range(uint8_t item_id) {
+    switch (static_cast<ItemId>(item_id)) {
+        case ItemId::SIMPLE_BOW:    return 6;
+        case ItemId::COMPOUND_BOW:  return 8;
+        case ItemId::ELVEN_FLUTE:   return 5;
+        case ItemId::ASH_STICK:     return 6;
+        case ItemId::NUDOSO_STAFF:  return 6;
+        case ItemId::GEMMED_STAFF:  return 6;
+        default:                    return 1;
+    }
+}

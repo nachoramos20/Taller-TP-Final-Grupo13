@@ -11,7 +11,6 @@ base_hp = 100
 base_mp = 100
 
 # ── Razas ────────────────────────────────────────────────────
-# Campos: hp_factor, mp_factor, base_str, base_agi, base_int, base_const
 [race.1]   # HUMAN  = 1
 name       = "Humano"
 hp_factor  = 1.0
@@ -49,8 +48,6 @@ base_int   = 24
 base_const = 16
 
 # ── Clases ───────────────────────────────────────────────────
-# can_use_weapon_melee / ranged / armor_heavy: false / true
-# can_meditate: si la clase puede recuperar MP meditando
 [class.1]   # MAGE = 1
 name                 = "Mago"
 hp_factor            = 0.8
@@ -88,9 +85,8 @@ can_use_armor_heavy  = true
 can_meditate         = false
 
 # ── Módulo Único de Ecuaciones y Balance ─────────────────────
-# Centraliza todas las variables numéricas utilizadas por las fórmulas del juego
 [formulas]
-# Progresión de nivel (EXP requerida = exp_base * N^exp_exponent)
+# Progresión de nivel
 exp_base               = 1000.0
 exp_exponent           = 1.8
 
@@ -98,30 +94,36 @@ exp_exponent           = 1.8
 pvp_min_level          = 12
 pvp_max_level_delta    = 10
 
-# Mecánicas de Combate Físico y Evasión
+# Mecánicas de Combate
 crit_multiplier        = 2.0
 crit_chance            = 0.05
-dodge_cap              = 0.30
-dodge_per_agi          = 0.005
+
+# BUG FIX #3: dodge cap bajado de 0.30 a 0.15 (máximo 15% de esquive)
+# BUG FIX #3: dodge_per_agi bajado de 0.005 a 0.003
+# Con agilidad 18 (base): 18 * 0.003 = 5.4% → razonable
+# Con agilidad 22 (elfo): 22 * 0.003 = 6.6% → sigue siendo moderado
+dodge_cap              = 0.15
+dodge_per_agi          = 0.003
+
 attack_cooldown_melee  = 10
 attack_cooldown_spell  = 12
 
-# Sistema de Recompensas de Experiencia (Daño y Kills)
+# Sistema de Recompensas de EXP
 per_damage_base_factor = 10
 kill_exp_rand_max      = 0.1
 
-# Sistema de Drops de NPCs (Rangos de Oro y Probabilidades Acumuladas)
+# Sistema de Drops de NPCs
 gold_drop_min_frac     = 0.01
 gold_drop_max_frac     = 0.20
-drop_chance_nothing    = 0.80   # [0.00, 0.80) → Nada
-drop_chance_gold       = 0.88   # [0.80, 0.88) → Oro
-drop_chance_potion     = 0.89   # [0.88, 0.89) → Poción
-drop_chance_item       = 0.90   # [0.89, 0.90) → Ítem de drop_table
+drop_chance_nothing    = 0.80
+drop_chance_gold       = 0.88
+drop_chance_potion     = 0.89
+drop_chance_item       = 0.90
 
 # Regeneración por Meditación (MP por tick)
 mp_regen_per_tick      = 2
 
-# Mecánica de Resurrección (Sacerdote de la ciudad)
+# Mecánica de Resurrección
 respawn_x              = 40
 respawn_y              = 25
-hp_fraction            = 0.25   # Fracción del max_hp restaurada
+hp_fraction            = 0.25

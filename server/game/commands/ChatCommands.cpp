@@ -60,6 +60,15 @@ void ChatCommand::handle_meditar(World& world) {
 }
 
 void ChatCommand::handle_resucitar(World& world) {
+    // BUG FIX: /resucitar requiere estar cerca de un Sacerdote,
+    // igual que /curar. Sin este chequeo el jugador podía resucitar
+    // desde cualquier parte del mapa.
+    if (!world.player_near_service_npc(client_id, NpcId::PRIEST)) {
+        world.push_message(client_id, 0,
+            "Debes estar cerca del Sacerdote para resucitar.\n"
+            "Acércate y haz click en él primero.");
+        return;
+    }
     ResurrectCommand(client_id).execute(world);
 }
 
@@ -146,6 +155,16 @@ void ChatCommand::handle_vender(World& world, const std::string& item_name) {
             uint32_t sell_price = (def.max_value * 10 + 10) / 2;
             p->gold += sell_price;
             p->inventory[i] = 0;
+
+            // BUG FIX: si el item vendido estaba equipado, limpiar el slot
+            // de equip para que no quede apuntando a un slot vacío.
+            // Sin esto, el próximo item que entre en ese slot aparecería
+            // como equipado aunque no lo esté.
+            if (p->equipped_weapon == static_cast<uint8_t>(i)) p->equipped_weapon = 0xFF;
+            if (p->equipped_armor  == static_cast<uint8_t>(i)) p->equipped_armor  = 0xFF;
+            if (p->equipped_helmet == static_cast<uint8_t>(i)) p->equipped_helmet = 0xFF;
+            if (p->equipped_shield == static_cast<uint8_t>(i)) p->equipped_shield = 0xFF;
+
             world.push_message(client_id, 0, "Vendiste " + item_name + " por " + std::to_string(sell_price) + " de oro.");
             return;
         }

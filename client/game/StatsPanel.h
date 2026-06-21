@@ -25,6 +25,13 @@ public:
     bool    cast_mode_active() const { return _cast_mode; }
     uint8_t selected_spell()  const { return _selected_spell; }
 
+    // Acceso al MP actual (para validación client-side antes de spawnear VFX)
+    uint16_t current_mp() const { return _mp; }
+
+    // Costo de maná y rango del hechizo actualmente seleccionado (0 si ninguno)
+    uint16_t selected_spell_mana_cost() const;
+    int      selected_spell_range()     const;
+
     static constexpr int PANEL_W = 250;
 
 private:
@@ -32,7 +39,8 @@ private:
     void draw_bar(int x, int y, int w, int h, float fraction, SDL_Color fill, SDL_Color bg);
     void draw_rounded_rect(int x, int y, int w, int h, SDL_Color color);
 
-    struct SpellInfo { uint8_t id; const char* label; uint16_t mana; };
+    // BUG FIX anim: agregado campo `range` para validación client-side
+    struct SpellInfo { uint8_t id; const char* label; uint16_t mana; int range; };
     std::vector<SpellInfo> spells_for_class(uint8_t cls) const;
 
     SDL2pp::Renderer& _renderer;
