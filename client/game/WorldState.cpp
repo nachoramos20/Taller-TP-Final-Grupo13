@@ -67,6 +67,14 @@ bool is_floor_city_stone(const WorldState& state, uint16_t x, uint16_t y) {
     return floor_id == ClientConfig::instance().rendering.city_stone_floor_id;
 }
 
+bool is_in_forest_zone(uint16_t x, uint16_t y) {
+    const auto& r = ClientConfig::instance().rendering;
+    if (static_cast<int>(x) < r.forest_x_min || static_cast<int>(x) > r.forest_x_max) return false;
+    int iy = static_cast<int>(y);
+    return (iy >= r.forest_y1_min && iy <= r.forest_y1_max) ||
+           (iy >= r.forest_y2_min && iy <= r.forest_y2_max);
+}
+
 uint8_t own_weapon_item(const WorldState& state) {
     return (state.eq_weapon != 0xFF && state.eq_weapon < SnapshotDTO::INVENTORY_SIZE)
                ? state.inventory[state.eq_weapon]

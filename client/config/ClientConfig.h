@@ -51,6 +51,15 @@ public:
         uint16_t grass_floor_id_max;
         uint16_t city_stone_floor_id;
         uint16_t dirt_floor_id;
+
+        // Zona del bosque (dos rectángulos con el mismo rango de X, uno al
+        // norte y otro al sur), para sonido ambiente de fauna.
+        int forest_x_min;
+        int forest_x_max;
+        int forest_y1_min;
+        int forest_y1_max;
+        int forest_y2_min;
+        int forest_y2_max;
     };
 
     // Estructura para atajos de teclado (se cargan por nombre desde el TOML,

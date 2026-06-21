@@ -44,6 +44,13 @@ grass_floor_id_min       = 2    # rango de ids de tile de piso "pasto" (para son
 grass_floor_id_max       = 9
 city_stone_floor_id      = 1    # id de tile de piso "piedra" de la ciudad (para sonido de pasos)
 dirt_floor_id            = 10   # id de tile de piso "tierra" del pueblo (usa el mismo sonido que pasto)
+# Zona del bosque (dos rectángulos en Y, mismo rango de X), para sonido ambiente de fauna
+forest_x_min             = 4
+forest_x_max             = 22
+forest_y1_min            = 5
+forest_y1_max            = 34
+forest_y2_min            = 55
+forest_y2_max            = 95
 
 # ── Efectos de Muerte ────────────────────────────────────────
 [death_effects]

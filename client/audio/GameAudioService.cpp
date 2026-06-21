@@ -4,9 +4,14 @@
 #include "../config/SpellVfxConfig.h"
 #include "../render/ItemVisualConfig.h"
 #include "../render/NpcVisualConfig.h"
+#include <SDL.h>
+#include <cstdlib>
 
 namespace {
 constexpr float FOOTSTEP_VOLUME_SCALE = 0.4f;  // los pasos suenan más bajo que el resto de los efectos
+constexpr float FOREST_AMBIENCE_VOLUME_SCALE = 0.2f;
+constexpr uint32_t FOREST_SOUND_MIN_INTERVAL_MS = 8000;
+constexpr uint32_t FOREST_SOUND_MAX_INTERVAL_MS = 20000;
 }
 
 GameAudioService::GameAudioService(AudioManager* audio) : _audio(audio) {}
@@ -97,6 +102,18 @@ void GameAudioService::update_ocean_ambient(float dist_tiles) {
     const auto& ocean = AudioConfig::instance().get_ambient_sound("ocean");
     if (ocean.empty()) return;
     _audio->set_ambient_loop(ocean.front(), dist_tiles);
+}
+
+void GameAudioService::update_forest_ambience(bool in_forest) {
+    if (!_audio || !in_forest) return;
+
+    uint32_t now = SDL_GetTicks();
+    if (now < _next_forest_sound_ms) return;
+
+    play_random(AudioConfig::instance().get_ambient_sound("bosque_fauna"), 0.0f, FOREST_AMBIENCE_VOLUME_SCALE);
+
+    uint32_t span = FOREST_SOUND_MAX_INTERVAL_MS - FOREST_SOUND_MIN_INTERVAL_MS;
+    _next_forest_sound_ms = now + FOREST_SOUND_MIN_INTERVAL_MS + static_cast<uint32_t>(rand()) % span;
 }
 
 void GameAudioService::footstep_grass() {

@@ -104,6 +104,8 @@ void GameLoop::update(float dt) {
             && is_floor_city_stone(_state, static_cast<uint16_t>(_player.tile_x),
                                     static_cast<uint16_t>(_player.tile_y));
         _audio_service.update_city_stone_footsteps(walking_on_city_stone);
+        _audio_service.update_forest_ambience(is_in_forest_zone(
+            static_cast<uint16_t>(_player.tile_x), static_cast<uint16_t>(_player.tile_y)));
     }
 }
 

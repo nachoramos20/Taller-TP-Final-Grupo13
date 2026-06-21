@@ -34,6 +34,11 @@ public:
     // Ambiente (sonido en loop, volumen según distancia)
     void update_ocean_ambient(float dist_tiles);
 
+    // Fauna del bosque (pajaritos, cuervos): suena cada tanto, a intervalos
+    // aleatorios, mientras el jugador está dentro de la zona del bosque.
+    // Pensado para llamarse todos los frames con la condición actual.
+    void update_forest_ambience(bool in_forest);
+
     // Movimiento
     void footstep_grass();
 
@@ -67,4 +72,5 @@ private:
 
     AudioManager* _audio;
     size_t _footstep_grass_index = 0;
+    uint32_t _next_forest_sound_ms = 0;
 };
