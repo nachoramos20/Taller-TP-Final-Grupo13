@@ -75,6 +75,10 @@ bool ClientConfig::load(const std::string& config_path) {
             rendering.forest_y1_max = rendering_table["forest_y1_max"].value_or(34);
             rendering.forest_y2_min = rendering_table["forest_y2_min"].value_or(55);
             rendering.forest_y2_max = rendering_table["forest_y2_max"].value_or(95);
+            rendering.cemetery_x_min = rendering_table["cemetery_x_min"].value_or(55);
+            rendering.cemetery_x_max = rendering_table["cemetery_x_max"].value_or(66);
+            rendering.cemetery_y_min = rendering_table["cemetery_y_min"].value_or(55);
+            rendering.cemetery_y_max = rendering_table["cemetery_y_max"].value_or(66);
         }
 
         // Cargar UI

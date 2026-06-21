@@ -12,6 +12,7 @@ constexpr float FOOTSTEP_VOLUME_SCALE = 0.4f;  // los pasos suenan más bajo que
 constexpr float FOREST_AMBIENCE_VOLUME_SCALE = 0.2f;
 constexpr uint32_t FOREST_SOUND_MIN_INTERVAL_MS = 8000;
 constexpr uint32_t FOREST_SOUND_MAX_INTERVAL_MS = 20000;
+constexpr float CEMETERY_WIND_MAX_AUDIBLE_TILES = 8.0f;
 }
 
 GameAudioService::GameAudioService(AudioManager* audio) : _audio(audio) {}
@@ -102,6 +103,13 @@ void GameAudioService::update_ocean_ambient(float dist_tiles) {
     const auto& ocean = AudioConfig::instance().get_ambient_sound("ocean");
     if (ocean.empty()) return;
     _audio->set_ambient_loop(ocean.front(), dist_tiles);
+}
+
+void GameAudioService::update_cemetery_ambient(float dist_tiles) {
+    if (!_audio) return;
+    const auto& wind = AudioConfig::instance().get_ambient_sound("cemetery_wind");
+    if (wind.empty()) return;
+    _audio->set_secondary_ambient_loop(wind.front(), dist_tiles, CEMETERY_WIND_MAX_AUDIBLE_TILES);
 }
 
 void GameAudioService::update_forest_ambience(bool in_forest) {

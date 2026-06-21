@@ -75,6 +75,17 @@ bool is_in_forest_zone(uint16_t x, uint16_t y) {
            (iy >= r.forest_y2_min && iy <= r.forest_y2_max);
 }
 
+// Distancia del jugador al rectángulo del cementerio: 0 si está adentro,
+// sino la distancia al punto más cercano del borde.
+float distance_to_cemetery_zone(int x, int y) {
+    const auto& r = ClientConfig::instance().rendering;
+    int nearest_x = std::clamp(x, r.cemetery_x_min, r.cemetery_x_max);
+    int nearest_y = std::clamp(y, r.cemetery_y_min, r.cemetery_y_max);
+    float dx = static_cast<float>(x - nearest_x);
+    float dy = static_cast<float>(y - nearest_y);
+    return std::sqrt(dx * dx + dy * dy);
+}
+
 uint8_t own_weapon_item(const WorldState& state) {
     return (state.eq_weapon != 0xFF && state.eq_weapon < SnapshotDTO::INVENTORY_SIZE)
                ? state.inventory[state.eq_weapon]

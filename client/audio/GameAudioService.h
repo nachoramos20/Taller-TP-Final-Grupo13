@@ -33,6 +33,7 @@ public:
 
     // Ambiente (sonido en loop, volumen según distancia)
     void update_ocean_ambient(float dist_tiles);
+    void update_cemetery_ambient(float dist_tiles);
 
     // Fauna del bosque (pajaritos, cuervos): suena cada tanto, a intervalos
     // aleatorios, mientras el jugador está dentro de la zona del bosque.

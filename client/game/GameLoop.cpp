@@ -106,6 +106,7 @@ void GameLoop::update(float dt) {
         _audio_service.update_city_stone_footsteps(walking_on_city_stone);
         _audio_service.update_forest_ambience(is_in_forest_zone(
             static_cast<uint16_t>(_player.tile_x), static_cast<uint16_t>(_player.tile_y)));
+        _audio_service.update_cemetery_ambient(distance_to_cemetery_zone(_player.tile_x, _player.tile_y));
     }
 }
 

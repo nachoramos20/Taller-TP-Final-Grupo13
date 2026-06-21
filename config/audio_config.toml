@@ -104,6 +104,7 @@ level_up           = ["assets/sounds/effects/ui/sonido_al_subir_de_lvl.wav"]
 [ambient_sounds]
 ocean              = ["assets/sounds/effects/ambient/mar_2.wav"]
 meditation         = ["assets/sounds/effects/ambient/meditacion.wav"]
+cemetery_wind      = ["assets/sounds/effects/weather/viento_cementerio.wav"]
 bosque_fauna       = [
     "assets/sounds/effects/fauna/pajaritos.wav",
     "assets/sounds/effects/fauna/pajaritos_2.wav",

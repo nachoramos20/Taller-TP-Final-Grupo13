@@ -54,9 +54,14 @@ public:
     // llamarse todos los frames con la distancia actual al punto de interés.
     void set_ambient_loop(const std::string& path, float dist_tiles);
 
-    // Sonido en loop gateado por una condición booleana (p. ej. sonido largo
-    // de pasos que debe sonar mientras el jugador camina y cortarse apenas
-    // se detiene). Usa un canal reservado propio, distinto del ambiente y
+    // Igual que set_ambient_loop pero en un canal reservado propio, para que
+    // pueda sonar a la vez que el ambiente principal sin pisarlo.
+    // max_audible_tiles permite que este sonido tenga un rango de audibilidad
+    // más corto que el resto (p. ej. algo que debe sentirse localizado).
+    void set_secondary_ambient_loop(const std::string& path, float dist_tiles,
+                                     float max_audible_tiles = -1.0f);
+
+    // Sonido en loop gateado por una condición booleana. Usa un canal reservado propio, distinto del ambiente y
     // del de diálogo. Pensado para llamarse todos los frames con la
     // condición actual.
     void set_looping_while(const std::string& path, bool active, float volume_scale = 1.0f);
@@ -78,13 +83,16 @@ private:
     void play_effect_now(const std::string& path, float dist_tiles, float volume_scale = 1.0f);
     void play_speech_now(const std::string& path, float dist_tiles);
     uint32_t chunk_duration_ms(Mix_Chunk* chunk) const;
+    void set_ambient_loop_on(int channel, std::string& tracked_path, const std::string& path,
+                             float dist_tiles, float max_audible_tiles);
 
     Mix_Music* _music = nullptr;
     std::unordered_map<std::string, Mix_Chunk*> _chunk_cache;
-    std::unordered_map<std::string, Mix_Chunk*> _speech_chunk_cache;  
-    std::unordered_map<std::string, Mix_Chunk*> _ambient_chunk_cache;  
+    std::unordered_map<std::string, Mix_Chunk*> _speech_chunk_cache;
+    std::unordered_map<std::string, Mix_Chunk*> _ambient_chunk_cache;
     std::unordered_map<std::string, uint32_t> _last_played_ms;
     std::vector<QueuedSpeech> _speech_queue;  // resto de la secuencia actual, pendiente
-    std::string _ambient_path;   // qué está sonando en el canal ambiente (vacío = nada)
+    std::string _ambient_path;            // qué está sonando en el canal ambiente (vacío = nada)
+    std::string _secondary_ambient_path;  // qué está sonando en el canal ambiente secundario
     std::string _looping_path;   // qué está sonando en el canal de loop gateado (vacío = nada)
 };

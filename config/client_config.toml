@@ -51,6 +51,11 @@ forest_y1_min            = 5
 forest_y1_max            = 34
 forest_y2_min            = 55
 forest_y2_max            = 95
+# Zona del cementerio, para sonido ambiente de viento
+cemetery_x_min           = 55
+cemetery_x_max           = 66
+cemetery_y_min           = 55
+cemetery_y_max           = 66
 
 # ── Efectos de Muerte ────────────────────────────────────────
 [death_effects]

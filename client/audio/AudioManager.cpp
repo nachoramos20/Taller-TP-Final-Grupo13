@@ -20,6 +20,7 @@ static constexpr int TOTAL_CHANNELS  = 16;
 static constexpr int SPEECH_CHANNEL  = 0;  // reservado: diálogo de NPC
 static constexpr int AMBIENT_CHANNEL = 1;  // reservado: sonido ambiente en loop (olas, etc.)
 static constexpr int LOOPING_CHANNEL = 2;  // reservado: loop gateado por condición (pasos largos, etc.)
+static constexpr int SECONDARY_AMBIENT_CHANNEL = 3;  // reservado: segundo ambiente en loop (viento del cementerio, etc.)
 
 AudioManager::AudioManager() {
     if (Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == 0)
@@ -29,7 +30,7 @@ AudioManager::AudioManager() {
         throw std::runtime_error(std::string("Mix_OpenAudio: ") + Mix_GetError());
 
     Mix_AllocateChannels(TOTAL_CHANNELS);
-    Mix_ReserveChannels(3);
+    Mix_ReserveChannels(4);
 
     Mix_VolumeMusic(DEFAULT_MUSIC_VOLUME);
 }
@@ -245,26 +246,36 @@ void AudioManager::speak_random(const std::vector<std::string>& paths, float dis
     speak({chosen}, dist_tiles, gap_ms);
 }
 
-void AudioManager::set_ambient_loop(const std::string& path, float dist_tiles) {
-    if (dist_tiles > MAX_AUDIBLE_TILES) {
-        if (!_ambient_path.empty()) {
-            Mix_HaltChannel(AMBIENT_CHANNEL);
-            _ambient_path.clear();
+void AudioManager::set_ambient_loop_on(int channel, std::string& tracked_path, const std::string& path,
+                                       float dist_tiles, float max_audible_tiles) {
+    if (dist_tiles > max_audible_tiles) {
+        if (!tracked_path.empty()) {
+            Mix_HaltChannel(channel);
+            tracked_path.clear();
         }
         return;
     }
 
-    if (_ambient_path != path) {
+    if (tracked_path != path) {
         Mix_Chunk* chunk = load_ambient_chunk(path);
         if (!chunk) return;
-        Mix_HaltChannel(AMBIENT_CHANNEL);
-        Mix_PlayChannel(AMBIENT_CHANNEL, chunk, -1);  // loop infinito
-        _ambient_path = path;
+        Mix_HaltChannel(channel);
+        Mix_PlayChannel(channel, chunk, -1);  // loop infinito
+        tracked_path = path;
     }
 
-    float t = dist_tiles / MAX_AUDIBLE_TILES;  // 0 (cerca) .. 1 (limite audible)
+    float t = dist_tiles / max_audible_tiles;  // 0 (cerca) .. 1 (limite audible)
     int volume = static_cast<int>(MAX_EFFECT_VOLUME - t * (MAX_EFFECT_VOLUME - MIN_EFFECT_VOLUME));
-    Mix_Volume(AMBIENT_CHANNEL, volume);
+    Mix_Volume(channel, volume);
+}
+
+void AudioManager::set_ambient_loop(const std::string& path, float dist_tiles) {
+    set_ambient_loop_on(AMBIENT_CHANNEL, _ambient_path, path, dist_tiles, MAX_AUDIBLE_TILES);
+}
+
+void AudioManager::set_secondary_ambient_loop(const std::string& path, float dist_tiles, float max_audible_tiles) {
+    float range = (max_audible_tiles > 0.0f) ? max_audible_tiles : MAX_AUDIBLE_TILES;
+    set_ambient_loop_on(SECONDARY_AMBIENT_CHANNEL, _secondary_ambient_path, path, dist_tiles, range);
 }
 
 void AudioManager::set_looping_while(const std::string& path, bool active, float volume_scale) {

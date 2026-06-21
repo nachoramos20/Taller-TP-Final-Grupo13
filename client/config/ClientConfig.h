@@ -60,6 +60,12 @@ public:
         int forest_y1_max;
         int forest_y2_min;
         int forest_y2_max;
+
+        // Zona del cementerio, para sonido ambiente de viento.
+        int cemetery_x_min;
+        int cemetery_x_max;
+        int cemetery_y_min;
+        int cemetery_y_max;
     };
 
     // Estructura para atajos de teclado (se cargan por nombre desde el TOML,
