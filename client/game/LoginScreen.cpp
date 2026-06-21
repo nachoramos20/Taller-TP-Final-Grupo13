@@ -2,50 +2,17 @@
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
+#include "../config/ClientConfig.h"
 
-//  Datos estáticos
+//  Razas/clases
 
-const LoginScreen::RaceInfo LoginScreen::RACES[4] = {
-    { "Humano",
-      "assets/sprites/skins/humano.png",
-      "Raza equilibrada. Buenos stats en todas las areas.\n"
-      "Str:18  Agi:18  Int:18  Con:18" },
-    { "Elfo",
-      "assets/sprites/skins/elfo.png",
-      "Muy inteligentes y agiles, pero constitucion fragil.\n"
-      "Str:14  Agi:22  Int:22  Con:18" },
-    { "Enano",
-      "assets/sprites/skins/enano.png",
-      "Muy fuertes y resistentes. Poca agilidad.\n"
-      "Str:22  Agi:14  Int:14  Con:22" },
-    { "Gnomo",
-      "assets/sprites/skins/gnomo.png",
-      "Inteligentes y resistentes. Menos agiles que los elfos.\n"
-      "Str:14  Agi:18  Int:24  Con:16" },
-};
+const RacesClassesConfig::Race& LoginScreen::race_info(uint8_t idx) {
+    return RacesClassesConfig::instance().get_race(idx + 1);
+}
 
-const LoginScreen::ClassInfo LoginScreen::CLASSES[4] = {
-    { "Mago",
-      "Maestro de la magia. Gran poder arcano\n"
-      "pero cuerpo debil.",
-      "HP bajo | MP muy alto | Puede meditar\n"
-      "Arma: Baculo / Vara" },
-    { "Clerigo",
-      "Sanador y combatiente. Mezcla de magia\n"
-      "y fuerza fisica.",
-      "HP medio | MP alto | Puede meditar\n"
-      "Arma: Baculo / Armas cuerpo a cuerpo" },
-    { "Paladin",
-      "Guerrero sagrado. Fuerte y resistente,\n"
-      "con algo de magia.",
-      "HP alto | MP medio | Puede meditar\n"
-      "Arma: Cualquiera | Armadura pesada" },
-    { "Guerrero",
-      "Especialista en combate. El mas fuerte,\n"
-      "pero SIN magia ni mana.",
-      "HP muy alto | MP: 0 (sin magia)\n"
-      "Arma: Cualquiera | Armadura pesada" },
-};
+const RacesClassesConfig::Class& LoginScreen::class_info(uint8_t idx) {
+    return RacesClassesConfig::instance().get_class(idx + 1);
+}
 
 //  Constructor / destructor
 
@@ -53,9 +20,10 @@ LoginScreen::LoginScreen(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                          const std::string& font_path)
     : _window(window), _renderer(renderer) {
     if (TTF_WasInit() == 0) TTF_Init();
-    _font_lg = TTF_OpenFont(font_path.c_str(), 22);
-    _font_md = TTF_OpenFont(font_path.c_str(), 14);
-    _font_sm = TTF_OpenFont(font_path.c_str(), 11);
+    const auto& fonts = ClientConfig::instance().fonts;
+    _font_lg = TTF_OpenFont(font_path.c_str(), fonts.title_font_size);
+    _font_md = TTF_OpenFont(font_path.c_str(), fonts.medium_font_size);
+    _font_sm = TTF_OpenFont(font_path.c_str(), fonts.small_font_size);
 
     // SDL text input
     SDL_StartTextInput();
@@ -373,7 +341,7 @@ void LoginScreen::draw_race_card(int idx, int x, int y, int w, int h) {
 
     // Imagen del sprite: cargar spritesheet con IMG_Load (PNG)
     if (!_race_tex[idx]) {
-        SDL_Surface* surf = IMG_Load(RACES[idx].sprite_path);
+        SDL_Surface* surf = IMG_Load(race_info(static_cast<uint8_t>(idx)).sprite_path.c_str());
         if (surf) {
             _race_tex[idx] = SDL_CreateTextureFromSurface(_renderer.Get(), surf);
             SDL_FreeSurface(surf);
@@ -405,7 +373,7 @@ void LoginScreen::draw_race_card(int idx, int x, int y, int w, int h) {
         SDL_Rect img_r{x+8, y+8, w-16, h-52};
         SDL_RenderFillRect(_renderer.Get(), &img_r);
         // Dibujar inicial centrada
-        std::string initial(1, RACES[idx].name[0]);
+        std::string initial(1, race_info(static_cast<uint8_t>(idx)).name[0]);
         draw_text_centered(initial, x+w/2, y+(h-52)/2+8,
                            SDL_Color{rc.r,rc.g,rc.b,255}, _font_lg);
     }
@@ -414,7 +382,7 @@ void LoginScreen::draw_race_card(int idx, int x, int y, int w, int h) {
     SDL_Color name_c = selected ? SDL_Color{255,210,80,255}
                      : hovered  ? SDL_Color{220,190,100,255}
                      :            SDL_Color{170,150,90,255};
-    draw_text_centered(RACES[idx].name, x+w/2, y+h-32, name_c, _font_md);
+    draw_text_centered(race_info(static_cast<uint8_t>(idx)).name, x+w/2, y+h-32, name_c, _font_md);
 
     // Indicador seleccionado
     if (selected) {
@@ -458,22 +426,23 @@ void LoginScreen::draw_class_card(int idx, int x, int y, int w, int h) {
     SDL_SetRenderDrawColor(_renderer.Get(), ic.r, ic.g, ic.b, 255);
     SDL_RenderDrawRect(_renderer.Get(), &icon_r);
     // Inicial de clase
-    std::string cl_init(1, CLASSES[idx].name[0]);
+    const auto& cls = class_info(static_cast<uint8_t>(idx));
+    std::string cl_init(1, cls.name[0]);
     draw_text_centered(cl_init, x+w/2, y+32, SDL_Color{ic.r,ic.g,ic.b,255}, _font_lg);
 
     // Nombre
     SDL_Color nc = selected ? SDL_Color{220,170,255,255}
                  : hovered  ? SDL_Color{190,150,220,255}
                  :            SDL_Color{150,120,180,255};
-    draw_text_centered(CLASSES[idx].name, x+w/2, y+60, nc, _font_md);
+    draw_text_centered(cls.name, x+w/2, y+60, nc, _font_md);
 
     // Clip al rect de la card para que el texto no se derrame a otras cards
     SDL_Rect clip{x+4, y+68, w-8, h-72};
     SDL_RenderSetClipRect(_renderer.Get(), &clip);
 
     // Descripción (multi-línea dentro del clip)
-    draw_text(CLASSES[idx].desc, x+6, y+76, SDL_Color{170,160,150,255}, _font_sm);
-    draw_text(CLASSES[idx].extra, x+6, y+h-44, SDL_Color{120,160,120,255}, _font_sm);
+    draw_text(cls.flavor, x+6, y+76, SDL_Color{170,160,150,255}, _font_sm);
+    draw_text(cls.benefits, x+6, y+h-44, SDL_Color{120,160,120,255}, _font_sm);
 
     SDL_RenderSetClipRect(_renderer.Get(), nullptr);  // desactivar clip
 
@@ -577,7 +546,7 @@ void LoginScreen::render_register_race() {
     if (_race_chosen) {
         int dy = gy0 + CARD_H + 12;
         draw_panel((sw-580)/2, dy, 580, 52);
-        draw_text(RACES[_sel_race].desc, (sw-580)/2+10, dy+8,
+        draw_text(race_info(_sel_race).description, (sw-580)/2+10, dy+8,
                   SDL_Color{180,165,120,255}, _font_sm);
     }
 
@@ -631,8 +600,8 @@ void LoginScreen::render_register_form() {
     draw_text_centered("Crear personaje", px+PW/2, py+18, title, _font_md);
 
     // Resumen de elección
-    std::string summary = std::string("Raza: ") + RACES[_sel_race].name +
-                          "   Clase: " + CLASSES[_sel_class].name;
+    std::string summary = std::string("Raza: ") + race_info(_sel_race).name +
+                          "   Clase: " + class_info(_sel_class).name;
     draw_text_centered(summary, px+PW/2, py+38, SDL_Color{150,180,150,255}, _font_sm);
 
     draw_text("Nombre de usuario:", px+16, py+58, SDL_Color{160,145,100,255}, _font_sm);

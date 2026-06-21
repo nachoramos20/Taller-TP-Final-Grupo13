@@ -10,6 +10,7 @@
 
 #include "../../common/queue.h"
 #include "../net/Command.h"
+#include "../config/RacesClassesConfig.h"
 
 struct LoginResult {
     bool     cancelled = false;  // el usuario cerró la ventana
@@ -99,17 +100,7 @@ private:
     SDL_Rect _race_cards[4]{};
     SDL_Rect _class_cards[4]{};
 
-    // Datos estáticos de razas y clases
-    struct RaceInfo {
-        const char* name;
-        const char* sprite_path;   // relativo al cwd
-        const char* desc;
-    };
-    struct ClassInfo {
-        const char* name;
-        const char* desc;
-        const char* extra;         // stats/habilidades
-    };
-    static const RaceInfo  RACES[4];
-    static const ClassInfo CLASSES[4];
+    // Datos de razas/clases
+    static const RacesClassesConfig::Race&  race_info(uint8_t idx);
+    static const RacesClassesConfig::Class& class_info(uint8_t idx);
 };

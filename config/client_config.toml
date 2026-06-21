@@ -1,0 +1,63 @@
+# ============================================================
+# client_config.toml — Configuración global del cliente
+# Define todas las constantes hardcodeadas del renderizado,
+# timing, tamaños y rutas de recursos
+# ============================================================
+
+# ── Directorios de Assets ────────────────────────────────────
+[assets_paths]
+fonts_dir        = "assets/fonts/"
+sounds_dir       = "assets/sounds/"
+sprites_dir      = "assets/sprites/"
+music_dir        = "assets/sounds/music/"
+effects_dir      = "assets/sounds/effects/"
+creatures_dir    = "assets/sounds/effects/creatures/"
+
+# ── Fuentes ──────────────────────────────────────────────────
+[fonts]
+default_path     = "assets/fonts/DejaVuSans.ttf"
+default_size     = 10
+chat_font_path   = "assets/fonts/DejaVuSans.ttf"
+chat_font_size   = 14
+title_font_size  = 22
+medium_font_size = 14
+small_font_size  = 11
+
+# ── Música ───────────────────────────────────────────────────
+[music]
+main_theme_path  = "assets/sounds/music/argentum_music.mp3"
+main_theme_volume = 20
+
+# ── Rendering - Tamaños y Distancias ──────────────────────────
+[rendering]
+tile_size                = 64
+map_size                 = 100
+obj_sup_tiles            = 6    # tiles para objetos superiores
+obj_sup_size             = 384  # 6 * 64
+projectile_duration_ticks = 8
+weapon_sprite_size       = 24
+
+# ── Animación - Timing ───────────────────────────────────────
+[animation]
+obj_sup_ticks_per_frame  = 8    # Ticks entre frames de animación de objetos superiores
+spell_ticks_per_frame    = 4    # Ticks entre frames de animación de hechizos
+
+# ── Efectos de Muerte ────────────────────────────────────────
+[death_effects]
+death_frames             = 5        # Número de frames de animación de muerte
+death_frame_ms           = 150      # Milisegundos por frame 1-4
+death_linger_ms          = 2500     # Milisegundos que dura el frame 5 (sangre)
+death_duration_ms        = 3100     # death_frame_ms * (DEATH_FRAMES - 1) + DEATH_LINGER_MS
+sprite_base_path         = "assets/sprites/stage/sangre_"  # sangre_{frame}.png
+
+# ── Interfaz de Usuario ──────────────────────────────────────
+[ui]
+window_title             = "Argentum Online - Grupo 13"
+window_width             = 900
+window_height            = 620
+window_resizable         = true
+
+# ── Cámara ───────────────────────────────────────────────────
+[camera]
+initial_x                = 0.0
+initial_y                = 0.0

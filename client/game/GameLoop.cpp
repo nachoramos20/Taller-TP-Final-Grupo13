@@ -5,8 +5,9 @@
 #include <unordered_map>
 #include <string>
 #include "../../common/protocol/protocol.h"
-
-static const char* CHAT_FONT_PATH = "assets/fonts/DejaVuSans.ttf";
+#include "../config/ClientConfig.h"
+#include "../config/SpellVfxConfig.h"
+#include "../config/RacesClassesConfig.h"
 
 // Constructores
 
@@ -22,13 +23,14 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
       _sprite_config("config/sprites.toml"),
       _tile_config("config/tiles.toml", "floor"),
       _obj_sup_config("config/objects_sup.toml") {
+    const auto& fonts = ClientConfig::instance().fonts;
     _anim.load();
-    _chat      = std::make_unique<ChatWidget>(renderer, CHAT_FONT_PATH);
-    _stats     = std::make_unique<StatsPanel>(renderer, CHAT_FONT_PATH);
-    _inventory = std::make_unique<InventoryPanel>(renderer, CHAT_FONT_PATH);
-    _chat->add_message("Bienvenido. Enter para chatear.");
-    _pos_label = std::make_unique<PositionLabel>(renderer, CHAT_FONT_PATH);
-    _small_font = TTF_OpenFont(CHAT_FONT_PATH, 10);
+    _chat      = std::make_unique<ChatWidget>(renderer, fonts.chat_font_path, fonts.chat_font_size);
+    _stats     = std::make_unique<StatsPanel>(renderer, fonts.chat_font_path, fonts.medium_font_size);
+    _inventory = std::make_unique<InventoryPanel>(renderer, fonts.chat_font_path, fonts.small_font_size);
+    _chat->add_message(RacesClassesConfig::instance().get_login_messages().welcome);
+    _pos_label = std::make_unique<PositionLabel>(renderer, fonts.chat_font_path, fonts.medium_font_size);
+    _small_font = TTF_OpenFont(fonts.chat_font_path.c_str(), fonts.small_font_size);
     load_item_textures();
 }
 
@@ -52,14 +54,15 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
       _sprite_config("config/sprites.toml"),
       _tile_config("config/tiles.toml", "floor"),
       _obj_sup_config("config/objects_sup.toml") {
+    const auto& fonts = ClientConfig::instance().fonts;
     _anim.load();
-    _chat      = std::make_unique<ChatWidget>(renderer, CHAT_FONT_PATH);
-    _stats     = std::make_unique<StatsPanel>(renderer, CHAT_FONT_PATH);
-    _inventory = std::make_unique<InventoryPanel>(renderer, CHAT_FONT_PATH);
+    _chat      = std::make_unique<ChatWidget>(renderer, fonts.chat_font_path, fonts.chat_font_size);
+    _stats     = std::make_unique<StatsPanel>(renderer, fonts.chat_font_path, fonts.medium_font_size);
+    _inventory = std::make_unique<InventoryPanel>(renderer, fonts.chat_font_path, fonts.small_font_size);
 
-    _chat->add_message("Conectado. Enter para chatear. Click izq sobre enemigo para atacar.");
-    _pos_label = std::make_unique<PositionLabel>(renderer, CHAT_FONT_PATH);
-    _small_font = TTF_OpenFont(CHAT_FONT_PATH, 10);
+    _chat->add_message(RacesClassesConfig::instance().get_login_messages().connected);
+    _pos_label = std::make_unique<PositionLabel>(renderer, fonts.chat_font_path, fonts.medium_font_size);
+    _small_font = TTF_OpenFont(fonts.chat_font_path.c_str(), fonts.small_font_size);
     _chat->on_submit([this](const std::string& text) {
         if (!_command_queue) return;
         _command_queue->push(Command::chat(text));
@@ -125,86 +128,40 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
 }
 
 void GameLoop::spawn_spell_effect(uint8_t spell_id, uint16_t pos_x, uint16_t pos_y) {
-    struct SpellInfo {
-        const char* path;
-        int sheet_cols;
-        int frame_w;
-        int frame_h;
-        std::vector<int> frame_indices;
-    };
-    static const std::unordered_map<uint8_t, SpellInfo> spell_info = {
-        { 1, { "assets/sprites/spells/explosion.png",            5, 192, 192,
-               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 } }},
-        { 2, { "assets/sprites/spells/area_veneno.png",          4, 128, 128,
-               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } }},
-        { 3, { "assets/sprites/spells/explosion_calaverica.png", 3, 145, 145,
-               { 0, 1, 2, 3, 4, 5, 6 } }},
-        { 4, { "assets/sprites/spells/orbe_hielo.png",           8, 128, 128,
-               { 0, 1, 2, 3, 4, 8, 9, 10, 11, 12, 16, 17, 18, 19, 20,
-                 24, 25, 26, 27, 28, 32, 33, 34, 35, 36, 40, 41, 42, 43, 44 } }},
-        { 5, { "assets/sprites/spells/tornado_gravitatorio.png", 5, 120, 255,
-               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } }},
-        { 6, { "assets/sprites/spells/tormenta_electrica.png",   4, 128, 128,
-               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } }},
-        { 7, { "assets/sprites/spells/orbe_vacio.png",           6, 112, 112,
-               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } }},
-        { 8, { "assets/sprites/spells/brecha_vacio.png",         7, 146, 146,
-               { 0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 15, 16, 17, 18,
-                 21, 22, 23, 24, 25 } }},
-        { 9, { "assets/sprites/spells/tornado_oscuridad.png",    5, 120, 255,
-               { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } }},
-    };
-    auto it = spell_info.find(spell_id);
-    if (it == spell_info.end()) return;
+    if (!SpellVfxConfig::instance().has_spell(spell_id)) return;
+    const auto& effect = SpellVfxConfig::instance().get_effect_info(spell_id);
 
     SpellEffect fx{};
-    fx.spell_id   = spell_id;
-    fx.pos_x      = pos_x;
-    fx.pos_y      = pos_y;
-    fx.start_tick = _current_tick;
-    fx.sheet_cols = it->second.sheet_cols;
-    fx.frame_w    = it->second.frame_w;
-    fx.frame_h    = it->second.frame_h;
-    fx.frame_indices = it->second.frame_indices;
-    fx.path       = it->second.path;
+    fx.spell_id      = spell_id;
+    fx.pos_x         = pos_x;
+    fx.pos_y         = pos_y;
+    fx.start_tick    = _current_tick;
+    fx.sheet_cols    = effect.sheet_cols;
+    fx.frame_w       = effect.frame_w;
+    fx.frame_h       = effect.frame_h;
+    fx.frame_indices = effect.frame_indices;
+    fx.path          = effect.path;
     _spell_effects.push_back(fx);
 }
 
 void GameLoop::render_spells() {
+    int ticks_per_frame = ClientConfig::instance().rendering.spell_ticks_per_frame;
+
     _spell_effects.erase(
         std::remove_if(_spell_effects.begin(), _spell_effects.end(),
             [&](const SpellEffect& fx) {
                 int total = static_cast<int>(fx.frame_indices.size());
                 uint32_t elapsed = _current_tick - fx.start_tick;
-                return static_cast<int>(elapsed / SPELL_TICKS_PER_FRAME) >= total;
+                return static_cast<int>(elapsed / ticks_per_frame) >= total;
             }),
         _spell_effects.end());
-
-    struct SpellRenderInfo {
-        int display_w;
-        int display_h;
-        int offset_x;
-        int offset_y;
-    };
-    static const std::unordered_map<uint8_t, SpellRenderInfo> spell_render = {
-        { 1, { 150, 150, -75, -124 } },
-        { 2, {  96,  96, -48,  -80 } },
-        { 3, { 120, 120, -60, -104 } },
-        { 4, {  96,  96, -48,  -80 } },
-        { 5, {  80, 170, -40, -144 } },
-        { 6, {  96,  96, -48,  -80 } },
-        { 7, {  96,  96, -48,  -80 } },
-        { 8, { 120, 120, -60, -104 } },
-        { 9, {  80, 170, -40, -144 } },
-    };
 
     for (const auto& fx : _spell_effects) {
         int total = static_cast<int>(fx.frame_indices.size());
         if (total == 0 || fx.sheet_cols <= 0 || fx.frame_w <= 0 || fx.frame_h <= 0) continue;
 
         uint32_t elapsed = _current_tick - fx.start_tick;
-        int frame = static_cast<int>(elapsed / SPELL_TICKS_PER_FRAME) % total;
+        int frame = static_cast<int>(elapsed / ticks_per_frame) % total;
         int sheet_frame = fx.frame_indices[frame];
 
         int col = sheet_frame % fx.sheet_cols;
@@ -214,25 +171,20 @@ void GameLoop::render_spells() {
         SDL2pp::Rect src(col * fx.frame_w, row * fx.frame_h, fx.frame_w, fx.frame_h);
 
         // Calcular posición en pantalla centrada sobre el tile del objetivo
-        int center_x = _camera.world_to_screen_x(static_cast<float>(fx.pos_x * TILE_SIZE))
-                       + TILE_SIZE / 2;
-        int center_y = _camera.world_to_screen_y(static_cast<float>(fx.pos_y * TILE_SIZE))
-                       + TILE_SIZE / 2;
+        int center_x = _camera.world_to_screen_x(static_cast<float>(fx.pos_x * tile_size()))
+                       + tile_size() / 2;
+        int center_y = _camera.world_to_screen_y(static_cast<float>(fx.pos_y * tile_size()))
+                       + tile_size() / 2;
 
-        // Obtener dimensiones hardcodeadas para este hechizo
-        auto rit = spell_render.find(fx.spell_id);
-        int dw, dh, ox, oy;
-        if (rit != spell_render.end()) {
-            dw = rit->second.display_w;
-            dh = rit->second.display_h;
-            ox = rit->second.offset_x;
-            oy = rit->second.offset_y;
-        } else {
-            // fallback genérico
-            dw = TILE_SIZE * 2;
-            dh = TILE_SIZE * 2;
-            ox = -TILE_SIZE / 2;
-            oy = -TILE_SIZE;
+        const auto& render = SpellVfxConfig::instance().get_render_info(fx.spell_id);
+        int dw = render.display_w, dh = render.display_h;
+        int ox = render.offset_x, oy = render.offset_y;
+        if (dw <= 0 || dh <= 0) {
+            // fallback genérico si el spell no tiene render configurado
+            dw = tile_size() * 2;
+            dh = tile_size() * 2;
+            ox = -tile_size() / 2;
+            oy = -tile_size();
         }
 
         SDL2pp::Rect dst(center_x + ox, center_y + oy, dw, dh);
@@ -241,26 +193,27 @@ void GameLoop::render_spells() {
 }
 
 void GameLoop::render_deaths() {
+    const auto& death_cfg = ClientConfig::instance().death_effects;
     uint32_t now = SDL_GetTicks();
 
     _death_effects.erase(
         std::remove_if(_death_effects.begin(), _death_effects.end(),
             [&](const DeathEffect& d) {
-                return (now - d.start_ms) >= DEATH_DURATION_MS;
+                return (now - d.start_ms) >= death_cfg.death_duration_ms;
             }),
         _death_effects.end());
 
     for (const auto& d : _death_effects) {
         uint32_t elapsed_ms = now - d.start_ms;
         int frame = std::clamp(
-            static_cast<int>(elapsed_ms / DEATH_FRAME_MS),
-            0, DEATH_FRAMES - 1);
+            static_cast<int>(elapsed_ms / death_cfg.death_frame_ms),
+            0, death_cfg.death_frames - 1);
 
-        std::string path = "assets/sprites/stage/sangre_"
+        std::string path = death_cfg.sprite_base_path
                          + std::to_string(frame + 1) + ".png";
         int sx = _camera.tile_to_screen_x(static_cast<int>(d.pos_x));
         int sy = _camera.tile_to_screen_y(static_cast<int>(d.pos_y));
-        SDL2pp::Rect dst(sx, sy, TILE_SIZE, TILE_SIZE);
+        SDL2pp::Rect dst(sx, sy, tile_size(), tile_size());
         _renderer.Copy(_assets.get(path), SDL2pp::NullOpt, dst);
     }
 }
@@ -387,7 +340,7 @@ void GameLoop::play_spell_sound(uint8_t spell_id, uint16_t x, uint16_t y) {
         case SpellId::GRAVITATIONAL_TORNAD:
             _audio->play_effect_at("assets/sounds/effects/magic/tornado_gravitatorio.wav", dist);
             break;
-        case SpellId::THUNDERSTORM: 
+        case SpellId::THUNDERSTORM:
             _audio->play_effect_at("assets/sounds/effects/magic/tormenta_electrica.wav", dist);
             break;
         case SpellId::ORB_OF_EMPTINESS:
@@ -474,20 +427,22 @@ void GameLoop::play_player_death_sound(uint16_t x, uint16_t y) {
 }
 
 void GameLoop::render_projectiles() {
+    uint32_t duration_ticks = ClientConfig::instance().projectiles.duration_ticks;
+
     _projectiles.erase(
         std::remove_if(_projectiles.begin(), _projectiles.end(),
             [&](const Projectile& p) {
-                return (_current_tick - p.start_tick) >= PROJECTILE_DURATION_TICKS;
+                return (_current_tick - p.start_tick) >= duration_ticks;
             }),
         _projectiles.end());
 
     for (const auto& p : _projectiles) {
         float t = static_cast<float>(_current_tick - p.start_tick)
-                / static_cast<float>(PROJECTILE_DURATION_TICKS);
+                / static_cast<float>(duration_ticks);
         t = std::clamp(t, 0.0f, 1.0f);
 
-        float world_x = (p.from_x + (p.to_x - p.from_x) * t) * TILE_SIZE + TILE_SIZE / 2.0f;
-        float world_y = (p.from_y + (p.to_y - p.from_y) * t) * TILE_SIZE + TILE_SIZE / 2.0f;
+        float world_x = (p.from_x + (p.to_x - p.from_x) * t) * tile_size() + tile_size() / 2.0f;
+        float world_y = (p.from_y + (p.to_y - p.from_y) * t) * tile_size() + tile_size() / 2.0f;
 
         int sx = _camera.world_to_screen_x(world_x);
         int sy = _camera.world_to_screen_y(world_y);
@@ -683,8 +638,9 @@ void GameLoop::handle_input() {
     if (dx != 0 || dy != 0) {
         int new_x = _player.tile_x + dx;
         int new_y = _player.tile_y + dy;
-        if (new_x >= 0 && new_x < MAP_SIZE &&
-            new_y >= 0 && new_y < MAP_SIZE) {
+        int map_size = ClientConfig::instance().rendering.map_size;
+        if (new_x >= 0 && new_x < map_size &&
+            new_y >= 0 && new_y < map_size) {
             if (_command_queue) {
                 _last_move_tick = now;
                 _command_queue->push(Command::move(
@@ -924,14 +880,15 @@ void GameLoop::render() {
 void GameLoop::render_floor() {
     int screen_w = _window.GetWidth();
     int screen_h = _window.GetHeight();
-    int map_w = _map_loaded ? _map.width  : MAP_SIZE;
-    int map_h = _map_loaded ? _map.height : MAP_SIZE;
+    int map_size = ClientConfig::instance().rendering.map_size;
+    int map_w = _map_loaded ? _map.width  : map_size;
+    int map_h = _map_loaded ? _map.height : map_size;
 
     int margin = 8;
-    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / TILE_SIZE - margin);
-    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / TILE_SIZE - margin);
-    int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + margin * 2);
-    int last_y  = std::min(map_h - 1, first_y + screen_h / TILE_SIZE + margin * 2);
+    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / tile_size() - margin);
+    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / tile_size() - margin);
+    int last_x  = std::min(map_w - 1, first_x + screen_w / tile_size() + margin * 2);
+    int last_y  = std::min(map_h - 1, first_y + screen_h / tile_size() + margin * 2);
 
     for (int ty = first_y; ty <= last_y; ty++) {
         for (int tx = first_x; tx <= last_x; tx++) {
@@ -946,15 +903,15 @@ void GameLoop::render_floor() {
             int sy = _camera.tile_to_screen_y(ty);
 
             if (entry.path.empty()) {
-                if (sx >= -TILE_SIZE && sx <= screen_w &&
-                    sy >= -TILE_SIZE && sy <= screen_h) {
+                if (sx >= -tile_size() && sx <= screen_w &&
+                    sy >= -tile_size() && sy <= screen_h) {
                     _renderer.SetDrawColor(0, 0, 0, 255);
-                    _renderer.FillRect(SDL2pp::Rect(sx, sy, TILE_SIZE, TILE_SIZE));
+                    _renderer.FillRect(SDL2pp::Rect(sx, sy, tile_size(), tile_size()));
                 }
                 continue;
             }
 
-            SDL2pp::Rect dst(sx, sy, TILE_SIZE, TILE_SIZE);
+            SDL2pp::Rect dst(sx, sy, tile_size(), tile_size());
             if (entry.has_src_rect()) {
                 SDL2pp::Rect src(entry.src_x, entry.src_y, entry.src_w, entry.src_h);
                 _renderer.Copy(_assets.get(entry.path), src, dst);
@@ -964,10 +921,11 @@ void GameLoop::render_floor() {
         }
     }
 
+    int obj_sup_size = ClientConfig::instance().rendering.obj_sup_size;
     for (int ty = 0; ty < map_h; ty++) {
         int sy_raw = _camera.tile_to_screen_y(ty);
-        if (sy_raw > screen_h + 384) continue;
-        if (sy_raw < -(384 + 384))   continue;
+        if (sy_raw > screen_h + obj_sup_size) continue;
+        if (sy_raw < -(obj_sup_size + obj_sup_size))   continue;
 
         for (int tx = 0; tx < map_w; tx++) {
             uint16_t floor_id = 0;
@@ -978,10 +936,10 @@ void GameLoop::render_floor() {
             if (!entry.is_large()) continue;
 
             int sx = _camera.tile_to_screen_x(tx);
-            if (sx > screen_w + 384) continue;
-            if (sx < -(384 + 384))   continue;
+            if (sx > screen_w + obj_sup_size) continue;
+            if (sx < -(obj_sup_size + obj_sup_size))   continue;
 
-            int size_px = entry.tile_size * TILE_SIZE;
+            int size_px = entry.tile_size * tile_size();
             SDL2pp::Rect dst(sx + entry.offset_x, sy_raw + entry.offset_y, size_px, size_px);
             _renderer.Copy(_assets.get(entry.path), SDL2pp::NullOpt, dst);
         }
@@ -999,10 +957,10 @@ void GameLoop::render_obj_sup() {
     int margin_x = 8;
     int margin_y_up   = 6;
     int margin_y_down = 16;
-    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / TILE_SIZE - margin_x);
-    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / TILE_SIZE - margin_y_up);
-    int last_x  = std::min(map_w - 1, first_x + screen_w / TILE_SIZE + margin_x * 2);
-    int last_y  = std::min(map_h - 1, first_y + screen_h / TILE_SIZE + margin_y_up + margin_y_down);
+    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / tile_size() - margin_x);
+    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / tile_size() - margin_y_up);
+    int last_x  = std::min(map_w - 1, first_x + screen_w / tile_size() + margin_x * 2);
+    int last_y  = std::min(map_h - 1, first_y + screen_h / tile_size() + margin_y_up + margin_y_down);
 
     for (int ty = first_y; ty <= last_y; ty++) {
         for (int tx = first_x; tx <= last_x; tx++) {
@@ -1012,18 +970,18 @@ void GameLoop::render_obj_sup() {
             const ObjectSupEntry& entry = _obj_sup_config.get(obj_id);
             if (entry.frames.empty()) continue;
 
-            int frame_idx = (_current_tick / OBJ_SUP_TICKS_PER_FRAME)
+            int frame_idx = (_current_tick / ClientConfig::instance().rendering.obj_sup_ticks_per_frame)
                             % static_cast<int>(entry.frames.size());
 
-            int obj_h = entry.size_tiles  * TILE_SIZE;
-            int obj_w = entry.width_tiles * TILE_SIZE;
+            int obj_h = entry.size_tiles  * tile_size();
+            int obj_w = entry.width_tiles * tile_size();
 
             int sx = _camera.tile_to_screen_x(tx);
             int sy = _camera.tile_to_screen_y(ty);
 
             SDL2pp::Rect dst(
-                sx - (obj_w - TILE_SIZE) / 2 + entry.offset_x,
-                sy - obj_h + TILE_SIZE + entry.offset_y,
+                sx - (obj_w - tile_size()) / 2 + entry.offset_x,
+                sy - obj_h + tile_size() + entry.offset_y,
                 obj_w,
                 obj_h
             );
@@ -1099,8 +1057,8 @@ void GameLoop::render_entities() {
     };
 
     for (const auto& e : _last_entities) {
-        int screen_x = _camera.world_to_screen_x(static_cast<float>(e.pos_x * TILE_SIZE));
-        int screen_y = _camera.world_to_screen_y(static_cast<float>(e.pos_y * TILE_SIZE));
+        int screen_x = _camera.world_to_screen_x(static_cast<float>(e.pos_x * tile_size()));
+        int screen_y = _camera.world_to_screen_y(static_cast<float>(e.pos_y * tile_size()));
 
         // ── Items en el suelo ──
         if (e.entity_type == static_cast<uint8_t>(EntityType::ITEM_FLOOR)) {
@@ -1133,7 +1091,7 @@ void GameLoop::render_entities() {
                 path = vit->second[variant];
             }
 
-            SDL2pp::Rect dst(screen_x, screen_y, TILE_SIZE, TILE_SIZE);
+            SDL2pp::Rect dst(screen_x, screen_y, tile_size(), tile_size());
             SDL2pp::Texture& tex = _assets.get(path);
             if (tex.GetWidth() == 256 && tex.GetHeight() == 256)
                 _renderer.Copy(tex, SDL2pp::Rect(0, 192, 48, 64), dst);
@@ -1318,7 +1276,8 @@ void GameLoop::render_entity_healthbar(const EntityDTO& entity, const SpriteBoun
     if (!show_name) return;
 
     if (!_small_font) {
-        _small_font = TTF_OpenFont(CHAT_FONT_PATH, 10);
+        const auto& fonts = ClientConfig::instance().fonts;
+        _small_font = TTF_OpenFont(fonts.chat_font_path.c_str(), fonts.small_font_size);
     }
 
     if (_small_font) {
@@ -1350,8 +1309,8 @@ void GameLoop::handle_mouse_click(int mouse_x, int mouse_y) {
 
     int world_x = mouse_x - _camera.tile_to_screen_x(0);
     int world_y = mouse_y - _camera.tile_to_screen_y(0);
-    int tile_x  = world_x / TILE_SIZE;
-    int tile_y  = world_y / TILE_SIZE;
+    int tile_x  = world_x / tile_size();
+    int tile_y  = world_y / tile_size();
 
     for (const auto& e : _last_entities) {
         if (e.entity_id == _my_entity_id) continue;

@@ -17,9 +17,10 @@
 #include "net/Command.h"
 #include "net/SenderThread.h"
 #include "net/ReceiverThread.h"
-
-static const char* FONT_PATH = "assets/fonts/DejaVuSans.ttf";
-static const char* MUSIC_PATH = "assets/sounds/music/argentum_music.mp3";
+#include "config/ClientConfig.h"
+#include "config/AudioConfig.h"
+#include "config/SpellVfxConfig.h"
+#include "config/RacesClassesConfig.h"
 
 // Detiene y joinea todos los threads de red de forma segura.
 static void shutdown_net(std::atomic<bool>& connected,
@@ -46,6 +47,29 @@ int main(int argc, char* argv[]) try {
     const std::string host = argv[1];
     const std::string port = argv[2];
 
+    // Cargar todas las configuraciones desde TOML
+    ClientConfig& client_config = ClientConfig::instance();
+    AudioConfig& audio_config = AudioConfig::instance();
+    SpellVfxConfig& spell_vfx_config = SpellVfxConfig::instance();
+    RacesClassesConfig& races_classes_config = RacesClassesConfig::instance();
+
+    if (!client_config.load("config/client_config.toml")) {
+        std::cerr << "Error: no se pudo cargar config/client_config.toml\n";
+        return 1;
+    }
+    if (!audio_config.load("config/audio_config.toml")) {
+        std::cerr << "Error: no se pudo cargar config/audio_config.toml\n";
+        return 1;
+    }
+    if (!spell_vfx_config.load("config/spells_vfx.toml")) {
+        std::cerr << "Error: no se pudo cargar config/spells_vfx.toml\n";
+        return 1;
+    }
+    if (!races_classes_config.load("config/races_classes.toml")) {
+        std::cerr << "Error: no se pudo cargar config/races_classes.toml\n";
+        return 1;
+    }
+
     SDL2pp::SDL sdl(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
     if (TTF_Init() != 0) {
@@ -54,12 +78,12 @@ int main(int argc, char* argv[]) try {
     }
 
     AudioManager audio;
-    audio.play_music_loop(MUSIC_PATH);
+    audio.play_music_loop(client_config.music.main_theme_path);
 
     SDL2pp::Window window(
-        "Argentum Online - Grupo 13",
+        client_config.ui.window_title,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        900, 620,
+        client_config.ui.window_width, client_config.ui.window_height,
         SDL_WINDOW_RESIZABLE
     );
     SDL2pp::Renderer renderer(
@@ -71,7 +95,7 @@ int main(int argc, char* argv[]) try {
 
     while (true) {
         // Mostrar pantalla de login/registro
-        LoginScreen login_screen(window, renderer, FONT_PATH);
+        LoginScreen login_screen(window, renderer, client_config.fonts.chat_font_path);
         if (!pending_error.empty()) {
             login_screen.set_error(pending_error);
             pending_error.clear();
@@ -121,7 +145,7 @@ int main(int argc, char* argv[]) try {
         if (hs != HandshakeResult::OK) {
             shutdown_net(connected, command_queue, snapshot_queue, map_queue, sender, receiver);
             pending_error = error_msg.empty()
-                ? "Usuario invalido o ya existente."
+                ? races_classes_config.get_login_messages().invalid_user
                 : error_msg;
             continue;
         }

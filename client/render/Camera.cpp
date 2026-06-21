@@ -1,9 +1,11 @@
 #include "Camera.h"
+#include "../config/ClientConfig.h"
 
 Camera::Camera(int screen_w, int screen_h, int panel_w)
     : _screen_w(screen_w), _screen_h(screen_h),
       _panel_w(panel_w),
-      _x(0.0f), _y(0.0f) {}
+      _x(0.0f), _y(0.0f),
+      _tile_size(ClientConfig::instance().rendering.tile_size) {}
 
 void Camera::follow(const PlayerState& player) {
     // Centrar al jugador en la zona de juego (excluye el panel lateral)
@@ -21,15 +23,19 @@ int Camera::world_to_screen_y(float world_y) const {
 }
 
 int Camera::tile_to_screen_x(int tile_x) const {
-    return world_to_screen_x(static_cast<float>(tile_x * TILE_SIZE));
+    return world_to_screen_x(static_cast<float>(tile_x * _tile_size));
 }
 
 int Camera::tile_to_screen_y(int tile_y) const {
-    return world_to_screen_y(static_cast<float>(tile_y * TILE_SIZE));
+    return world_to_screen_y(static_cast<float>(tile_y * _tile_size));
 }
 
 void Camera::set_screen_size(int w, int h, int panel_w) {
     _screen_w = w;
     _screen_h = h;
     if (panel_w >= 0) _panel_w = panel_w;
+}
+
+void Camera::set_tile_size(int tile_size) {
+    _tile_size = tile_size;
 }

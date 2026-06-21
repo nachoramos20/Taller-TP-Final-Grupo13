@@ -37,7 +37,7 @@ void GameConfig::load_game_config(const std::string& path) {
     // Razas
     if (auto* races = tbl["race"].as_table()) {
         for (auto& [key, val] : *races) {
-            uint8_t id = static_cast<uint8_t>(std::stoi(std::string(key)));
+            uint8_t id = static_cast<uint8_t>(std::stoi(std::string(key)) - 1);
             auto* rt = val.as_table();
             if (!rt) continue;
             RaceConfig rc;
@@ -55,7 +55,7 @@ void GameConfig::load_game_config(const std::string& path) {
     // Clases
     if (auto* classes = tbl["class"].as_table()) {
         for (auto& [key, val] : *classes) {
-            uint8_t id = static_cast<uint8_t>(std::stoi(std::string(key)));
+            uint8_t id = static_cast<uint8_t>(std::stoi(std::string(key)) - 1);
             auto* ct = val.as_table();
             if (!ct) continue;
             ClassConfig cc;
@@ -220,7 +220,7 @@ void GameConfig::load_spells(const std::string& path) {
         SpellConfig sc;
         sc.id             = static_cast<SpellId>(raw_id);
         sc.name           = (*st)["name"].value_or<std::string>("");
-        sc.spell_class    = (*st)["class"].value_or<int>(0);
+        sc.spell_class    = (*st)["class"].value_or<int>(1) - 1;
         sc.mana_cost      = (*st)["mana_cost"].value_or<int>(0);
         sc.dmg_multiplier = (*st)["dmg_multiplier"].value_or<double>(1.0);
         sc.flat_bonus     = (*st)["flat_bonus"].value_or<int>(0);

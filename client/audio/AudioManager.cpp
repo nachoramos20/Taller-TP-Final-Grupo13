@@ -11,14 +11,14 @@ static constexpr int MIXER_CHANNELS  = 2;
 static constexpr int MIXER_CHUNKSIZE = 1024;
 static constexpr int DEFAULT_MUSIC_VOLUME = 20;  // 0-128 (MIX_MAX_VOLUME);
 
-static constexpr float MAX_AUDIBLE_TILES   = 18.0f;  
+static constexpr float MAX_AUDIBLE_TILES   = 18.0f;
 static constexpr int   MIN_EFFECT_VOLUME   = 0;
-static constexpr int   MAX_EFFECT_VOLUME   = 110;    
-static constexpr uint32_t EFFECT_COOLDOWN_MS = 80;   
+static constexpr int   MAX_EFFECT_VOLUME   = 110;
+static constexpr uint32_t EFFECT_COOLDOWN_MS = 80;
 
 static constexpr int TOTAL_CHANNELS  = 16;
-static constexpr int SPEECH_CHANNEL  = 0;  
-static constexpr int AMBIENT_CHANNEL = 1; 
+static constexpr int SPEECH_CHANNEL  = 0;  // reservado: diálogo de NPC
+static constexpr int AMBIENT_CHANNEL = 1;  // reservado: sonido ambiente en loop (olas, etc.)
 
 AudioManager::AudioManager() {
     if (Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == 0)

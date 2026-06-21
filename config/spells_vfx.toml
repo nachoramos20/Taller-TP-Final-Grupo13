@@ -1,0 +1,130 @@
+# ============================================================
+# spells_vfx.toml — Efectos visuales de hechizos
+# Define sprites, animaciones y posicionamiento de spell effects
+# ============================================================
+
+# ── Spell ID 1: Explosión (BURST) ────────────────────────────
+[spell_effect.1]
+path            = "assets/sprites/spells/explosion.png"
+sheet_cols      = 5
+frame_w         = 192
+frame_h         = 192
+frame_indices   = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
+[spell_render.1]
+display_w       = 150
+display_h       = 150
+offset_x        = -75
+offset_y        = -124
+
+# ── Spell ID 2: Área de Veneno (POISON_AREA) ────────────────
+[spell_effect.2]
+path            = "assets/sprites/spells/area_veneno.png"
+sheet_cols      = 4
+frame_w         = 128
+frame_h         = 128
+frame_indices   = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+[spell_render.2]
+display_w       = 96
+display_h       = 96
+offset_x        = -48
+offset_y        = -80
+
+# ── Spell ID 3: Explosión Calavérica (SKULL_EXPLOSION) ────────
+[spell_effect.3]
+path            = "assets/sprites/spells/explosion_calaverica.png"
+sheet_cols      = 3
+frame_w         = 145
+frame_h         = 145
+frame_indices   = [0, 1, 2, 3, 4, 5, 6]
+
+[spell_render.3]
+display_w       = 120
+display_h       = 120
+offset_x        = -60
+offset_y        = -104
+
+# ── Spell ID 4: Orbe de Hielo (ICE_ORB) ─────────────────────
+[spell_effect.4]
+path            = "assets/sprites/spells/orbe_hielo.png"
+sheet_cols      = 8
+frame_w         = 128
+frame_h         = 128
+frame_indices   = [0, 1, 2, 3, 4, 8, 9, 10, 11, 12, 16, 17, 18, 19, 20, 24, 25, 26, 27, 28, 32, 33, 34, 35, 36, 40, 41, 42, 43, 44]
+
+[spell_render.4]
+display_w       = 96
+display_h       = 96
+offset_x        = -48
+offset_y        = -80
+
+# ── Spell ID 5: Tornado Gravitatorio (GRAVITATIONAL_TORNADO) ──
+[spell_effect.5]
+path            = "assets/sprites/spells/tornado_gravitatorio.png"
+sheet_cols      = 5
+frame_w         = 120
+frame_h         = 255
+frame_indices   = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+[spell_render.5]
+display_w       = 80
+display_h       = 170
+offset_x        = -40
+offset_y        = -144
+
+# ── Spell ID 6: Tormenta Eléctrica (THUNDERSTORM) ────────────
+[spell_effect.6]
+path            = "assets/sprites/spells/tormenta_electrica.png"
+sheet_cols      = 4
+frame_w         = 128
+frame_h         = 128
+frame_indices   = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+[spell_render.6]
+display_w       = 96
+display_h       = 96
+offset_x        = -48
+offset_y        = -80
+
+# ── Spell ID 7: Orbe de Vacío (ORB_OF_EMPTINESS) ─────────────
+[spell_effect.7]
+path            = "assets/sprites/spells/orbe_vacio.png"
+sheet_cols      = 6
+frame_w         = 112
+frame_h         = 112
+frame_indices   = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+[spell_render.7]
+display_w       = 96
+display_h       = 96
+offset_x        = -48
+offset_y        = -80
+
+# ── Spell ID 8: Brecha de Vacío (VACUUM_GAP) ────────────────
+[spell_effect.8]
+path            = "assets/sprites/spells/brecha_vacio.png"
+sheet_cols      = 7
+frame_w         = 146
+frame_h         = 146
+frame_indices   = [0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 15, 16, 17, 18, 21, 22, 23, 24, 25]
+
+[spell_render.8]
+display_w       = 120
+display_h       = 120
+offset_x        = -60
+offset_y        = -104
+
+# ── Spell ID 9: Tornado de Oscuridad (TORNADO_OF_DARKNESS) ───
+[spell_effect.9]
+path            = "assets/sprites/spells/tornado_oscuridad.png"
+sheet_cols      = 5
+frame_w         = 120
+frame_h         = 255
+frame_indices   = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+[spell_render.9]
+display_w       = 80
+display_h       = 170
+offset_x        = -40
+offset_y        = -144
