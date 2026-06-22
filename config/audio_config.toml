@@ -36,10 +36,7 @@ flecha_magica  = ["assets/sounds/effects/combat/flecha_magica.wav"]
 
 # ── Sonidos de Magia ─────────────────────────────────────────
 [magic_sounds.spells]
-curacion       = [
-    "assets/sounds/effects/magic/sonido_como_de_curacion_divina.wav",
-    "assets/sounds/effects/magic/sonido_como_de_curacion_divina_2.wav"
-]
+curacion       = ["assets/sounds/effects/magic/flauta_elfica.wav"]
 misil          = ["assets/sounds/effects/magic/orbe_de_hielo_baculo_nudoso.wav"]
 explosion      = ["assets/sounds/effects/combat/explosion.wav"]
 
