@@ -101,6 +101,10 @@ void GameAudioService::coins_received() {
     play_random(AudioConfig::instance().get_economy_sound("monedas"), 0.0f);
 }
 
+void GameAudioService::potion_used() {
+    play_random(AudioConfig::instance().get_economy_sound("potion"), 0.0f);
+}
+
 void GameAudioService::player_spawn() {
     play_random(AudioConfig::instance().get_ui_sound("player_spawn"), 0.0f);
 }

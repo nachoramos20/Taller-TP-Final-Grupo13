@@ -88,6 +88,7 @@ despedida          = [
 # ── Sonidos de Economía ───────────────────────────────────────
 [economy_sounds]
 monedas            = ["assets/sounds/effects/economy/monedas.wav"]
+potion             = ["assets/sounds/effects/economy/burbujas.wav"]
 
 # ── Sonidos de Interfaz ───────────────────────────────────────
 [ui_sounds]
