@@ -20,7 +20,7 @@ void ChatCommand::handle_depositar(World& world, const std::string& args) {
     std::string first;
     ss >> first;
 
-    if (first == "oro") {
+    if (Items::name_equals_ci(first, "oro")) {
         uint32_t amount = 0;
         ss >> amount;
         world.bank_deposit_gold(client_id, amount);
@@ -32,7 +32,7 @@ void ChatCommand::handle_depositar(World& world, const std::string& args) {
             if (p->inventory[i] == 0) continue;
             if (Items::exists(static_cast<ItemId>(p->inventory[i]))) {
                 const auto& def = Items::get(static_cast<ItemId>(p->inventory[i]));
-                if (def.name == item_name) {
+                if (Items::name_equals_ci(def.name, item_name)) {
                     world.bank_deposit_item(client_id, static_cast<uint8_t>(i));
                     return;
                 }
@@ -49,7 +49,7 @@ void ChatCommand::handle_retirar(World& world, const std::string& args) {
     std::string first;
     ss >> first;
 
-    if (first == "oro") {
+    if (Items::name_equals_ci(first, "oro")) {
         uint32_t amount = 0;
         ss >> amount;
         world.bank_withdraw_gold(client_id, amount);

@@ -97,7 +97,8 @@ private:
                        AssetManager& assets,
                        const std::string& weapon_path,
                        int dir_idx, int frame,
-                       const SDL2pp::Rect& body_dst);
+                       const SDL2pp::Rect& body_dst,
+                       float scale);
 
     Animation    _body_anims[4];
     int          _last_sprite_id;

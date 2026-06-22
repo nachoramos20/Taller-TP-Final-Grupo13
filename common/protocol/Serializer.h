@@ -45,6 +45,12 @@ public:
         send_uint8(inv_slot);
     }
 
+    void send_move_item(uint8_t from_slot, uint8_t to_slot) {
+        send_uint8(static_cast<uint8_t>(MsgType::MOVE_ITEM));
+        send_uint8(from_slot);
+        send_uint8(to_slot);
+    }
+
     void send_unequip_item(EquipSlot slot) {
         send_uint8(static_cast<uint8_t>(MsgType::UNEQUIP_ITEM));
         send_uint8(static_cast<uint8_t>(slot));

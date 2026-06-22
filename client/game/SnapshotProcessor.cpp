@@ -22,6 +22,7 @@ void SnapshotProcessor::apply_snapshot(WorldState& state, PlayerState& player, c
 
     if (snap.entities) {
         detect_deaths(state, player, snap);
+        update_entity_motion(state, *snap.entities);
         state.entities = *snap.entities;
     }
 

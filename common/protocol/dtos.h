@@ -43,7 +43,7 @@ struct SnapshotDTO {
     uint8_t  is_ghost;
     uint8_t  meditating;
 
-    static constexpr int INVENTORY_SIZE = 16;
+    static constexpr int INVENTORY_SIZE = 20;
     uint8_t inventory[INVENTORY_SIZE];
     uint8_t equipped_wpn;
     uint8_t equipped_arm;

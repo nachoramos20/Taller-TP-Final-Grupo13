@@ -20,6 +20,7 @@ std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_i
         case MsgType::EQUIP_ITEM:   return receive_equip(client_id);
         case MsgType::UNEQUIP_ITEM: return receive_unequip(client_id);
         case MsgType::DROP_ITEM:    return receive_drop(client_id);
+        case MsgType::MOVE_ITEM:    return receive_move_item(client_id);
         case MsgType::PICK_ITEM:    return receive_pick(client_id);
         case MsgType::USE_ITEM:     return receive_use(client_id);
         case MsgType::MEDITATE:     return receive_meditate(client_id);
@@ -64,6 +65,12 @@ std::shared_ptr<UnequipCommand> ServerProtocol::receive_unequip(uint16_t client_
 std::shared_ptr<DropCommand> ServerProtocol::receive_drop(uint16_t client_id) {
     uint8_t s = recv_uint8();
     return std::make_shared<DropCommand>(client_id, s);
+}
+
+std::shared_ptr<MoveItemCommand> ServerProtocol::receive_move_item(uint16_t client_id) {
+    uint8_t from = recv_uint8();
+    uint8_t to   = recv_uint8();
+    return std::make_shared<MoveItemCommand>(client_id, from, to);
 }
 
 std::shared_ptr<PickCommand> ServerProtocol::receive_pick(uint16_t client_id) {

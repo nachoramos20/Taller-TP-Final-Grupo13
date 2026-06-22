@@ -38,6 +38,9 @@ void SenderThread::send_command(const Command& cmd) {
         case MsgType::EQUIP_ITEM:
             _serializer.send_equip_item(cmd.slot);
             break;
+        case MsgType::MOVE_ITEM:
+            _serializer.send_move_item(cmd.slot, cmd.to_slot);
+            break;
         case MsgType::UNEQUIP_ITEM:
             _serializer.send_unequip_item(static_cast<EquipSlot>(cmd.equip_slot));
             break;

@@ -64,6 +64,7 @@ private:
     uint8_t _eq_shld = 0;
 
     int _selected_slot = -1;
+    int _drag_from_slot = -1;  // slot sobre el que se hizo mouse-down, -1 = no hay drag en curso
 
     SDL_Rect _slot_rects[INV_SIZE] {};
     SDL_Rect _close_btn   {};

@@ -8,7 +8,8 @@
 #include <cstdlib>
 
 namespace {
-constexpr float FOOTSTEP_VOLUME_SCALE = 0.4f;  // los pasos suenan más bajo que el resto de los efectos
+constexpr float FOOTSTEP_GRASS_VOLUME_SCALE = 0.2f;  
+constexpr float FOOTSTEP_CITY_STONE_VOLUME_SCALE = 0.3f;  
 constexpr float FOREST_AMBIENCE_VOLUME_SCALE = 0.2f;
 constexpr uint32_t FOREST_SOUND_MIN_INTERVAL_MS = 8000;
 constexpr uint32_t FOREST_SOUND_MAX_INTERVAL_MS = 20000;
@@ -153,14 +154,14 @@ void GameAudioService::update_forest_ambience(bool in_forest) {
 
 void GameAudioService::footstep_grass() {
     play_sequential(AudioConfig::instance().get_movement_sound("paso_pasto"), 0.0f,
-                     _footstep_grass_index, FOOTSTEP_VOLUME_SCALE);
+                     _footstep_grass_index, FOOTSTEP_GRASS_VOLUME_SCALE);
 }
 
 void GameAudioService::update_city_stone_footsteps(bool walking_on_city_stone) {
     if (!_audio) return;
     const auto& paths = AudioConfig::instance().get_movement_sound("pasos_en_grava");
     if (paths.empty()) return;
-    _audio->set_looping_while(paths.front(), walking_on_city_stone, FOOTSTEP_VOLUME_SCALE);
+    _audio->set_looping_while(paths.front(), walking_on_city_stone, FOOTSTEP_CITY_STONE_VOLUME_SCALE);
 }
 
 void GameAudioService::merchant_greet(float dist_tiles) {

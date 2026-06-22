@@ -19,6 +19,7 @@ enum class MsgType : uint8_t {
     MEDITATE     = 0x0D,
     RESURRECT    = 0x0E,
     CAST_SPELL   = 0x0F,
+    MOVE_ITEM    = 0x12,
 
     // Servidor → Cliente
     LOGIN_OK     = 0x10,
@@ -146,8 +147,8 @@ inline int weapon_client_range(uint8_t item_id) {
     switch (static_cast<ItemId>(item_id)) {
         case ItemId::SIMPLE_BOW:    return 6;
         case ItemId::COMPOUND_BOW:  return 8;
-        case ItemId::ELVEN_FLUTE:   return 5;
-        case ItemId::ASH_STICK:     return 6;
+        case ItemId::ELVEN_FLUTE:   return 6;
+        case ItemId::ASH_STICK:     return 5;
         case ItemId::NUDOSO_STAFF:  return 6;
         case ItemId::GEMMED_STAFF:  return 6;
         default:                    return 1;

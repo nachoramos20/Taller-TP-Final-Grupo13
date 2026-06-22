@@ -7,9 +7,12 @@
 #include <cstdint>
 #include <vector>
 
+class GameAudioService;
+
 class StatsPanel {
 public:
-    StatsPanel(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size = 14);
+    StatsPanel(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size = 14,
+               GameAudioService* audio = nullptr);
     ~StatsPanel();
 
     void set_username(const std::string& username) { _username = username; }
@@ -53,6 +56,7 @@ private:
     std::vector<SpellInfo> spells_for_class(uint8_t cls) const;
 
     SDL2pp::Renderer& _renderer;
+    GameAudioService* _audio     = nullptr;
     TTF_Font*         _font      = nullptr;
     int               _font_size;
 

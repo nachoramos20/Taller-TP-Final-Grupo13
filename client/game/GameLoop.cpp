@@ -31,7 +31,8 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
       _chat(std::make_unique<ChatWidget>(renderer, ClientConfig::instance().fonts.chat_font_path,
                                           ClientConfig::instance().fonts.chat_font_size)),
       _stats(std::make_unique<StatsPanel>(renderer, ClientConfig::instance().fonts.chat_font_path,
-                                           ClientConfig::instance().fonts.medium_font_size)),
+                                           ClientConfig::instance().fonts.medium_font_size,
+                                           &_audio_service)),
       _inventory(std::make_unique<InventoryPanel>(renderer, ClientConfig::instance().fonts.chat_font_path,
                                                    ClientConfig::instance().fonts.small_font_size,
                                                    &_audio_service)),
@@ -110,6 +111,7 @@ void GameLoop::update(float dt) {
     _stats->set_inventory_ref(_state.inventory, SnapshotDTO::INVENTORY_SIZE);
 
     _player.update(dt);
+    advance_entity_motion(_state, dt);
     _camera.follow(_player);
     _pos_label->update(_player.tile_x, _player.tile_y);
     if (_audio) {

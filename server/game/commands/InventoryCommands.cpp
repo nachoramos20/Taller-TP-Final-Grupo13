@@ -67,6 +67,29 @@ void DropCommand::execute(World& world) {
     world.add_floor_item(item_id, p->pos_x, p->pos_y, 0);
 }
 
+MoveItemCommand::MoveItemCommand(uint16_t c, uint8_t from, uint8_t to)
+    : client_id(c), from_slot(from), to_slot(to) {}
+
+void MoveItemCommand::execute(World& world) {
+    PlayerData* p = world.get_player_mutable(client_id);
+    if (!p) return;
+    if (from_slot >= PlayerData::INVENTORY_SIZE || to_slot >= PlayerData::INVENTORY_SIZE) return;
+    if (from_slot == to_slot) return;
+    if (p->inventory[from_slot] == 0) return;  // nada para mover
+
+    std::swap(p->inventory[from_slot], p->inventory[to_slot]);
+
+    // Si alguno de los dos slots estaba equipado, el equipo se mueve con el item.
+    auto remap = [&](uint8_t& equipped_slot) {
+        if (equipped_slot == from_slot) equipped_slot = to_slot;
+        else if (equipped_slot == to_slot) equipped_slot = from_slot;
+    };
+    remap(p->equipped_weapon);
+    remap(p->equipped_armor);
+    remap(p->equipped_helmet);
+    remap(p->equipped_shield);
+}
+
 PickCommand::PickCommand(uint16_t c) : client_id(c) {}
 
 void PickCommand::execute(World& world) {

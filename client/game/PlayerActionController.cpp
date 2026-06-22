@@ -17,6 +17,7 @@ void PlayerActionController::handle_world_click(int tile_x, int tile_y) {
         if (e.entity_type == static_cast<uint8_t>(EntityType::ITEM_FLOOR)) continue;
 
         float dist = dist_to_player_tiles(_player, e.pos_x, e.pos_y);
+        int   range_dist = manhattan_dist_to_player_tiles(_player, e.pos_x, e.pos_y);
         bool is_service_npc = (e.entity_type == static_cast<uint8_t>(EntityType::NPC))
                               && (e.sprite_id >= 7);  // MERCHANT=7, BANKER=8, PRIEST=9
 
@@ -47,7 +48,7 @@ void PlayerActionController::handle_world_click(int tile_x, int tile_y) {
             int      spell_range = _stats ? _stats->selected_spell_range()     : 0;
 
             bool enough_mana = (_stats->current_mp() >= spell_mana);
-            bool in_range    = (spell_range <= 0 || static_cast<int>(dist) <= spell_range);
+            bool in_range    = (spell_range <= 0 || range_dist <= spell_range);
 
             if (!enough_mana) {
                 if (_chat) _chat->add_message("Maná insuficiente para lanzar el hechizo.");
@@ -72,7 +73,7 @@ void PlayerActionController::handle_world_click(int tile_x, int tile_y) {
 
             if (weapon_is_ranged(my_weapon)) {
                 int weapon_range = weapon_client_range(my_weapon);
-                bool in_range = (static_cast<int>(dist) <= weapon_range);
+                bool in_range = (range_dist <= weapon_range);
 
                 // Para armas mágicas también verificar maná mínimo (≥1)
                 bool has_mana = true;

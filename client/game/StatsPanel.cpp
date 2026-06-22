@@ -1,12 +1,14 @@
 #include "StatsPanel.h"
 #include "../../common/protocol/protocol.h"
+#include "../audio/GameAudioService.h"
 #include <stdexcept>
 #include <string>
 #include <algorithm>
 #include <cmath>
 
-StatsPanel::StatsPanel(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size)
-    : _renderer(renderer), _font_size(font_size) {
+StatsPanel::StatsPanel(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size,
+                       GameAudioService* audio)
+    : _renderer(renderer), _audio(audio), _font_size(font_size) {
     if (TTF_WasInit() == 0) {
         if (TTF_Init() != 0)
             throw std::runtime_error(std::string("TTF_Init: ") + TTF_GetError());
@@ -83,6 +85,7 @@ void StatsPanel::activate_spell_by_index(int index) {
     auto spells = spells_for_class(_cls);
     if (index < 0 || index >= (int)spells.size()) return;
     const auto& s = spells[index];
+    if (_audio) _audio->click();
     if (_cast_mode && _selected_spell == s.id) {
         _cast_mode = false;
         _selected_spell = 0;
@@ -107,6 +110,7 @@ bool StatsPanel::handle_event(const SDL_Event& e) {
     for (int i = 0; i < _spell_btn_count; i++) {
         if (in(_spell_btn_rect[i])) {
             uint8_t id = _spell_btn_id[i];
+            if (_audio) _audio->click();
             if (_cast_mode && _selected_spell == id) {
                 _cast_mode = false;
                 _selected_spell = 0;
@@ -284,7 +288,7 @@ void StatsPanel::render(int screen_w, int screen_h) {
     const int btn_w = PW - pad * 2;
     _inv_btn_rect = { px + pad, cy, btn_w, btn_h };
     draw_rounded_rect(px + pad, cy, btn_w, btn_h, {100, 70, 30, 240});
-    draw_text("Inventario  [I]", px + pad + (btn_w - 100) / 2, cy + (btn_h - _font_size) / 2,
+    draw_text("Inventario  [Tab]", px + pad + (btn_w - 100) / 2, cy + (btn_h - _font_size) / 2,
               {255, 240, 160, 255});
     cy += btn_h + 10;
 
@@ -310,7 +314,7 @@ void StatsPanel::render(int screen_w, int screen_h) {
         cy += lh + 4;
 
         const char* shortcuts[][2] = {
-            { "I", "Inventario" },
+            { "Tab", "Inventario" },
             { "M", "Meditar" },
             { "R", "Resucitar" },
             { "E", "Recoger item" },
@@ -341,7 +345,8 @@ void StatsPanel::render(int screen_w, int screen_h) {
         cy += lh + 6;
     }
 
-    const int sb_h = 30;
+    // hechizos en dos líneas por botón 
+    const int sb_h = 8 + _font_size + 4 + _font_size + 8;
     const int sb_w = PW - pad * 2;
     for (size_t i = 0; i < spells.size() && (int)i < MAX_SPELL_BTNS; i++) {
         const auto& s = spells[i];
@@ -357,17 +362,15 @@ void StatsPanel::render(int screen_w, int screen_h) {
                        : selected ? SDL_Color{ 255, 245, 200, 255 }
                                   : SDL_Color{ 220, 200, 255, 255 };
 
-        // Nombre del hechizo con atajo [F1/F2/F3]
+        // Nombre del hechizo
         std::string label = selected ? "* " : "  ";
         label += s.label;
-        draw_text(label, px + pad + 8, cy + (sb_h - _font_size) / 2, txt);
+        draw_text(label, px + pad + 8, cy + 8, txt);
 
-        // Atajo de tecla a la derecha
-        std::string shortcut_str = std::string("[F") + std::to_string(i + 1) + "]";
+        // Costo + atajo
+        std::string shortcut_str = std::string("[") + std::to_string(i + 1) + "]";
         std::string cost_str = std::to_string(s.mana) + "mp " + shortcut_str;
-        int cost_w = 0, cost_h = 0;
-        TTF_SizeUTF8(_font, cost_str.c_str(), &cost_w, &cost_h);
-        draw_text(cost_str, px + PW - pad - 12 - cost_w, cy + (sb_h - _font_size) / 2, dim);
+        draw_text(cost_str, px + pad + 8, cy + 8 + _font_size + 4, dim);
 
         _spell_btn_rect[i] = { px + pad, cy, sb_w, sb_h };
         _spell_btn_id[i]   = s.id;
@@ -393,7 +396,7 @@ void StatsPanel::render(int screen_w, int screen_h) {
     cy += lh + 4;
 
     const char* shortcuts[][2] = {
-        { "I", "Inventario" },
+        { "Tab", "Inventario" },
         { "M", "Meditar" },
         { "R", "Resucitar" },
         { "E", "Recoger item" },

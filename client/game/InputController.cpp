@@ -18,12 +18,12 @@ InputController::InputController(Camera& camera, PlayerState& player, Queue<Comm
     _key_actions[kb.resurrect]             = InputAction::Resurrect;
     _key_actions[kb.pick_item]             = InputAction::PickItem;
     _key_actions[kb.quit]                  = InputAction::Quit;
-    // Atajos de hechizo: F1, F2, F3
-    _key_actions[SDLK_F1] = InputAction::Spell1;
-    _key_actions[SDLK_F2] = InputAction::Spell2;
-    _key_actions[SDLK_F3] = InputAction::Spell3;
+    // Atajos de hechizo: 1, 2, 3
+    _key_actions[SDLK_1] = InputAction::Spell1;
+    _key_actions[SDLK_2] = InputAction::Spell2;
+    _key_actions[SDLK_3] = InputAction::Spell3;
     // Atajo de poción: P
-    _key_actions[SDLK_p]  = InputAction::UsePotion;
+    _key_actions[SDLK_p] = InputAction::UsePotion;
 }
 
 void InputController::handle_events(bool& running) {

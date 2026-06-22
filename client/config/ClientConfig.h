@@ -91,6 +91,7 @@ public:
         int window_width;
         int window_height;
         bool window_resizable;
+        int window_min_height;
     };
 
     // Estructura para death effects

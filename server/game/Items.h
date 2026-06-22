@@ -23,6 +23,9 @@ namespace Items {
     const ItemDef& get(ItemId id);
     bool           exists(ItemId id);
     EquipSlot      equip_slot_for(ItemKind kind);
+
+    // Compara dos nombres de item ignorando mayúsculas/minúsculas.
+    bool           name_equals_ci(const std::string& a, const std::string& b);
 }
 
 #endif

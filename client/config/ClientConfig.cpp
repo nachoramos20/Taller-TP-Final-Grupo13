@@ -87,6 +87,7 @@ bool ClientConfig::load(const std::string& config_path) {
             ui.window_width = ui_table["window_width"].value_or(1024);
             ui.window_height = ui_table["window_height"].value_or(768);
             ui.window_resizable = ui_table["window_resizable"].value_or(true);
+            ui.window_min_height = ui_table["window_min_height"].value_or(ui.window_height);
         }
 
         // Cargar death_effects
@@ -113,7 +114,7 @@ bool ClientConfig::load(const std::string& config_path) {
         // Cargar keybindings
         if (auto kb_table = config["keybindings"]) {
             keybindings.toggle_position_label = parse_key(kb_table["toggle_position_label"], "X");
-            keybindings.toggle_inventory      = parse_key(kb_table["toggle_inventory"], "I");
+            keybindings.toggle_inventory      = parse_key(kb_table["toggle_inventory"], "Tab");
             keybindings.drop_item             = parse_key(kb_table["drop_item"], "Q");
             keybindings.meditate              = parse_key(kb_table["meditate"], "M");
             keybindings.resurrect             = parse_key(kb_table["resurrect"], "R");

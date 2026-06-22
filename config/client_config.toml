@@ -30,7 +30,7 @@ main_theme_volume = 20
 
 # ── Rendering - Tamaños y Distancias ──────────────────────────
 [rendering]
-tile_size                = 64
+tile_size                = 100
 map_size                 = 100
 obj_sup_tiles            = 6    # tiles para objetos superiores
 obj_sup_size             = 384  # 6 * 64
@@ -69,8 +69,9 @@ sprite_base_path         = "assets/sprites/stage/sangre_"  # sangre_{frame}.png
 [ui]
 window_title             = "Argentum Online - Grupo 13"
 window_width             = 900
-window_height            = 620
+window_height            = 700
 window_resizable         = true
+window_min_height        = 700  # alto mínimo: que el StatsPanel (con 3 hechizos) no quede cortado
 
 # ── Cámara ───────────────────────────────────────────────────
 [camera]
@@ -82,7 +83,7 @@ initial_y                = 0.0
 # (p. ej. "A", "Up", "Escape", "Space").
 [keybindings]
 toggle_position_label    = "X"
-toggle_inventory         = "I"
+toggle_inventory         = "Tab"
 drop_item                = "Q"
 meditate                 = "M"
 resurrect                = "R"

@@ -47,7 +47,7 @@ bool WorldBank::withdraw_item(uint16_t client_id, const std::string& item_name) 
         if (item_id == 0) continue;
         if (Items::exists(static_cast<ItemId>(item_id))) {
             const auto& def = Items::get(static_cast<ItemId>(item_id));
-            if (def.name == item_name) {
+            if (Items::name_equals_ci(def.name, item_name)) {
                 p->inventory[free_slot] = item_id;
                 p->bank[i] = 0;
                 chat.push_message(client_id, 0, "Retiraste " + item_name + " del banco.");
