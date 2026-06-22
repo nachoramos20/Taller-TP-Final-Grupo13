@@ -101,13 +101,27 @@ void ChatCommand::handle_comprar(World& world, const std::string& item_name) {
         return;
     }
 
-    static const std::vector<ItemId> shop_items = {
-        ItemId::SWORD,
-        ItemId::SIMPLE_BOW,
-        ItemId::ELVEN_FLUTE,
-        ItemId::LEATHER_ARMOR,
-        ItemId::HEALTH_POTION,
-    };
+    // Catálogo según la zona del comerciante más cercano
+    uint8_t zone = world.get_nearby_merchant_zone(client_id);
+    std::vector<ItemId> shop_items;
+    switch (zone) {
+        case 0:  // Ciudad
+            shop_items = {
+                ItemId::SWORD, ItemId::COMPOUND_BOW, ItemId::GEMMED_STAFF,
+                ItemId::PLATE_ARMOR, ItemId::IRON_HELMET, ItemId::IRON_SHIELD,
+                ItemId::HEALTH_POTION, ItemId::MANA_POTION,
+            };
+            break;
+        case 1:  // Pueblo
+            shop_items = {
+                ItemId::SWORD, ItemId::SIMPLE_BOW, ItemId::ELVEN_FLUTE,
+                ItemId::LEATHER_ARMOR, ItemId::HEALTH_POTION,
+            };
+            break;
+        default:
+            shop_items = { ItemId::SWORD, ItemId::LEATHER_ARMOR, ItemId::HEALTH_POTION };
+            break;
+    }
 
     int free_slot = -1;
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i)

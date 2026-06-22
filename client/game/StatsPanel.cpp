@@ -20,6 +20,11 @@ StatsPanel::~StatsPanel() {
     if (_font) TTF_CloseFont(_font);
 }
 
+void StatsPanel::set_inventory_ref(const uint8_t* inv, int size) {
+    _inv_ref  = inv;
+    _inv_size = size;
+}
+
 void StatsPanel::update(uint16_t hp, uint16_t max_hp, uint16_t mp, uint16_t max_mp,
                         uint32_t gold, uint8_t level, uint32_t exp, bool meditating, bool is_ghost,
                         uint8_t cls, uint8_t equipped_weapon_item_id) {
@@ -72,6 +77,19 @@ int StatsPanel::selected_spell_range() const {
     for (const auto& s : spells_for_class(_cls))
         if (s.id == _selected_spell) return s.range;
     return 0;
+}
+
+void StatsPanel::activate_spell_by_index(int index) {
+    auto spells = spells_for_class(_cls);
+    if (index < 0 || index >= (int)spells.size()) return;
+    const auto& s = spells[index];
+    if (_cast_mode && _selected_spell == s.id) {
+        _cast_mode = false;
+        _selected_spell = 0;
+    } else {
+        _cast_mode = true;
+        _selected_spell = s.id;
+    }
 }
 
 bool StatsPanel::handle_event(const SDL_Event& e) {
@@ -144,14 +162,14 @@ void StatsPanel::draw_rounded_rect(int x, int y, int w, int h, SDL_Color color) 
 void StatsPanel::render(int screen_w, int screen_h) {
     const int PW  = PANEL_W;
     const int px  = screen_w - PW;
-    const int pad = 12; // Aumentamos levemente el padding para dar más aire
+    const int pad = 12;
     const int lh  = _font_size + 6;
 
     SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(_renderer.Get(), 12, 8, 4, 220);
     SDL_Rect bg{ px, 0, PW, screen_h };
     SDL_RenderFillRect(_renderer.Get(), &bg);
-    
+
     // Borde superior del panel
     SDL_SetRenderDrawColor(_renderer.Get(), 180, 140, 60, 255);
     SDL_RenderDrawLine(_renderer.Get(), px, 0, px + PW, 0);
@@ -164,7 +182,6 @@ void StatsPanel::render(int screen_w, int screen_h) {
     SDL_Color ghost_c  { 180, 200, 255, 255 };
     SDL_Color dim      { 120, 110, 90, 255 };
 
-    // Lambda auxiliar para calcular el ancho del texto y alinearlo a la derecha perfectamente
     auto draw_text_right = [&](const std::string& text, int right_x, int y, SDL_Color color) {
         if (text.empty() || !_font) return;
         int text_w = 0, text_h = 0;
@@ -172,10 +189,16 @@ void StatsPanel::render(int screen_w, int screen_h) {
         draw_text(text, right_x - text_w, y, color);
     };
 
-    // ─── Header: Nivel + Estado ───
+    // ─── Header: Username + Nivel ───
+    if (!_username.empty()) {
+        SDL_Color name_col = _is_ghost ? ghost_c : SDL_Color{255, 220, 120, 255};
+        draw_text(_username, px + pad, cy, name_col);
+        cy += lh - 2;
+    }
+
     std::string lvl_str = "Nivel " + std::to_string(_level);
     draw_text(lvl_str, px + pad, cy, _is_ghost ? ghost_c : gold_c);
-    
+
     // Badge de estado a la derecha
     if (_is_ghost || _meditating) {
         std::string badge = _is_ghost ? "[FANTASMA]" : "[MEDITANDO]";
@@ -194,7 +217,7 @@ void StatsPanel::render(int screen_w, int screen_h) {
     std::string hp_str = std::to_string(_hp) + " / " + std::to_string(_max_hp);
     draw_text_right(hp_str, px + PW - pad, cy, {220, 220, 220, 255});
     cy += lh - 2;
-    
+
     float hp_frac = static_cast<float>(_hp) / _max_hp;
     SDL_Color hp_fill = hp_frac > 0.5f ? SDL_Color{80, 220, 80, 255}
                        : hp_frac > 0.25f ? SDL_Color{255, 180, 0, 255}
@@ -208,7 +231,7 @@ void StatsPanel::render(int screen_w, int screen_h) {
         std::string mp_str = std::to_string(_mp) + " / " + std::to_string(_max_mp);
         draw_text_right(mp_str, px + PW - pad, cy, {200, 200, 220, 255});
         cy += lh - 2;
-        
+
         float mp_frac = static_cast<float>(_mp) / static_cast<float>(_max_mp);
         draw_bar(px + pad, cy, PW - pad*2, 20, mp_frac, {70, 130, 220, 255}, {15, 15, 50, 180});
         cy += 20 + 10;
@@ -216,39 +239,32 @@ void StatsPanel::render(int screen_w, int screen_h) {
 
     // ─── EXP ───
     draw_text("Experiencia", px + pad, cy, white);
-    
-    // Piso/techo de experiencia para el nivel actual.
+
     uint32_t exp_current_level_floor = (_level <= 1) ? 0
         : static_cast<uint32_t>(1000.0 * std::pow(static_cast<double>(_level - 1), 1.8));
 
     uint32_t exp_next_level_ceil = (_level >= 50) ? 0xFFFFFFFF
         : static_cast<uint32_t>(1000.0 * std::pow(static_cast<double>(_level), 1.8));
-    
-    // El total requerido NETO para ESTE nivel en específico
-    uint32_t exp_needed_for_this_level = exp_next_level_ceil - exp_current_level_floor;
-    
-    // Cuánta experiencia neta ya metiste dentro de este nivel actual
-    uint32_t exp_progress_in_level = 0;
-    if (_exp > exp_current_level_floor) {
-        exp_progress_in_level = _exp - exp_current_level_floor;
-    }
-    
-    // Evitamos desbordes visuales si ya te pasaste pero el servidor no te subió de nivel todavía
-    if (exp_progress_in_level > exp_needed_for_this_level) {
-        exp_progress_in_level = exp_needed_for_this_level;
-    }
 
-    // Formateamos el texto: "progreso_actual_nivel / total_requerido_nivel"
+    uint32_t exp_needed_for_this_level = exp_next_level_ceil - exp_current_level_floor;
+
+    uint32_t exp_progress_in_level = 0;
+    if (_exp > exp_current_level_floor)
+        exp_progress_in_level = _exp - exp_current_level_floor;
+
+    if (exp_progress_in_level > exp_needed_for_this_level)
+        exp_progress_in_level = exp_needed_for_this_level;
+
     std::string exp_str;
     if (_level >= 50) {
         exp_str = "MAX";
     } else {
         exp_str = std::to_string(exp_progress_in_level) + " / " + std::to_string(exp_needed_for_this_level);
     }
-    
+
     draw_text_right(exp_str, px + PW - pad, cy, {200, 150, 220, 255});
     cy += lh - 2;
-    
+
     float exp_frac = (_level >= 50) ? 1.0f : static_cast<float>(exp_progress_in_level) / exp_needed_for_this_level;
     draw_bar(px + pad, cy, PW - pad*2, 16, exp_frac, {170, 120, 200, 255}, {40, 25, 60, 180});
     cy += 16 + 10;
@@ -268,25 +284,53 @@ void StatsPanel::render(int screen_w, int screen_h) {
     const int btn_w = PW - pad * 2;
     _inv_btn_rect = { px + pad, cy, btn_w, btn_h };
     draw_rounded_rect(px + pad, cy, btn_w, btn_h, {100, 70, 30, 240});
-    draw_text("Inventario", px + pad + (btn_w - 80) / 2, cy + (btn_h - _font_size) / 2,
+    draw_text("Inventario  [I]", px + pad + (btn_w - 100) / 2, cy + (btn_h - _font_size) / 2,
               {255, 240, 160, 255});
-    cy += btn_h + 14;
+    cy += btn_h + 10;
 
     // ─── Sección Hechizos ───
     auto spells = spells_for_class(_cls);
     _spell_btn_count = 0;
     for (int i = 0; i < MAX_SPELL_BTNS; i++) _spell_btn_rect[i] = {};
 
-    if (spells.empty()) {
-        draw_text("Sin hechizos", px + pad, cy, dim);
-        draw_text("(Guerrero)", px + pad, cy + lh - 2, dim);
-        return;
-    }
-
     // Divisor visual
     SDL_SetRenderDrawColor(_renderer.Get(), 100, 80, 40, 120);
     SDL_RenderDrawLine(_renderer.Get(), px + pad, cy, px + PW - pad, cy);
     cy += 8;
+
+    if (spells.empty()) {
+        draw_text("Sin hechizos (Guerrero)", px + pad, cy, dim);
+        cy += lh + 4;
+
+        // ─── Sección Atajos (guerrero) ───
+        SDL_SetRenderDrawColor(_renderer.Get(), 100, 80, 40, 120);
+        SDL_RenderDrawLine(_renderer.Get(), px + pad, cy, px + PW - pad, cy);
+        cy += 8;
+        draw_text("Atajos de teclado", px + pad, cy, {200, 170, 240, 255});
+        cy += lh + 4;
+
+        const char* shortcuts[][2] = {
+            { "I", "Inventario" },
+            { "M", "Meditar" },
+            { "R", "Resucitar" },
+            { "E", "Recoger item" },
+            { "Q", "Tirar item" },
+            { "P", "Usar poción" },
+        };
+        for (auto& sc : shortcuts) {
+            // Badge de tecla
+            std::string key_label = sc[0];
+            std::string action_label = sc[1];
+            int key_w = 0, key_h = 0;
+            TTF_SizeUTF8(_font, key_label.c_str(), &key_w, &key_h);
+            int badge_w = key_w + 8;
+            draw_rounded_rect(px + pad, cy, badge_w, lh, {80, 60, 30, 220});
+            draw_text(key_label, px + pad + 4, cy + 1, {255, 240, 160, 255});
+            draw_text(action_label, px + pad + badge_w + 6, cy + 1, dim);
+            cy += lh + 3;
+        }
+        return;
+    }
 
     draw_text("Hechizos", px + pad, cy, {200, 170, 240, 255});
     cy += lh + 4;
@@ -312,14 +356,15 @@ void StatsPanel::render(int screen_w, int screen_h) {
         SDL_Color txt = !enabled ? dim
                        : selected ? SDL_Color{ 255, 245, 200, 255 }
                                   : SDL_Color{ 220, 200, 255, 255 };
-        
-        // Nombre del hechizo a la izquierda
+
+        // Nombre del hechizo con atajo [F1/F2/F3]
         std::string label = selected ? "* " : "  ";
         label += s.label;
         draw_text(label, px + pad + 8, cy + (sb_h - _font_size) / 2, txt);
-        
-        // Costo del maná a la derecha usando alineación dinámica basada en su tamaño real
-        std::string cost_str = std::to_string(s.mana) + "mp";
+
+        // Atajo de tecla a la derecha
+        std::string shortcut_str = std::string("[F") + std::to_string(i + 1) + "]";
+        std::string cost_str = std::to_string(s.mana) + "mp " + shortcut_str;
         int cost_w = 0, cost_h = 0;
         TTF_SizeUTF8(_font, cost_str.c_str(), &cost_w, &cost_h);
         draw_text(cost_str, px + PW - pad - 12 - cost_w, cy + (sb_h - _font_size) / 2, dim);
@@ -335,5 +380,35 @@ void StatsPanel::render(int screen_w, int screen_h) {
         SDL_RenderDrawLine(_renderer.Get(), px + pad, cy, px + PW - pad, cy);
         cy += 6;
         draw_text("Modo hechizo ACTIVO", px + pad, cy, {150, 255, 150, 255});
+        cy += lh + 4;
+    } else {
+        cy += 4;
+    }
+
+    // ─── Sección Atajos generales ───
+    SDL_SetRenderDrawColor(_renderer.Get(), 100, 80, 40, 120);
+    SDL_RenderDrawLine(_renderer.Get(), px + pad, cy, px + PW - pad, cy);
+    cy += 8;
+    draw_text("Atajos de teclado", px + pad, cy, {200, 170, 240, 255});
+    cy += lh + 4;
+
+    const char* shortcuts[][2] = {
+        { "I", "Inventario" },
+        { "M", "Meditar" },
+        { "R", "Resucitar" },
+        { "E", "Recoger item" },
+        { "Q", "Tirar item" },
+        { "P", "Usar poción" },
+    };
+    for (auto& sc : shortcuts) {
+        std::string key_label = sc[0];
+        std::string action_label = sc[1];
+        int key_w = 0, key_h = 0;
+        TTF_SizeUTF8(_font, key_label.c_str(), &key_w, &key_h);
+        int badge_w = key_w + 8;
+        draw_rounded_rect(px + pad, cy, badge_w, lh, {80, 60, 30, 220});
+        draw_text(key_label, px + pad + 4, cy + 1, {255, 240, 160, 255});
+        draw_text(action_label, px + pad + badge_w + 6, cy + 1, dim);
+        cy += lh + 3;
     }
 }

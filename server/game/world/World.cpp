@@ -150,3 +150,18 @@ bool World::player_near_service_npc(uint16_t client_id, NpcId required_type) con
     }
     return false;
 }
+
+uint8_t World::get_nearby_merchant_zone(uint16_t client_id) const {
+    const PlayerData* p = find_player(client_id);
+    if (!p) return 255;
+    for (const auto& npc : get_npcs()) {
+        if (npc.type != NpcId::MERCHANT) continue;
+        int dist = std::abs(p->pos_x - npc.pos_x) + std::abs(p->pos_y - npc.pos_y);
+        if (dist <= 2) return npc.zone_id;
+    }
+    return 255;
+}
+
+void World::spawn_npc_in_zone(NpcId type, uint16_t x, uint16_t y, uint8_t zone_id) {
+    npcs_.spawn_with_zone(type, x, y, zone_id);
+}

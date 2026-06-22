@@ -73,16 +73,48 @@ void ChatCommand::handle_listar(World& world) {
         "Debes estar cerca del Banquero o Comerciante para usar este comando.");
 }
 
-void ChatCommand::handle_listar_comerciante(World& world) {
-    static const std::vector<ItemId> shop_items = {
-        ItemId::SWORD,
-        ItemId::SIMPLE_BOW,
-        ItemId::ELVEN_FLUTE,
-        ItemId::LEATHER_ARMOR,
-        ItemId::HEALTH_POTION,
-    };
+// Devuelve el catálogo del comerciante según su zona.
+// zone_id 0 = Ciudad, 1 = Pueblo, 255 (o desconocida) = catálogo básico.
+static std::vector<ItemId> merchant_catalog_for_zone(uint8_t zone_id) {
+    switch (zone_id) {
+        case 0:  // Ciudad
+            return {
+                ItemId::SWORD,
+                ItemId::COMPOUND_BOW,
+                ItemId::GEMMED_STAFF,
+                ItemId::PLATE_ARMOR,
+                ItemId::IRON_HELMET,
+                ItemId::IRON_SHIELD,
+                ItemId::HEALTH_POTION,
+                ItemId::MANA_POTION,
+            };
+        case 1:  // Pueblo
+            return {
+                ItemId::SWORD,
+                ItemId::SIMPLE_BOW,
+                ItemId::ELVEN_FLUTE,
+                ItemId::LEATHER_ARMOR,
+                ItemId::HEALTH_POTION,
+            };
+        default: // Catálogo básico (zona desconocida)
+            return {
+                ItemId::SWORD,
+                ItemId::LEATHER_ARMOR,
+                ItemId::HEALTH_POTION,
+            };
+    }
+}
 
-    std::string msg = "=== Tienda del Comerciante ===\n";
+void ChatCommand::handle_listar_comerciante(World& world) {
+    uint8_t zone = world.get_nearby_merchant_zone(client_id);
+    std::vector<ItemId> shop_items = merchant_catalog_for_zone(zone);
+
+    std::string zone_name = (zone == 0) ? "Ciudad" : (zone == 1) ? "Pueblo" : "";
+    std::string header = zone_name.empty()
+        ? "=== Tienda del Comerciante ===\n"
+        : "=== Tienda del Comerciante (" + zone_name + ") ===\n";
+
+    std::string msg = header;
     for (ItemId iid : shop_items) {
         const ItemDef& def = Items::get(iid);
         uint32_t price = (static_cast<uint32_t>(def.min_value) + def.max_value) * 8 + 50;
