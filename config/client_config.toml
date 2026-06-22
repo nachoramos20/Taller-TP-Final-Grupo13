@@ -30,7 +30,7 @@ main_theme_volume = 20
 
 # ── Rendering - Tamaños y Distancias ──────────────────────────
 [rendering]
-tile_size                = 64
+tile_size                = 100
 map_size                 = 100
 obj_sup_tiles            = 6    # tiles para objetos superiores
 obj_sup_size             = 384  # 6 * 64
@@ -40,6 +40,22 @@ obj_sup_ticks_per_frame  = 8    # Ticks entre frames de animación de objetos su
 spell_ticks_per_frame    = 4    # Ticks entre frames de animación de hechizos
 water_floor_id           = 44   # id de tile de piso "agua" (para sonido ambiente)
 water_search_radius_tiles = 18  # radio de búsqueda de agua cercana, en tiles
+grass_floor_id_min       = 2    # rango de ids de tile de piso "pasto" (para sonido de pasos)
+grass_floor_id_max       = 9
+city_stone_floor_id      = 1    # id de tile de piso "piedra" de la ciudad (para sonido de pasos)
+dirt_floor_id            = 10   # id de tile de piso "tierra" del pueblo (usa el mismo sonido que pasto)
+# Zona del bosque (dos rectángulos en Y, mismo rango de X), para sonido ambiente de fauna
+forest_x_min             = 4
+forest_x_max             = 22
+forest_y1_min            = 5
+forest_y1_max            = 34
+forest_y2_min            = 55
+forest_y2_max            = 95
+# Zona del cementerio, para sonido ambiente de viento
+cemetery_x_min           = 55
+cemetery_x_max           = 66
+cemetery_y_min           = 55
+cemetery_y_max           = 66
 
 # ── Efectos de Muerte ────────────────────────────────────────
 [death_effects]
@@ -53,8 +69,9 @@ sprite_base_path         = "assets/sprites/stage/sangre_"  # sangre_{frame}.png
 [ui]
 window_title             = "Argentum Online - Grupo 13"
 window_width             = 900
-window_height            = 620
+window_height            = 700
 window_resizable         = true
+window_min_height        = 700  # alto mínimo: que el StatsPanel (con 3 hechizos) no quede cortado
 
 # ── Cámara ───────────────────────────────────────────────────
 [camera]
@@ -66,7 +83,7 @@ initial_y                = 0.0
 # (p. ej. "A", "Up", "Escape", "Space").
 [keybindings]
 toggle_position_label    = "X"
-toggle_inventory         = "I"
+toggle_inventory         = "Tab"
 drop_item                = "Q"
 meditate                 = "M"
 resurrect                = "R"

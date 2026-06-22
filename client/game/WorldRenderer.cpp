@@ -244,8 +244,8 @@ void WorldRenderer::render_entities(WorldState& state, const PlayerState& player
         [](const EntityDTO& a, const EntityDTO& b) { return a.pos_y < b.pos_y; });
 
     for (const auto& e : state.entities) {
-        int screen_x = _camera.world_to_screen_x(static_cast<float>(e.pos_x * tile_size()));
-        int screen_y = _camera.world_to_screen_y(static_cast<float>(e.pos_y * tile_size()));
+        int screen_x = _camera.world_to_screen_x(entity_pixel_x(state, e));
+        int screen_y = _camera.world_to_screen_y(entity_pixel_y(state, e));
 
         if (e.entity_type == static_cast<uint8_t>(EntityType::ITEM_FLOOR)) {
             render_floor_item(e, screen_x, screen_y);
@@ -253,11 +253,14 @@ void WorldRenderer::render_entities(WorldState& state, const PlayerState& player
         }
 
         Direction dir = static_cast<Direction>(e.direction);
-        bool moving = false;
+        bool moving;
         if (e.entity_id == state.my_entity_id) {
             screen_x = _camera.world_to_screen_x(player.pixel_x());
             screen_y = _camera.world_to_screen_y(player.pixel_y());
             moving = player.is_moving();
+        } else {
+            auto it = state.entity_motion.find(e.entity_id);
+            moving = (it != state.entity_motion.end() && it->second.progress < 1.0f);
         }
 
         if (e.entity_type == static_cast<uint8_t>(EntityType::NPC)) {

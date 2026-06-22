@@ -102,13 +102,27 @@ void ChatCommand::handle_comprar(World& world, const std::string& item_name) {
         return;
     }
 
-    static const std::vector<ItemId> shop_items = {
-        ItemId::SWORD,
-        ItemId::SIMPLE_BOW,
-        ItemId::ELVEN_FLUTE,
-        ItemId::LEATHER_ARMOR,
-        ItemId::HEALTH_POTION,
-    };
+    // Catálogo según la zona del comerciante más cercano
+    uint8_t zone = world.get_nearby_merchant_zone(client_id);
+    std::vector<ItemId> shop_items;
+    switch (zone) {
+        case 0:  // Ciudad
+            shop_items = {
+                ItemId::SWORD, ItemId::COMPOUND_BOW, ItemId::GEMMED_STAFF,
+                ItemId::PLATE_ARMOR, ItemId::IRON_HELMET, ItemId::IRON_SHIELD,
+                ItemId::HEALTH_POTION, ItemId::MANA_POTION,
+            };
+            break;
+        case 1:  // Pueblo
+            shop_items = {
+                ItemId::SWORD, ItemId::SIMPLE_BOW, ItemId::ELVEN_FLUTE,
+                ItemId::LEATHER_ARMOR, ItemId::HEALTH_POTION,
+            };
+            break;
+        default:
+            shop_items = { ItemId::SWORD, ItemId::LEATHER_ARMOR, ItemId::HEALTH_POTION };
+            break;
+    }
 
     int free_slot = -1;
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i)
@@ -120,7 +134,7 @@ void ChatCommand::handle_comprar(World& world, const std::string& item_name) {
 
     for (ItemId iid : shop_items) {
         const ItemDef& def = Items::get(iid);
-        if (def.name == item_name) {
+        if (Items::name_equals_ci(def.name, item_name)) {
             uint32_t price = (static_cast<uint32_t>(def.min_value) + def.max_value) * 8 + 50;
             if (p->gold < price) {
                 world.push_message(client_id, 0,
@@ -152,15 +166,11 @@ void ChatCommand::handle_vender(World& world, const std::string& item_name) {
         if (p->inventory[i] == 0) continue;
         if (!Items::exists(static_cast<ItemId>(p->inventory[i]))) continue;
         const ItemDef& def = Items::get(static_cast<ItemId>(p->inventory[i]));
-        if (def.name == item_name) {
+        if (Items::name_equals_ci(def.name, item_name)) {
             uint32_t sell_price = (def.max_value * 10 + 10) / 2;
             p->gold += sell_price;
             p->inventory[i] = 0;
 
-            // BUG FIX: si el item vendido estaba equipado, limpiar el slot
-            // de equip para que no quede apuntando a un slot vacío.
-            // Sin esto, el próximo item que entre en ese slot aparecería
-            // como equipado aunque no lo esté.
             if (p->equipped_weapon == static_cast<uint8_t>(i)) p->equipped_weapon = 0xFF;
             if (p->equipped_armor  == static_cast<uint8_t>(i)) p->equipped_armor  = 0xFF;
             if (p->equipped_helmet == static_cast<uint8_t>(i)) p->equipped_helmet = 0xFF;
@@ -192,7 +202,7 @@ void ChatCommand::handle_tirar(World& world, const std::string& args) {
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i) {
         if (p->inventory[i] == 0) continue;
         if (Items::exists(static_cast<ItemId>(p->inventory[i]))) {
-            if (Items::get(static_cast<ItemId>(p->inventory[i])).name == args) {
+            if (Items::name_equals_ci(Items::get(static_cast<ItemId>(p->inventory[i])).name, args)) {
                 DropCommand(client_id, static_cast<uint8_t>(i)).execute(world);
                 return;
             }

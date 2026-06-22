@@ -65,6 +65,20 @@ bool ClientConfig::load(const std::string& config_path) {
             rendering.spell_ticks_per_frame = rendering_table["spell_ticks_per_frame"].value_or(4);
             rendering.water_floor_id = rendering_table["water_floor_id"].value_or<uint16_t>(44);
             rendering.water_search_radius_tiles = rendering_table["water_search_radius_tiles"].value_or(18);
+            rendering.grass_floor_id_min = rendering_table["grass_floor_id_min"].value_or<uint16_t>(2);
+            rendering.grass_floor_id_max = rendering_table["grass_floor_id_max"].value_or<uint16_t>(9);
+            rendering.city_stone_floor_id = rendering_table["city_stone_floor_id"].value_or<uint16_t>(1);
+            rendering.dirt_floor_id = rendering_table["dirt_floor_id"].value_or<uint16_t>(10);
+            rendering.forest_x_min = rendering_table["forest_x_min"].value_or(4);
+            rendering.forest_x_max = rendering_table["forest_x_max"].value_or(22);
+            rendering.forest_y1_min = rendering_table["forest_y1_min"].value_or(5);
+            rendering.forest_y1_max = rendering_table["forest_y1_max"].value_or(34);
+            rendering.forest_y2_min = rendering_table["forest_y2_min"].value_or(55);
+            rendering.forest_y2_max = rendering_table["forest_y2_max"].value_or(95);
+            rendering.cemetery_x_min = rendering_table["cemetery_x_min"].value_or(55);
+            rendering.cemetery_x_max = rendering_table["cemetery_x_max"].value_or(66);
+            rendering.cemetery_y_min = rendering_table["cemetery_y_min"].value_or(55);
+            rendering.cemetery_y_max = rendering_table["cemetery_y_max"].value_or(66);
         }
 
         // Cargar UI
@@ -73,6 +87,7 @@ bool ClientConfig::load(const std::string& config_path) {
             ui.window_width = ui_table["window_width"].value_or(1024);
             ui.window_height = ui_table["window_height"].value_or(768);
             ui.window_resizable = ui_table["window_resizable"].value_or(true);
+            ui.window_min_height = ui_table["window_min_height"].value_or(ui.window_height);
         }
 
         // Cargar death_effects
@@ -99,7 +114,7 @@ bool ClientConfig::load(const std::string& config_path) {
         // Cargar keybindings
         if (auto kb_table = config["keybindings"]) {
             keybindings.toggle_position_label = parse_key(kb_table["toggle_position_label"], "X");
-            keybindings.toggle_inventory      = parse_key(kb_table["toggle_inventory"], "I");
+            keybindings.toggle_inventory      = parse_key(kb_table["toggle_inventory"], "Tab");
             keybindings.drop_item             = parse_key(kb_table["drop_item"], "Q");
             keybindings.meditate              = parse_key(kb_table["meditate"], "M");
             keybindings.resurrect             = parse_key(kb_table["resurrect"], "R");

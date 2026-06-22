@@ -4,12 +4,30 @@
 #include "../config/SpellVfxConfig.h"
 #include "../render/ItemVisualConfig.h"
 #include "../render/NpcVisualConfig.h"
+#include <SDL.h>
+#include <cstdlib>
+
+namespace {
+constexpr float FOOTSTEP_GRASS_VOLUME_SCALE = 0.2f;  
+constexpr float FOOTSTEP_CITY_STONE_VOLUME_SCALE = 0.3f;  
+constexpr float FOREST_AMBIENCE_VOLUME_SCALE = 0.2f;
+constexpr uint32_t FOREST_SOUND_MIN_INTERVAL_MS = 8000;
+constexpr uint32_t FOREST_SOUND_MAX_INTERVAL_MS = 20000;
+constexpr float CEMETERY_WIND_MAX_AUDIBLE_TILES = 8.0f;
+}
 
 GameAudioService::GameAudioService(AudioManager* audio) : _audio(audio) {}
 
-void GameAudioService::play_random(const std::vector<std::string>& paths, float dist_tiles) {
+void GameAudioService::play_random(const std::vector<std::string>& paths, float dist_tiles, float volume_scale) {
     if (!_audio || paths.empty()) return;
-    _audio->play_random_effect_at(paths, dist_tiles);
+    _audio->play_random_effect_at(paths, dist_tiles, volume_scale);
+}
+
+void GameAudioService::play_sequential(const std::vector<std::string>& paths, float dist_tiles,
+                                        size_t& index, float volume_scale) {
+    if (!_audio || paths.empty()) return;
+    _audio->play_effect_at(paths[index % paths.size()], dist_tiles, volume_scale);
+    index++;
 }
 
 void GameAudioService::speak_sequence(const std::vector<std::string>& lines, float dist_tiles, uint32_t gap_ms) {
@@ -73,12 +91,39 @@ void GameAudioService::level_up() {
     play_random(AudioConfig::instance().get_ui_sound("level_up"), 0.0f);
 }
 
-void GameAudioService::meditation_start() {
-    play_random(AudioConfig::instance().get_ambient_sound("meditation"), 0.0f);
+void GameAudioService::update_meditation_loop(bool meditating) {
+    if (!_audio) return;
+    const auto& sound = AudioConfig::instance().get_ambient_sound("meditation");
+    if (sound.empty()) return;
+    _audio->set_meditation_loop(sound.front(), meditating);
 }
 
 void GameAudioService::coins_received() {
     play_random(AudioConfig::instance().get_economy_sound("monedas"), 0.0f);
+}
+
+void GameAudioService::potion_used() {
+    play_random(AudioConfig::instance().get_economy_sound("potion"), 0.0f);
+}
+
+void GameAudioService::player_spawn() {
+    play_random(AudioConfig::instance().get_ui_sound("player_spawn"), 0.0f);
+}
+
+void GameAudioService::click() {
+    play_random(AudioConfig::instance().get_ui_sound("click"), 0.0f);
+}
+
+void GameAudioService::clan_created() {
+    play_random(AudioConfig::instance().get_ui_sound("clan_created"), 0.0f);
+}
+
+void GameAudioService::clan_member_attacked() {
+    play_random(AudioConfig::instance().get_ui_sound("clan_alert"), 0.0f);
+}
+
+void GameAudioService::private_message_received() {
+    play_random(AudioConfig::instance().get_ui_sound("private_message"), 0.0f);
 }
 
 void GameAudioService::update_ocean_ambient(float dist_tiles) {
@@ -86,6 +131,37 @@ void GameAudioService::update_ocean_ambient(float dist_tiles) {
     const auto& ocean = AudioConfig::instance().get_ambient_sound("ocean");
     if (ocean.empty()) return;
     _audio->set_ambient_loop(ocean.front(), dist_tiles);
+}
+
+void GameAudioService::update_cemetery_ambient(float dist_tiles) {
+    if (!_audio) return;
+    const auto& wind = AudioConfig::instance().get_ambient_sound("cemetery_wind");
+    if (wind.empty()) return;
+    _audio->set_secondary_ambient_loop(wind.front(), dist_tiles, CEMETERY_WIND_MAX_AUDIBLE_TILES);
+}
+
+void GameAudioService::update_forest_ambience(bool in_forest) {
+    if (!_audio || !in_forest) return;
+
+    uint32_t now = SDL_GetTicks();
+    if (now < _next_forest_sound_ms) return;
+
+    play_random(AudioConfig::instance().get_ambient_sound("bosque_fauna"), 0.0f, FOREST_AMBIENCE_VOLUME_SCALE);
+
+    uint32_t span = FOREST_SOUND_MAX_INTERVAL_MS - FOREST_SOUND_MIN_INTERVAL_MS;
+    _next_forest_sound_ms = now + FOREST_SOUND_MIN_INTERVAL_MS + static_cast<uint32_t>(rand()) % span;
+}
+
+void GameAudioService::footstep_grass() {
+    play_sequential(AudioConfig::instance().get_movement_sound("paso_pasto"), 0.0f,
+                     _footstep_grass_index, FOOTSTEP_GRASS_VOLUME_SCALE);
+}
+
+void GameAudioService::update_city_stone_footsteps(bool walking_on_city_stone) {
+    if (!_audio) return;
+    const auto& paths = AudioConfig::instance().get_movement_sound("pasos_en_grava");
+    if (paths.empty()) return;
+    _audio->set_looping_while(paths.front(), walking_on_city_stone, FOOTSTEP_CITY_STONE_VOLUME_SCALE);
 }
 
 void GameAudioService::merchant_greet(float dist_tiles) {

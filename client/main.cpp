@@ -8,6 +8,7 @@
 
 #include "game/GameLoop.h"
 #include "game/LoginScreen.h"
+#include "game/StatsPanel.h"
 #include "audio/AudioManager.h"
 #include "../common/socket.h"
 #include "../common/queue.h"
@@ -48,6 +49,15 @@ int main(int argc, char* argv[]) try {
     }
     const std::string host = argv[1];
     const std::string port = argv[2];
+
+    // Si el servidor no está disponible, ni levantamos la ventana
+    try {
+        Socket test_sock(host.c_str(), port.c_str());
+    } catch (const std::exception& e) {
+        std::cerr << "No se pudo conectar al servidor en " << host << ":" << port
+                   << " (" << e.what() << ")\n";
+        return 1;
+    }
 
     // Cargar todas las configuraciones desde TOML
     ClientConfig& client_config = ClientConfig::instance();
@@ -98,6 +108,10 @@ int main(int argc, char* argv[]) try {
         client_config.ui.window_width, client_config.ui.window_height,
         SDL_WINDOW_RESIZABLE
     );
+    // Que no se pueda achicar la ventana por debajo de lo que necesita el
+    // StatsPanel para no cortar contenido
+    SDL_SetWindowMinimumSize(window.Get(), StatsPanel::PANEL_W * 2,
+                             client_config.ui.window_min_height);
     SDL2pp::Renderer renderer(
         window, -1,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
@@ -107,7 +121,7 @@ int main(int argc, char* argv[]) try {
 
     while (true) {
         // Mostrar pantalla de login/registro
-        LoginScreen login_screen(window, renderer, client_config.fonts.chat_font_path);
+        LoginScreen login_screen(window, renderer, client_config.fonts.chat_font_path, &audio);
         if (!pending_error.empty()) {
             login_screen.set_error(pending_error);
             pending_error.clear();
@@ -166,7 +180,8 @@ int main(int argc, char* argv[]) try {
         try {
             GameLoop game_loop(window, renderer,
                                &command_queue, &snapshot_queue,
-                               &map_queue, &connected, &audio);
+                               &map_queue, &connected, &audio,
+                               result.username);
             game_loop.run();
         } catch (const std::exception& e) {
             std::cerr << "GameLoop error: " << e.what() << "\n";

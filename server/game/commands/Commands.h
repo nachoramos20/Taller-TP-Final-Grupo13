@@ -80,6 +80,20 @@ private:
     uint8_t  inv_slot;
 };
 
+// Mueve un item de un slot del inventario a otro: si el destino está vacío
+// lo mueve, si tiene otro item los intercambia. Actualiza los punteros de
+// equipo (equipped_weapon/armor/helmet/shield) si alguno de los dos slots
+// estaba equipado, para que sigan apuntando al item correcto.
+class MoveItemCommand : public ServerCommand {
+public:
+    MoveItemCommand(uint16_t client_id, uint8_t from_slot, uint8_t to_slot);
+    void execute(World& world) override;
+private:
+    uint16_t client_id;
+    uint8_t  from_slot;
+    uint8_t  to_slot;
+};
+
 class PickCommand : public ServerCommand {
 public:
     explicit PickCommand(uint16_t client_id);

@@ -18,6 +18,12 @@ InputController::InputController(Camera& camera, PlayerState& player, Queue<Comm
     _key_actions[kb.resurrect]             = InputAction::Resurrect;
     _key_actions[kb.pick_item]             = InputAction::PickItem;
     _key_actions[kb.quit]                  = InputAction::Quit;
+    // Atajos de hechizo: 1, 2, 3
+    _key_actions[SDLK_1] = InputAction::Spell1;
+    _key_actions[SDLK_2] = InputAction::Spell2;
+    _key_actions[SDLK_3] = InputAction::Spell3;
+    // Atajo de poción: P
+    _key_actions[SDLK_p] = InputAction::UsePotion;
 }
 
 void InputController::handle_events(bool& running) {
@@ -30,7 +36,7 @@ void InputController::handle_events(bool& running) {
             if (_inventory->handle_event(event, _command_queue)) continue;
         }
 
-        // Panel de stats (botón inventario)
+        // Panel de stats (botón inventario + hechizos)
         if (_stats && _stats->handle_event(event)) {
             if (_stats->inventory_button_clicked() && _inventory) _inventory->toggle();
             continue;
@@ -85,6 +91,24 @@ void InputController::handle_keydown(const SDL_Event& event, bool& running) {
             break;
         case InputAction::Quit:
             running = false;
+            break;
+        // ─── Atajos de hechizo ───
+        case InputAction::Spell1:
+            if (!inventory_open && !chat_active && _stats)
+                _stats->activate_spell_by_index(0);
+            break;
+        case InputAction::Spell2:
+            if (!inventory_open && !chat_active && _stats)
+                _stats->activate_spell_by_index(1);
+            break;
+        case InputAction::Spell3:
+            if (!inventory_open && !chat_active && _stats)
+                _stats->activate_spell_by_index(2);
+            break;
+        // ─── Atajo de poción ───
+        case InputAction::UsePotion:
+            if (!inventory_open && !chat_active && _on_use_potion)
+                _on_use_potion();
             break;
     }
 }

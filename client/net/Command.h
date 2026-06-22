@@ -11,6 +11,7 @@ struct Command {
     uint16_t    pos_y     = 0;
     uint16_t    target_id = 0;
     uint8_t     slot      = 0;
+    uint8_t     to_slot   = 0;
     uint8_t     equip_slot = 0;
     std::string text;
     uint8_t     race      = 0;
@@ -74,6 +75,14 @@ struct Command {
         Command c;
         c.type = MsgType::DROP_ITEM;
         c.slot = slot;
+        return c;
+    }
+
+    static Command move_item(uint8_t from_slot, uint8_t to_slot) {
+        Command c;
+        c.type    = MsgType::MOVE_ITEM;
+        c.slot    = from_slot;
+        c.to_slot = to_slot;
         return c;
     }
 

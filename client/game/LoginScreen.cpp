@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
+#include "../audio/AudioManager.h"
+#include "../config/AudioConfig.h"
 #include "../config/ClientConfig.h"
 
 //  Razas/clases
@@ -17,8 +19,8 @@ const RacesClassesConfig::Class& LoginScreen::class_info(uint8_t idx) {
 //  Constructor / destructor
 
 LoginScreen::LoginScreen(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
-                         const std::string& font_path)
-    : _window(window), _renderer(renderer) {
+                         const std::string& font_path, AudioManager* audio)
+    : _window(window), _renderer(renderer), _audio(audio) {
     if (TTF_WasInit() == 0) TTF_Init();
     const auto& fonts = ClientConfig::instance().fonts;
     _font_lg = TTF_OpenFont(font_path.c_str(), fonts.title_font_size);
@@ -95,17 +97,26 @@ static bool in_rect(int mx, int my, const SDL_Rect& r) {
     return mx >= r.x && mx < r.x+r.w && my >= r.y && my < r.y+r.h;
 }
 
+bool LoginScreen::clicked(int mx, int my, const SDL_Rect& r) {
+    if (!in_rect(mx, my, r)) return false;
+    if (_audio) {
+        const auto& click = AudioConfig::instance().get_ui_sound("click");
+        if (!click.empty()) _audio->play_effect_at(click.front(), 0.0f);
+    }
+    return true;
+}
+
 void LoginScreen::handle_mouse_click(int mx, int my) {
     _error_msg.clear();
 
     switch (_screen) {
     case Screen::MAIN:
-        if (in_rect(mx, my, _btn_login)) {
+        if (clicked(mx, my, _btn_login)) {
             _screen = Screen::LOGIN_FORM;
             _username_input.clear();
             _username_active = true;
         }
-        if (in_rect(mx, my, _btn_register)) {
+        if (clicked(mx, my, _btn_register)) {
             _screen = Screen::REGISTER_RACE;
             _username_input.clear();
             _race_chosen = _class_chosen = false;
@@ -113,8 +124,8 @@ void LoginScreen::handle_mouse_click(int mx, int my) {
         break;
 
     case Screen::LOGIN_FORM:
-        if (in_rect(mx, my, _btn_back))    { _screen = Screen::MAIN; }
-        if (in_rect(mx, my, _btn_confirm)) {
+        if (clicked(mx, my, _btn_back))    { _screen = Screen::MAIN; }
+        if (clicked(mx, my, _btn_confirm)) {
             if (!_username_input.empty()) {
                 _running = false;  // devolver al caller con login
             } else {
@@ -125,13 +136,13 @@ void LoginScreen::handle_mouse_click(int mx, int my) {
 
     case Screen::REGISTER_RACE:
         for (int i = 0; i < 4; i++) {
-            if (in_rect(mx, my, _race_cards[i])) {
+            if (clicked(mx, my, _race_cards[i])) {
                 _sel_race = static_cast<uint8_t>(i);
                 _race_chosen = true;
             }
         }
-        if (in_rect(mx, my, _btn_back)) { _screen = Screen::MAIN; }
-        if (in_rect(mx, my, _btn_confirm) && _race_chosen) {
+        if (clicked(mx, my, _btn_back)) { _screen = Screen::MAIN; }
+        if (clicked(mx, my, _btn_confirm) && _race_chosen) {
             _screen = Screen::REGISTER_CLASS;
         }
         if (!_race_chosen && in_rect(mx, my, _btn_confirm)) {
@@ -141,13 +152,13 @@ void LoginScreen::handle_mouse_click(int mx, int my) {
 
     case Screen::REGISTER_CLASS:
         for (int i = 0; i < 4; i++) {
-            if (in_rect(mx, my, _class_cards[i])) {
+            if (clicked(mx, my, _class_cards[i])) {
                 _sel_class = static_cast<uint8_t>(i);
                 _class_chosen = true;
             }
         }
-        if (in_rect(mx, my, _btn_back)) { _screen = Screen::REGISTER_RACE; }
-        if (in_rect(mx, my, _btn_confirm) && _class_chosen) {
+        if (clicked(mx, my, _btn_back)) { _screen = Screen::REGISTER_RACE; }
+        if (clicked(mx, my, _btn_confirm) && _class_chosen) {
             _screen = Screen::REGISTER_FORM;
             _username_input.clear();
             _username_active = true;
@@ -158,8 +169,8 @@ void LoginScreen::handle_mouse_click(int mx, int my) {
         break;
 
     case Screen::REGISTER_FORM:
-        if (in_rect(mx, my, _btn_back)) { _screen = Screen::REGISTER_CLASS; }
-        if (in_rect(mx, my, _btn_confirm)) {
+        if (clicked(mx, my, _btn_back)) { _screen = Screen::REGISTER_CLASS; }
+        if (clicked(mx, my, _btn_confirm)) {
             if (!_username_input.empty()) {
                 _running = false;  // devolver al caller con registro
             } else {

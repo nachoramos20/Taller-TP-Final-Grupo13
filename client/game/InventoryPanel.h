@@ -11,10 +11,12 @@
 #include "../../common/queue.h"
 #include "../net/Command.h"
 
+class GameAudioService;
+
 class InventoryPanel {
 public:
     InventoryPanel(SDL2pp::Renderer& renderer, const std::string& font_path,
-                   int font_size = 11);
+                   int font_size = 11, GameAudioService* audio = nullptr);
     ~InventoryPanel();
 
     void set_visible(bool v) { _visible = v; }
@@ -47,6 +49,7 @@ private:
     void draw_lock_icon(int cx, int cy, int size);
 
     SDL2pp::Renderer& _renderer;
+    GameAudioService* _audio     = nullptr;
     TTF_Font*         _font      = nullptr;   // fuente normal (11px)
     TTF_Font*         _font_sm   = nullptr;   // fuente pequeña (9px) para abreviaturas
     int               _font_size;
@@ -61,6 +64,7 @@ private:
     uint8_t _eq_shld = 0;
 
     int _selected_slot = -1;
+    int _drag_from_slot = -1;  // slot sobre el que se hizo mouse-down, -1 = no hay drag en curso
 
     SDL_Rect _slot_rects[INV_SIZE] {};
     SDL_Rect _close_btn   {};

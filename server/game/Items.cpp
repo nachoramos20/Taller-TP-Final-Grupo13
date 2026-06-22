@@ -1,5 +1,7 @@
 #include "Items.h"
 #include "GameConfig.h"
+#include <algorithm>
+#include <cctype>
 #include <stdexcept>
 
 namespace Items {
@@ -36,6 +38,13 @@ bool exists(ItemId id) {
 
 EquipSlot equip_slot_for(ItemKind kind) {
     return GameConfig::get().equip_slot_for(kind);
+}
+
+bool name_equals_ci(const std::string& a, const std::string& b) {
+    if (a.size() != b.size()) return false;
+    return std::equal(a.begin(), a.end(), b.begin(), [](char x, char y) {
+        return std::tolower(static_cast<unsigned char>(x)) == std::tolower(static_cast<unsigned char>(y));
+    });
 }
 
 } // namespace Items

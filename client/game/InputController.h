@@ -23,30 +23,26 @@ enum class InputAction {
     Meditate,
     Resurrect,
     PickItem,
+    Spell1,
+    Spell2,
+    Spell3,
+    UsePotion,
     Quit,
 };
 
-// Bucle de eventos SDL + polling de movimiento continuo. Construye, una sola
-// vez, una tabla `SDL_Keycode -> InputAction` a partir de los keybindings
-// configurados, así `handle_events()` resuelve atajos con un lookup + switch
-// en lugar de una cascada de comparaciones contra SDLK_* literales.
+// Bucle de eventos SDL + polling de movimiento continuo.
 class InputController {
 public:
     InputController(Camera& camera, PlayerState& player, Queue<Command>* command_queue,
                      ChatWidget* chat, StatsPanel* stats, InventoryPanel* inventory,
                      PositionLabel* pos_label);
 
-    // Procesa los eventos SDL pendientes. Pone running en false si corresponde salir.
     void handle_events(bool& running);
-
-    // Polling de movimiento continuo (WASD/flechas configurables). Con cola
-    // de comandos empuja un Command::move; sin ella (modo offline/preview)
-    // mueve PlayerState directamente.
     void handle_movement();
 
-    // Callback invocado con la tile (en coordenadas de mundo) clickeada con
-    // el botón izquierdo dentro del área de juego.
     void on_world_click(std::function<void(int tile_x, int tile_y)> cb) { _on_world_click = std::move(cb); }
+    // Callback para "usar poción" desde atajo de teclado
+    void on_use_potion(std::function<void()> cb) { _on_use_potion = std::move(cb); }
 
 private:
     void handle_keydown(const SDL_Event& event, bool& running);
@@ -64,4 +60,5 @@ private:
     Uint32 _last_move_tick = 0;
 
     std::function<void(int, int)> _on_world_click;
+    std::function<void()>         _on_use_potion;
 };

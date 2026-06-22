@@ -7,10 +7,15 @@
 #include <cstdint>
 #include <vector>
 
+class GameAudioService;
+
 class StatsPanel {
 public:
-    StatsPanel(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size = 14);
+    StatsPanel(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size = 14,
+               GameAudioService* audio = nullptr);
     ~StatsPanel();
+
+    void set_username(const std::string& username) { _username = username; }
 
     void update(uint16_t hp, uint16_t max_hp, uint16_t mp, uint16_t max_mp,
                 uint32_t gold, uint8_t level, uint32_t exp, bool meditating, bool is_ghost,
@@ -32,6 +37,13 @@ public:
     uint16_t selected_spell_mana_cost() const;
     int      selected_spell_range()     const;
 
+    // Atajos de teclado: activa el hechizo por índice (0-based), o usa poción
+    void activate_spell_by_index(int index);
+    void use_potion_shortcut();   // retorna true si había una poción en inventario
+
+    // Para que el shortcut de poción acceda al inventario
+    void set_inventory_ref(const uint8_t* inv, int size);
+
     static constexpr int PANEL_W = 250;
 
 private:
@@ -44,8 +56,11 @@ private:
     std::vector<SpellInfo> spells_for_class(uint8_t cls) const;
 
     SDL2pp::Renderer& _renderer;
+    GameAudioService* _audio     = nullptr;
     TTF_Font*         _font      = nullptr;
     int               _font_size;
+
+    std::string _username;
 
     uint16_t _hp = 0, _max_hp = 1;
     uint16_t _mp = 0, _max_mp = 1;
@@ -56,6 +71,10 @@ private:
     bool     _is_ghost   = false;
     uint8_t  _cls = 3;              // por defecto guerrero (sin hechizos)
     uint8_t  _eq_weapon_item = 0;   // item_id del arma equipada
+
+    // Referencia al inventario (para usar poción con atajo)
+    const uint8_t* _inv_ref  = nullptr;
+    int            _inv_size = 0;
 
     SDL_Rect _inv_btn_rect {};
     bool     _inv_clicked  = false;

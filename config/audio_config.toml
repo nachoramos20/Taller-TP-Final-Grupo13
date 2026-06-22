@@ -22,11 +22,7 @@ effect_cooldown_ms = 80      # Milisegundos mínimos entre repeticiones del mism
 espada         = ["assets/sounds/effects/combat/espadazo.wav"]
 hacha          = ["assets/sounds/effects/combat/hachazo_y_golpe_de_clavado.wav"]
 martillo       = ["assets/sounds/effects/combat/martillazo.wav"]
-generico       = [
-    "assets/sounds/effects/combat/golpe_con_arma.wav",
-    "assets/sounds/effects/combat/golpe_con_arma_2.wav",
-    "assets/sounds/effects/combat/apunalada.wav"
-]
+generico       = ["assets/sounds/effects/combat/apunalada.wav"]
 golpe_final_espada = ["assets/sounds/effects/combat/espadazo_y_sangre_cayendo.wav"]
 
 # ── Sonidos de Combate - Armas a Distancia ────────────────────
@@ -36,10 +32,7 @@ flecha_magica  = ["assets/sounds/effects/combat/flecha_magica.wav"]
 
 # ── Sonidos de Magia ─────────────────────────────────────────
 [magic_sounds.spells]
-curacion       = [
-    "assets/sounds/effects/magic/sonido_como_de_curacion_divina.wav",
-    "assets/sounds/effects/magic/sonido_como_de_curacion_divina_2.wav"
-]
+curacion       = ["assets/sounds/effects/magic/flauta_elfica.wav"]
 misil          = ["assets/sounds/effects/magic/orbe_de_hielo_baculo_nudoso.wav"]
 explosion      = ["assets/sounds/effects/combat/explosion.wav"]
 
@@ -95,15 +88,40 @@ despedida          = [
 # ── Sonidos de Economía ───────────────────────────────────────
 [economy_sounds]
 monedas            = ["assets/sounds/effects/economy/monedas.wav"]
+potion             = ["assets/sounds/effects/economy/burbujas.wav"]
 
 # ── Sonidos de Interfaz ───────────────────────────────────────
 [ui_sounds]
 level_up           = ["assets/sounds/effects/ui/sonido_al_subir_de_lvl.wav"]
+click              = ["assets/sounds/effects/ui/click.wav"]
+player_spawn       = ["assets/sounds/effects/ui/spawn_npc.wav"]
+clan_created       = ["assets/sounds/effects/ui/creacion_de_clan.wav"]
+clan_alert         = ["assets/sounds/effects/ui/llamada_de_clan.wav"]
+private_message    = ["assets/sounds/effects/ui/sonido_mensaje_privado.wav"]
 
 # ── Sonidos Ambiente ──────────────────────────────────────────
 [ambient_sounds]
-ocean              = ["assets/sounds/effects/ambient/mar_2.wav"]
+ocean              = ["assets/sounds/effects/ambient/mar.wav"]
 meditation         = ["assets/sounds/effects/ambient/meditacion.wav"]
+cemetery_wind      = ["assets/sounds/effects/weather/viento_cementerio.wav"]
+bosque_fauna       = [
+    "assets/sounds/effects/fauna/pajaritos.wav",
+    "assets/sounds/effects/fauna/pajaritos_2.wav",
+    "assets/sounds/effects/fauna/pajaritos_3.wav",
+    "assets/sounds/effects/fauna/pajaritos_4.wav",
+    "assets/sounds/effects/fauna/cuervo.wav",
+    "assets/sounds/effects/fauna/cuervos.wav",
+    "assets/sounds/effects/fauna/cuervos_2.wav"
+]
+
+# ── Sonidos de Movimiento ─────────────────────────────────────
+[movement_sounds]
+paso_pasto         = [
+    "assets/sounds/effects/movement/paso_pasto_1.wav",
+    "assets/sounds/effects/movement/paso_pasto_2.wav",
+    "assets/sounds/effects/movement/paso_pasto_5.wav"
+]
+pasos_en_grava     = ["assets/sounds/effects/movement/pasos_en_grava.wav"]
 
 # ── Rangos de Interacción con NPCs ───────────────────────────
 [npc_interaction]

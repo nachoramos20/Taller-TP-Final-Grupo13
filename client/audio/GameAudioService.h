@@ -28,11 +28,37 @@ public:
 
     // Progresión / economía
     void level_up();
-    void meditation_start();
     void coins_received();
+    void player_spawn();
+    void potion_used();
+
+    // Meditación
+    void update_meditation_loop(bool meditating);
+
+    // UI: click genérico
+    void click();
+
+    // Clanes / chat
+    void clan_created();
+    void clan_member_attacked();
+    void private_message_received();
 
     // Ambiente (sonido en loop, volumen según distancia)
     void update_ocean_ambient(float dist_tiles);
+    void update_cemetery_ambient(float dist_tiles);
+
+    // Fauna del bosque (pajaritos, cuervos): suena cada tanto, a intervalos
+    // aleatorios, mientras el jugador está dentro de la zona del bosque.
+    // Pensado para llamarse todos los frames con la condición actual.
+    void update_forest_ambience(bool in_forest);
+
+    // Movimiento
+    void footstep_grass();
+
+    // Pasos en piedra de ciudad: audio largo en loop, suena mientras el
+    // jugador camina sobre ese piso y se corta apenas se detiene o cambia
+    // de piso. Pensado para llamarse todos los frames con la condición.
+    void update_city_stone_footsteps(bool walking_on_city_stone);
 
     // NPC de servicio: comerciante
     void merchant_greet(float dist_tiles);
@@ -52,9 +78,12 @@ public:
     void priest_resurrect(float dist_tiles);
 
 private:
-    void play_random(const std::vector<std::string>& paths, float dist_tiles);
+    void play_random(const std::vector<std::string>& paths, float dist_tiles, float volume_scale = 1.0f);
+    void play_sequential(const std::vector<std::string>& paths, float dist_tiles, size_t& index, float volume_scale = 1.0f);
     void speak_sequence(const std::vector<std::string>& lines, float dist_tiles, uint32_t gap_ms = 200);
     void speak_random(const std::vector<std::string>& lines, float dist_tiles, uint32_t gap_ms = 200);
 
     AudioManager* _audio;
+    size_t _footstep_grass_index = 0;
+    uint32_t _next_forest_sound_ms = 0;
 };

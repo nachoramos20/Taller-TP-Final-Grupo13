@@ -38,7 +38,7 @@ struct PlayerData {
     uint16_t intelligence= 18;
     uint16_t constitution= 18;
     
-    static constexpr int INVENTORY_SIZE = 16;
+    static constexpr int INVENTORY_SIZE = 20;
     std::array<uint8_t, INVENTORY_SIZE> inventory{};
 
     static constexpr int BANK_SIZE = 32;

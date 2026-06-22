@@ -37,26 +37,27 @@ void AnimationSystem::render_weapon(SDL2pp::Renderer& renderer,
                                     AssetManager& assets,
                                     const std::string& weapon_path,
                                     int dir_idx, int frame,
-                                    const SDL2pp::Rect& body_dst) {
+                                    const SDL2pp::Rect& body_dst,
+                                    float scale) {
     if (weapon_path.empty()) return;
 
     static constexpr int WPN_ROW_H = 48;
     SDL2pp::Rect wpn_src(frame * BodyLayout::FRAME_W, dir_idx * WPN_ROW_H,
                          BodyLayout::FRAME_W, WPN_ROW_H);
 
-    static constexpr int WPN_SIZE = 24;
+    int wpn_size = static_cast<int>(24 * scale);
     int wx, wy;
     switch (dir_idx) {
         case DIR_WEST:
-            wx = body_dst.x - WPN_SIZE;
-            wy = body_dst.y + body_dst.h - WPN_SIZE;
+            wx = body_dst.x - wpn_size;
+            wy = body_dst.y + body_dst.h - wpn_size;
             break;
         default:
             wx = body_dst.x + body_dst.w;
-            wy = body_dst.y + body_dst.h - WPN_SIZE;
+            wy = body_dst.y + body_dst.h - wpn_size;
             break;
     }
-    SDL2pp::Rect wpn_dst(wx, wy, WPN_SIZE, WPN_SIZE);
+    SDL2pp::Rect wpn_dst(wx, wy, wpn_size, wpn_size);
     renderer.Copy(assets.get(weapon_path), wpn_src, wpn_dst);
 }
 
@@ -103,17 +104,24 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
     const SDL2pp::Rect& body_src = _body_anims[dir_idx].frames[frame];
     const SDL2pp::Rect& head_src = _head_rects[dir_idx];
 
+    // Escala el personaje en la misma proporción que el tile_size.
+    float scale = tile_size() / 64.0f;
+    int body_w = static_cast<int>(BodyLayout::FRAME_W * scale);
+    int body_h = static_cast<int>(body_src.h * scale);
+
     SDL2pp::Rect body_dst(
-        screen_x - BodyLayout::FRAME_W / 2 + tile_size() / 2,
-        screen_y - body_src.h + tile_size(),
-        BodyLayout::FRAME_W,
-        body_src.h
+        screen_x - body_w / 2 + tile_size() / 2,
+        screen_y - body_h + tile_size(),
+        body_w,
+        body_h
     );
+    int head_w = static_cast<int>(head_src.w * scale);
+    int head_h = static_cast<int>(head_src.h * scale);
     SDL2pp::Rect head_dst(
-        body_dst.x + (BodyLayout::FRAME_W - head_src.w) / 2 + _head_offset_x[dir_idx],
-        body_dst.y - head_src.h + _head_overlaps[dir_idx],
-        head_src.w,
-        head_src.h
+        body_dst.x + (body_dst.w - head_w) / 2 + static_cast<int>(_head_offset_x[dir_idx] * scale),
+        body_dst.y - head_h + static_cast<int>(_head_overlaps[dir_idx] * scale),
+        head_w,
+        head_h
     );
 
     // Pasada 1: body base
@@ -138,11 +146,13 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
     if (equip && !equip->helmet_path.empty() && equip->helmet_src_w > 0) {
         SDL2pp::Rect helm_src(equip->helmet_src_x, dir_idx * equip->helmet_src_h,
                               equip->helmet_src_w, equip->helmet_src_h);
+        int helm_w = static_cast<int>(equip->helmet_src_w * scale);
+        int helm_h = static_cast<int>(equip->helmet_src_h * scale);
         SDL2pp::Rect helm_dst(
-            head_dst.x + (head_dst.w - equip->helmet_src_w) / 2 + equip->helmet_offset_x[dir_idx],
-            head_dst.y + equip->helmet_offset_y[dir_idx],
-            equip->helmet_src_w,
-            equip->helmet_src_h
+            head_dst.x + (head_dst.w - helm_w) / 2 + static_cast<int>(equip->helmet_offset_x[dir_idx] * scale),
+            head_dst.y + static_cast<int>(equip->helmet_offset_y[dir_idx] * scale),
+            helm_w,
+            helm_h
         );
         renderer.Copy(get_tex(equip->helmet_path), helm_src, helm_dst);
     }
@@ -151,19 +161,21 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
     if (equip && !equip->shield_path.empty()) {
         static constexpr int SHIELD_W = 24;
         static constexpr int SHIELD_H = 32;
+        int shield_w = static_cast<int>(SHIELD_W * scale);
+        int shield_h = static_cast<int>(SHIELD_H * scale);
 
-        int sx = body_dst.x - SHIELD_W - 2;
-        int sy = body_dst.y + body_dst.h - SHIELD_H;
+        int sx = body_dst.x - shield_w - static_cast<int>(2 * scale);
+        int sy = body_dst.y + body_dst.h - shield_h;
 
         SDL2pp::Rect shield_src(0, 0, SHIELD_W, SHIELD_H);
-        SDL2pp::Rect shield_dst(sx, sy, SHIELD_W, SHIELD_H);
+        SDL2pp::Rect shield_dst(sx, sy, shield_w, shield_h);
         renderer.Copy(get_tex(equip->shield_path), shield_src, shield_dst);
     }
 
     // Pasada 6: arma en mano
     if (equip) {
         if (is_ghost && !equip->weapon_path.empty()) get_tex(equip->weapon_path);
-        render_weapon(renderer, assets, equip->weapon_path, dir_idx, frame, body_dst);
+        render_weapon(renderer, assets, equip->weapon_path, dir_idx, frame, body_dst, scale);
     }
 
     for (SDL2pp::Texture* tex : ghost_textures)

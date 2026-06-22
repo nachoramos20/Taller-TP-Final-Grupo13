@@ -35,7 +35,7 @@ private:
 
     std::deque<ChatLine> _messages;
 
-    static constexpr Uint32 MSG_LIFETIME_MS = 6000;  // 6 segundos por mensaje
+    static constexpr Uint32 MSG_LIFETIME_MS = 12000; // 12 segundos por mensaje
     std::string             _input_buffer;
     bool                    _input_active = false;
 

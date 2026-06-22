@@ -22,15 +22,16 @@ void SnapshotProcessor::apply_snapshot(WorldState& state, PlayerState& player, c
 
     if (snap.entities) {
         detect_deaths(state, player, snap);
+        update_entity_motion(state, *snap.entities);
         state.entities = *snap.entities;
     }
 
+    update_progression_sounds(state, snap);
     update_service_npc_ranges(state, player);
     announce_chat_messages(snap);
-    update_progression_sounds(state, snap);
     update_panels(snap);
     sync_own_equipment(state, snap);
-    sync_own_position(player, snap);
+    sync_own_position(state, player, snap);
 }
 
 void SnapshotProcessor::detect_deaths(WorldState& state, const PlayerState& player, const SnapshotDTO& snap) {
@@ -96,15 +97,29 @@ void SnapshotProcessor::announce_chat_messages(const SnapshotDTO& snap) {
         if (_chat) _chat->add_message(m.text);
         if (m.text.rfind("Compraste ", 0) == 0 || m.text.rfind("Vendiste ", 0) == 0)
             _audio.coins_received();
+        else if (m.text.rfind("Fundaste el clan \"", 0) == 0)
+            _audio.clan_created();
+        else if (m.text.rfind("[Clan] ", 0) == 0)
+            _audio.clan_member_attacked();
+        else if (m.text.find(" → ti]: ") != std::string::npos)
+            _audio.private_message_received();
+        else if (m.text.rfind("Usaste Pocion de ", 0) == 0)
+            _audio.potion_used();
     }
 }
 
 void SnapshotProcessor::update_progression_sounds(WorldState& state, const SnapshotDTO& snap) {
+    if (!state.spawned) _audio.player_spawn();
+    state.spawned = true;
+
     if (snap.is_ghost != 0 && !state.was_ghost) _audio.player_death(0.0f);
+    if (snap.is_ghost == 0 && state.was_ghost) {
+        // Resucité
+        state.shop_npc_id = state.bank_npc_id = state.priest_npc_id = -1;
+    }
     state.was_ghost = (snap.is_ghost != 0);
 
-    if (snap.meditating != 0 && !state.was_meditating) _audio.meditation_start();
-    state.was_meditating = (snap.meditating != 0);
+    _audio.update_meditation_loop(snap.meditating != 0);
 
     if (state.level_initialized && snap.level > state.last_level) _audio.level_up();
     state.last_level = snap.level;
@@ -135,13 +150,15 @@ void SnapshotProcessor::sync_own_equipment(WorldState& state, const SnapshotDTO&
     state.eq_shield = snap.equipped_shld;
 }
 
-void SnapshotProcessor::sync_own_position(PlayerState& player, const SnapshotDTO& snap) {
+void SnapshotProcessor::sync_own_position(const WorldState& state, PlayerState& player, const SnapshotDTO& snap) {
     if (!snap.entities) return;
     for (const auto& e : *snap.entities) {
         if (e.entity_id != snap.self_entity_id) continue;
         if (e.pos_x != static_cast<uint16_t>(player.tile_x) || e.pos_y != static_cast<uint16_t>(player.tile_y)) {
             Direction dir = static_cast<Direction>(e.direction);
             player.move_to(e.pos_x, e.pos_y, dir);
+            if (is_floor_grass(state, e.pos_x, e.pos_y) || is_floor_dirt(state, e.pos_x, e.pos_y))
+                _audio.footstep_grass();
         }
         break;
     }

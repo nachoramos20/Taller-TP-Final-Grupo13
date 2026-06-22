@@ -37,6 +37,7 @@ private:
     std::shared_ptr<EquipCommand>       receive_equip(uint16_t client_id);
     std::shared_ptr<UnequipCommand>     receive_unequip(uint16_t client_id);
     std::shared_ptr<DropCommand>        receive_drop(uint16_t client_id);
+    std::shared_ptr<MoveItemCommand>    receive_move_item(uint16_t client_id);
     std::shared_ptr<PickCommand>        receive_pick(uint16_t client_id);
     std::shared_ptr<UseItemCommand>     receive_use(uint16_t client_id);
     std::shared_ptr<MeditateCommand>    receive_meditate(uint16_t client_id);

@@ -24,14 +24,6 @@
 #include "InputController.h"
 #include "PlayerActionController.h"
 
-// Orquestador del juego: corre el loop principal y delega todo el trabajo
-// pesado a colaboradores con responsabilidad única —
-//   InputController        : eventos SDL + atajos de teclado + movimiento
-//   PlayerActionController : qué pasa al clickear el mundo / comandos de chat
-//   SnapshotProcessor       : interpreta los snapshots del servidor
-//   WorldRenderer           : dibuja el mundo
-//   GameAudioService        : único punto de acceso a sonido
-// GameLoop sólo los construye, los conecta entre sí, y corre run()/update()/render().
 class GameLoop {
 public:
     GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer);
@@ -41,7 +33,8 @@ public:
              Queue<SnapshotDTO>* snapshot_queue,
              Queue<MapaDTO>* map_queue,
              std::atomic<bool>* connected,
-             AudioManager* audio = nullptr);
+             AudioManager* audio = nullptr,
+             const std::string& username = "");
 
     void run();
     void stop();
@@ -50,10 +43,12 @@ private:
     GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
               Queue<Command>* command_queue, Queue<SnapshotDTO>* snapshot_queue,
               Queue<MapaDTO>* map_queue, std::atomic<bool>* connected,
-              AudioManager* audio, const std::string& welcome_message);
+              AudioManager* audio, const std::string& welcome_message,
+              const std::string& username);
 
     void update(float dt);
     void render();
+    void handle_use_potion();
 
     SDL2pp::Window&     _window;
     SDL2pp::Renderer&   _renderer;
