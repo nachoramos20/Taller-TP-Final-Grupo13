@@ -134,8 +134,6 @@ void InputController::handle_movement() {
 
     int new_x = _player.tile_x + dx;
     int new_y = _player.tile_y + dy;
-    int map_size = ClientConfig::instance().rendering.map_size;
-    if (new_x < 0 || new_x >= map_size || new_y < 0 || new_y >= map_size) return;
 
     if (_command_queue) {
         _last_move_tick = now;
