@@ -35,6 +35,11 @@ public:
     // UI: click genérico
     void click();
 
+    // Clanes / chat
+    void clan_created();
+    void clan_member_attacked();
+    void private_message_received();
+
     // Ambiente (sonido en loop, volumen según distancia)
     void update_ocean_ambient(float dist_tiles);
     void update_cemetery_ambient(float dist_tiles);

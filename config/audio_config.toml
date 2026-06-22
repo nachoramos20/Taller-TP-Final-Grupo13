@@ -94,6 +94,9 @@ monedas            = ["assets/sounds/effects/economy/monedas.wav"]
 level_up           = ["assets/sounds/effects/ui/sonido_al_subir_de_lvl.wav"]
 click              = ["assets/sounds/effects/ui/click.wav"]
 player_spawn       = ["assets/sounds/effects/ui/spawn_npc.wav"]
+clan_created       = ["assets/sounds/effects/ui/creacion_de_clan.wav"]
+clan_alert         = ["assets/sounds/effects/ui/llamada_de_clan.wav"]
+private_message    = ["assets/sounds/effects/ui/sonido_mensaje_privado.wav"]
 
 # ── Sonidos Ambiente ──────────────────────────────────────────
 [ambient_sounds]

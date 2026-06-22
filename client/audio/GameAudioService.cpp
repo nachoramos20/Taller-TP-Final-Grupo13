@@ -106,6 +106,18 @@ void GameAudioService::click() {
     play_random(AudioConfig::instance().get_ui_sound("click"), 0.0f);
 }
 
+void GameAudioService::clan_created() {
+    play_random(AudioConfig::instance().get_ui_sound("clan_created"), 0.0f);
+}
+
+void GameAudioService::clan_member_attacked() {
+    play_random(AudioConfig::instance().get_ui_sound("clan_alert"), 0.0f);
+}
+
+void GameAudioService::private_message_received() {
+    play_random(AudioConfig::instance().get_ui_sound("private_message"), 0.0f);
+}
+
 void GameAudioService::update_ocean_ambient(float dist_tiles) {
     if (!_audio) return;
     const auto& ocean = AudioConfig::instance().get_ambient_sound("ocean");

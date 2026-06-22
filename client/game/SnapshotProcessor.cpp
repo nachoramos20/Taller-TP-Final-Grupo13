@@ -96,6 +96,12 @@ void SnapshotProcessor::announce_chat_messages(const SnapshotDTO& snap) {
         if (_chat) _chat->add_message(m.text);
         if (m.text.rfind("Compraste ", 0) == 0 || m.text.rfind("Vendiste ", 0) == 0)
             _audio.coins_received();
+        else if (m.text.rfind("Fundaste el clan \"", 0) == 0)
+            _audio.clan_created();
+        else if (m.text.rfind("[Clan] ", 0) == 0)
+            _audio.clan_member_attacked();
+        else if (m.text.find(" → ti]: ") != std::string::npos)
+            _audio.private_message_received();
     }
 }
 
