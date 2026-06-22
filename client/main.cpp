@@ -166,7 +166,8 @@ int main(int argc, char* argv[]) try {
         try {
             GameLoop game_loop(window, renderer,
                                &command_queue, &snapshot_queue,
-                               &map_queue, &connected, &audio);
+                               &map_queue, &connected, &audio,
+                               result.username);
             game_loop.run();
         } catch (const std::exception& e) {
             std::cerr << "GameLoop error: " << e.what() << "\n";
