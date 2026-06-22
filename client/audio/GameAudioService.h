@@ -31,6 +31,9 @@ public:
     void meditation_start();
     void coins_received();
 
+    // UI: click genérico
+    void click();
+
     // Ambiente (sonido en loop, volumen según distancia)
     void update_ocean_ambient(float dist_tiles);
     void update_cemetery_ambient(float dist_tiles);

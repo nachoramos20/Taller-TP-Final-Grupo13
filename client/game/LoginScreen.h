@@ -12,6 +12,8 @@
 #include "../net/Command.h"
 #include "../config/RacesClassesConfig.h"
 
+class AudioManager;
+
 struct LoginResult {
     bool     cancelled = false;  // el usuario cerró la ventana
     bool     do_register = false;
@@ -23,7 +25,7 @@ struct LoginResult {
 class LoginScreen {
 public:
     LoginScreen(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
-                const std::string& font_path);
+                const std::string& font_path, AudioManager* audio = nullptr);
     ~LoginScreen();
 
     // Muestra un mensaje de error (llamar antes de run() para reintento)
@@ -49,6 +51,10 @@ private:
     void handle_key(const SDL_KeyboardEvent& k);
     void handle_mouse_click(int mx, int my);
 
+    // Chequea si (mx,my) cae dentro de r; si es así, reproduce el sonido de
+    // click. 
+    bool clicked(int mx, int my, const SDL_Rect& r);
+
     // Helpers de dibujo
     void draw_bg();
     void draw_logo();
@@ -67,6 +73,7 @@ private:
 
     SDL2pp::Window&   _window;
     SDL2pp::Renderer& _renderer;
+    AudioManager*     _audio = nullptr;
     TTF_Font* _font_lg = nullptr;   // 20px
     TTF_Font* _font_md = nullptr;   // 14px
     TTF_Font* _font_sm = nullptr;   // 11px

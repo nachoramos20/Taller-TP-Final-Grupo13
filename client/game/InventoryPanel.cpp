@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstring>
 #include <cmath>
+#include "../audio/GameAudioService.h"
 
 //  Datos de items
 
@@ -154,8 +155,9 @@ const char* InventoryPanel::item_kind(uint8_t id) {
 //  Constructor / destructor
 
 InventoryPanel::InventoryPanel(SDL2pp::Renderer& renderer,
-                               const std::string& font_path, int font_size)
-    : _renderer(renderer), _font_size(font_size) {
+                               const std::string& font_path, int font_size,
+                               GameAudioService* audio)
+    : _renderer(renderer), _audio(audio), _font_size(font_size) {
     if (TTF_WasInit() == 0) {
         if (TTF_Init() != 0)
             throw std::runtime_error(std::string("TTF_Init: ") + TTF_GetError());
@@ -208,10 +210,15 @@ bool InventoryPanel::handle_event(const SDL_Event& e, Queue<Command>* cmd_queue)
             return mx >= r.x && mx < r.x + r.w && my >= r.y && my < r.y + r.h;
         };
 
-        if (in(mx, my, _close_btn)) { _visible = false; return true; }
+        if (in(mx, my, _close_btn)) {
+            if (_audio) _audio->click();
+            _visible = false;
+            return true;
+        }
 
         if (_selected_slot >= 0 && _inventory[_selected_slot] != 0) {
             if (in(mx, my, _equip_btn)) {
+                if (_audio) _audio->click();
                 if (cmd_queue) {
                     uint8_t item_id = _inventory[_selected_slot];
                     bool is_potion = (item_id == 40 || item_id == 41);
@@ -228,6 +235,7 @@ bool InventoryPanel::handle_event(const SDL_Event& e, Queue<Command>* cmd_queue)
                 return true;
             }
             if (in(mx, my, _drop_btn)) {
+                if (_audio) _audio->click();
                 if (cmd_queue) cmd_queue->push(Command::drop(
                     static_cast<uint8_t>(_selected_slot)));
                 return true;
@@ -236,6 +244,7 @@ bool InventoryPanel::handle_event(const SDL_Event& e, Queue<Command>* cmd_queue)
 
         for (int i = 0; i < INV_SIZE; i++) {
             if (in(mx, my, _slot_rects[i])) {
+                if (_audio) _audio->click();
                 _selected_slot = (_selected_slot == i) ? -1 : i;
                 return true;
             }

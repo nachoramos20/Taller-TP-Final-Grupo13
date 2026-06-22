@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) try {
 
     while (true) {
         // Mostrar pantalla de login/registro
-        LoginScreen login_screen(window, renderer, client_config.fonts.chat_font_path);
+        LoginScreen login_screen(window, renderer, client_config.fonts.chat_font_path, &audio);
         if (!pending_error.empty()) {
             login_screen.set_error(pending_error);
             pending_error.clear();

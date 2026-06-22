@@ -98,6 +98,10 @@ void GameAudioService::coins_received() {
     play_random(AudioConfig::instance().get_economy_sound("monedas"), 0.0f);
 }
 
+void GameAudioService::click() {
+    play_random(AudioConfig::instance().get_ui_sound("click"), 0.0f);
+}
+
 void GameAudioService::update_ocean_ambient(float dist_tiles) {
     if (!_audio) return;
     const auto& ocean = AudioConfig::instance().get_ambient_sound("ocean");

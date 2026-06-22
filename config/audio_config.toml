@@ -99,6 +99,7 @@ monedas            = ["assets/sounds/effects/economy/monedas.wav"]
 # ── Sonidos de Interfaz ───────────────────────────────────────
 [ui_sounds]
 level_up           = ["assets/sounds/effects/ui/sonido_al_subir_de_lvl.wav"]
+click              = ["assets/sounds/effects/ui/click.wav"]
 
 # ── Sonidos Ambiente ──────────────────────────────────────────
 [ambient_sounds]
