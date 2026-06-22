@@ -149,7 +149,9 @@ void WorldNpcs::tick(uint32_t ct) {
                 // BUG FIX #3: sacar de meditación cuando el NPC golpea al jugador
                 nearest->meditating = false;
 
-                if (nearest->hp <= (uint16_t)dmg) {
+                if (nearest->cheat_infinite_hp) {
+                    // Vida infinita: no recibe daño ni muere.
+                } else if (nearest->hp <= (uint16_t)dmg) {
                     nearest->hp = 0;
                     nearest->is_ghost = true;
                     nearest->meditating = false;

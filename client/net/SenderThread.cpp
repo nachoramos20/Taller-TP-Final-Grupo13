@@ -68,6 +68,9 @@ void SenderThread::send_command(const Command& cmd) {
         case MsgType::CAST_SPELL:
             _serializer.send_cast_spell(cmd.target_id, cmd.spell_id);
             break;
+        case MsgType::CHEAT:
+            _serializer.send_cheat(cmd.cheat_id);
+            break;
         default:
             break;
     }

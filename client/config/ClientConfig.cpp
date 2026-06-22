@@ -79,6 +79,14 @@ bool ClientConfig::load(const std::string& config_path) {
             rendering.cemetery_x_max = rendering_table["cemetery_x_max"].value_or(66);
             rendering.cemetery_y_min = rendering_table["cemetery_y_min"].value_or(55);
             rendering.cemetery_y_max = rendering_table["cemetery_y_max"].value_or(66);
+            rendering.safe_zone1_x_min = rendering_table["safe_zone1_x_min"].value_or(24);
+            rendering.safe_zone1_x_max = rendering_table["safe_zone1_x_max"].value_or(56);
+            rendering.safe_zone1_y_min = rendering_table["safe_zone1_y_min"].value_or(4);
+            rendering.safe_zone1_y_max = rendering_table["safe_zone1_y_max"].value_or(36);
+            rendering.safe_zone2_x_min = rendering_table["safe_zone2_x_min"].value_or(29);
+            rendering.safe_zone2_x_max = rendering_table["safe_zone2_x_max"].value_or(49);
+            rendering.safe_zone2_y_min = rendering_table["safe_zone2_y_min"].value_or(53);
+            rendering.safe_zone2_y_max = rendering_table["safe_zone2_y_max"].value_or(71);
         }
 
         // Cargar UI

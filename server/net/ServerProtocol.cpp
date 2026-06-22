@@ -29,6 +29,7 @@ std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_i
         case MsgType::CHAT_COMMAND: return receive_chat_command(client_id);
         case MsgType::NPC_INTERACT: return receive_npc_interact(client_id);
         case MsgType::CAST_SPELL:   return receive_cast_spell(client_id);
+        case MsgType::CHEAT:        return receive_cheat(client_id);
 
         default: return nullptr;
     }
@@ -71,6 +72,11 @@ std::shared_ptr<MoveItemCommand> ServerProtocol::receive_move_item(uint16_t clie
     uint8_t from = recv_uint8();
     uint8_t to   = recv_uint8();
     return std::make_shared<MoveItemCommand>(client_id, from, to);
+}
+
+std::shared_ptr<CheatCommand> ServerProtocol::receive_cheat(uint16_t client_id) {
+    uint8_t cheat_id = recv_uint8();
+    return std::make_shared<CheatCommand>(client_id, cheat_id);
 }
 
 std::shared_ptr<PickCommand> ServerProtocol::receive_pick(uint16_t client_id) {

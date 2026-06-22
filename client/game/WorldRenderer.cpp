@@ -6,6 +6,18 @@
 #include "../render/ItemVisualConfig.h"
 #include "../render/NpcVisualConfig.h"
 
+namespace {
+// Los offset_x/offset_y de tiles.toml y objects_sup.toml están calculados en
+// píxeles para un tile de 64px (el tile_size original, antes de los ajustes
+// de zoom de cámara). Si tile_size cambia, hay que escalarlos en la misma
+// proporción o quedan desalineados (ver "la ola"/costa y los acantilados).
+constexpr float REFERENCE_TILE_SIZE = 64.0f;
+
+int scaled_offset(int offset) {
+    return static_cast<int>(offset * (tile_size() / REFERENCE_TILE_SIZE));
+}
+}
+
 WorldRenderer::WorldRenderer(SDL2pp::Window& window, SDL2pp::Renderer& renderer, Camera& camera)
     : _window(window), _renderer(renderer), _camera(camera),
       _assets(renderer),
@@ -99,7 +111,8 @@ void WorldRenderer::render_floor(const WorldState& state) {
             if (sx < -(obj_sup_size + obj_sup_size))   continue;
 
             int size_px = entry.tile_size * tile_size();
-            SDL2pp::Rect dst(sx + entry.offset_x, sy_raw + entry.offset_y, size_px, size_px);
+            SDL2pp::Rect dst(sx + scaled_offset(entry.offset_x), sy_raw + scaled_offset(entry.offset_y),
+                              size_px, size_px);
             _renderer.Copy(_assets.get(entry.path), SDL2pp::NullOpt, dst);
         }
     }
@@ -139,8 +152,8 @@ void WorldRenderer::render_obj_sup(const WorldState& state) {
             int sy = _camera.tile_to_screen_y(ty);
 
             SDL2pp::Rect dst(
-                sx - (obj_w - tile_size()) / 2 + entry.offset_x,
-                sy - obj_h + tile_size() + entry.offset_y,
+                sx - (obj_w - tile_size()) / 2 + scaled_offset(entry.offset_x),
+                sy - obj_h + tile_size() + scaled_offset(entry.offset_y),
                 obj_w,
                 obj_h
             );

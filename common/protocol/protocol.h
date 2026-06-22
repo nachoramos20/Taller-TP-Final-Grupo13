@@ -20,6 +20,7 @@ enum class MsgType : uint8_t {
     RESURRECT    = 0x0E,
     CAST_SPELL   = 0x0F,
     MOVE_ITEM    = 0x12,
+    CHEAT        = 0x13,
 
     // Servidor → Cliente
     LOGIN_OK     = 0x10,
@@ -44,6 +45,15 @@ enum class Race : uint8_t {
 
 enum class Class : uint8_t {
     MAGE = 0, CLERIC = 1, PALADIN = 2, WARRIOR = 3,
+};
+
+// Payload de MsgType::CHEAT: 1 byte indicando qué cheat se activa/alterna.
+// Se disparan con combinaciones de teclas en el cliente (ver InputController).
+enum class CheatId : uint8_t {
+    INFINITE_HP    = 1,  // Ctrl+Shift+H: alterna vida infinita
+    INFINITE_MP    = 2,  // Ctrl+Shift+N: alterna mana infinito
+    INSTANT_DEATH  = 3,  // Ctrl+Shift+K: morir instantáneamente
+    INSTANT_REVIVE = 4,  // Ctrl+Shift+R: revivir instantáneamente (si es fantasma)
 };
 
 enum class EquipSlot : uint8_t {
@@ -152,5 +162,19 @@ inline int weapon_client_range(uint8_t item_id) {
         case ItemId::NUDOSO_STAFF:  return 6;
         case ItemId::GEMMED_STAFF:  return 6;
         default:                    return 1;
+    }
+}
+
+// Costo de maná del ataque básico con armas mágicas (client-side, espejado
+// de items.toml). Usado para no spawnear el proyectil si claramente no hay
+// maná suficiente: antes solo se chequeaba "mp > 0", lo que dejaba disparar
+// con menos maná del que la propia arma cuesta.
+inline uint16_t weapon_client_mana_cost(uint8_t item_id) {
+    switch (static_cast<ItemId>(item_id)) {
+        case ItemId::ASH_STICK:     return 5;
+        case ItemId::ELVEN_FLUTE:   return 100;
+        case ItemId::NUDOSO_STAFF:  return 15;
+        case ItemId::GEMMED_STAFF:  return 30;
+        default:                    return 0;
     }
 }

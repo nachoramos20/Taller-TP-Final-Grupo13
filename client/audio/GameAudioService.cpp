@@ -8,8 +8,9 @@
 #include <cstdlib>
 
 namespace {
-constexpr float FOOTSTEP_GRASS_VOLUME_SCALE = 0.2f;  
-constexpr float FOOTSTEP_CITY_STONE_VOLUME_SCALE = 0.3f;  
+constexpr float FOOTSTEP_GRASS_VOLUME_SCALE = 0.2f;
+constexpr float FOOTSTEP_CITY_STONE_VOLUME_SCALE = 0.3f;
+constexpr float DAMAGE_RECEIVED_VOLUME_SCALE = 0.35f;  // apuñalada al ser atacado: más bajo que el propio ataque
 constexpr float FOREST_AMBIENCE_VOLUME_SCALE = 0.2f;
 constexpr uint32_t FOREST_SOUND_MIN_INTERVAL_MS = 8000;
 constexpr uint32_t FOREST_SOUND_MAX_INTERVAL_MS = 20000;
@@ -60,6 +61,12 @@ void GameAudioService::attack(uint8_t weapon_item, float dist_tiles) {
         }
     }
     play_random(cfg.get_combat_melee_sound("generico"), dist_tiles);
+}
+
+void GameAudioService::damage_received(float dist_tiles) {
+    if (!_audio) return;
+    play_random(AudioConfig::instance().get_combat_melee_sound("generico"), dist_tiles,
+                DAMAGE_RECEIVED_VOLUME_SCALE);
 }
 
 void GameAudioService::spell_cast(uint8_t spell_id, float dist_tiles) {

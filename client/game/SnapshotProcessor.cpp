@@ -105,6 +105,8 @@ void SnapshotProcessor::announce_chat_messages(const SnapshotDTO& snap) {
             _audio.private_message_received();
         else if (m.text.rfind("Usaste Pocion de ", 0) == 0)
             _audio.potion_used();
+        else if (m.text.rfind("Recibiste ", 0) == 0 && m.text.find(" de daño") != std::string::npos)
+            _audio.damage_received(0.0f);
     }
 }
 

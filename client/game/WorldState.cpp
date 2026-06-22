@@ -100,6 +100,17 @@ float distance_to_cemetery_zone(int x, int y) {
     return std::sqrt(dx * dx + dy * dy);
 }
 
+bool is_in_safe_zone(uint16_t x, uint16_t y) {
+    const auto& r = ClientConfig::instance().rendering;
+    int ix = static_cast<int>(x), iy = static_cast<int>(y);
+
+    bool in_zone1 = ix >= r.safe_zone1_x_min && ix <= r.safe_zone1_x_max &&
+                    iy >= r.safe_zone1_y_min && iy <= r.safe_zone1_y_max;
+    bool in_zone2 = ix >= r.safe_zone2_x_min && ix <= r.safe_zone2_x_max &&
+                    iy >= r.safe_zone2_y_min && iy <= r.safe_zone2_y_max;
+    return in_zone1 || in_zone2;
+}
+
 uint8_t own_weapon_item(const WorldState& state) {
     return (state.eq_weapon != 0xFF && state.eq_weapon < SnapshotDTO::INVENTORY_SIZE)
                ? state.inventory[state.eq_weapon]

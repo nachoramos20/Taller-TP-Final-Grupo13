@@ -57,6 +57,10 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
         handle_use_potion();
     });
 
+    _input.on_resurrect([this]() {
+        _actions.try_play_resurrect_sound();
+    });
+
     _chat->on_submit([this](const std::string& text) {
         if (!_command_queue) return;
         _command_queue->push(Command::chat(text));

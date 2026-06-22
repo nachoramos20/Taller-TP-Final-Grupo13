@@ -1,6 +1,7 @@
 #include "ServerReceiverThread.h"
 #include <iostream>
 #include <memory>
+#include <string>
 
 ServerReceiverThread::ServerReceiverThread(uint16_t client_id,
                                            Queue<std::shared_ptr<ServerCommand>>& command_queue,
@@ -48,7 +49,13 @@ void ServerReceiverThread::run() {
         command_queue.push(logout);
     } catch (const ClosedQueue&) {
     } catch (const std::exception& e) {
-        std::cerr << "Cliente " << client_id << " desconectado: " << e.what() << "\n";
+        // "Handshake: peer closed" pasa siempre que alguien se conecta y
+        // cierra sin mandar nada (el chequeo de conectividad del cliente al
+        // arrancar, o una conexión de reintento de login abandonada): no es
+        // un error real, así que no lo logueamos como tal.
+        std::string msg = e.what();
+        if (msg != "Handshake: peer closed")
+            std::cerr << "Cliente " << client_id << " desconectado: " << msg << "\n";
     }
     client_alive = false;
 }

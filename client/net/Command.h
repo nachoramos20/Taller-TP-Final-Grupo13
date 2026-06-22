@@ -17,6 +17,7 @@ struct Command {
     uint8_t     race      = 0;
     uint8_t     cls       = 0;
     uint8_t     spell_id = 0;
+    uint8_t     cheat_id = 0;
 
     static Command move(uint16_t x, uint16_t y) {
         Command c;
@@ -129,6 +130,13 @@ struct Command {
         c.type      = MsgType::CAST_SPELL;
         c.target_id = target_id;
         c.spell_id  = spell_id;
+        return c;
+    }
+
+    static Command cheat(CheatId id) {
+        Command c;
+        c.type     = MsgType::CHEAT;
+        c.cheat_id = static_cast<uint8_t>(id);
         return c;
     }
 };

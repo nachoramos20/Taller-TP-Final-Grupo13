@@ -98,6 +98,10 @@ bool  is_floor_city_stone(const WorldState& state, uint16_t x, uint16_t y);
 bool  is_in_forest_zone(uint16_t x, uint16_t y);
 float distance_to_cemetery_zone(int x, int y);
 
+// Ciudad/pueblo (ver ServerGameLoop.cpp): el servidor rechaza hechizos y
+// ataques a distancia ahí, así que tampoco hay que spawnear su VFX/sonido.
+bool is_in_safe_zone(uint16_t x, uint16_t y);
+
 // Item id del arma equipada por el jugador propio (0 si no tiene nada equipado).
 uint8_t own_weapon_item(const WorldState& state);
 

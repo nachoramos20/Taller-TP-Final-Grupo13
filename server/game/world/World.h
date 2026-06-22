@@ -125,6 +125,11 @@ public:
     void     clear_selected_npc(uint16_t client_id);
     bool     player_near_service_npc(uint16_t client_id, NpcId required_type) const;
     uint8_t  get_nearby_merchant_zone(uint16_t client_id) const;  // 255 = ninguno
+
+    // Posición del sacerdote cercano al jugador (hay más de uno, uno por
+    // ciudad/pueblo): false si no hay ninguno a distancia de interacción.
+    // Usado para resucitar junto al sacerdote correcto, no a un punto fijo.
+    bool find_nearby_priest_pos(uint16_t client_id, uint16_t& out_x, uint16_t& out_y) const;
 };
 
 #endif // WORLD_H

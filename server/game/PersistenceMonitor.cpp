@@ -92,6 +92,13 @@ static void apply_initial_equipment(PlayerData& p) {
     if (cls == Class::MAGE || cls == Class::CLERIC) {
         give_item(p, static_cast<uint8_t>(I::MANA_POTION), p.equipped_weapon /*dummy*/, false);
     }
+
+    // El Clérigo arranca con la flauta élfica equipada, que cura en vez de
+    // atacar: sin un báculo de respaldo en el inventario no tendría forma
+    // de hacer daño a distancia hasta comprar o encontrar otro.
+    if (cls == Class::CLERIC) {
+        give_item(p, static_cast<uint8_t>(I::NUDOSO_STAFF), p.equipped_weapon /*dummy, no equip*/, false);
+    }
 }
 
 PlayerData PersistenceMonitor::

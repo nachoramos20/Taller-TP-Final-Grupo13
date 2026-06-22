@@ -29,6 +29,10 @@ struct PlayerData {
     bool     is_ghost    = false;
     bool     meditating  = false;
 
+    // Cheats (combinación de teclas en el cliente, ver InputController)
+    bool     cheat_infinite_hp = false;
+    bool     cheat_infinite_mp = false;
+
     static constexpr std::size_t CLAN_NAME_MAX_LENGTH = 32;
     char clan_name[CLAN_NAME_MAX_LENGTH + 1]{};  // vacío = sin clan
     bool is_clan_founder = false;

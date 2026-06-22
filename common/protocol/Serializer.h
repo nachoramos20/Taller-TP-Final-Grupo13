@@ -51,6 +51,11 @@ public:
         send_uint8(to_slot);
     }
 
+    void send_cheat(uint8_t cheat_id) {
+        send_uint8(static_cast<uint8_t>(MsgType::CHEAT));
+        send_uint8(cheat_id);
+    }
+
     void send_unequip_item(EquipSlot slot) {
         send_uint8(static_cast<uint8_t>(MsgType::UNEQUIP_ITEM));
         send_uint8(static_cast<uint8_t>(slot));

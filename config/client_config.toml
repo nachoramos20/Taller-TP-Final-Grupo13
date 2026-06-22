@@ -56,6 +56,17 @@ cemetery_x_min           = 55
 cemetery_x_max           = 66
 cemetery_y_min           = 55
 cemetery_y_max           = 66
+# Zonas seguras (ciudad principal y pueblo sur), espejadas de
+# ServerGameLoop.cpp: para no spawnear el VFX de hechizos/proyectiles cuando
+# el servidor va a rechazar la acción por estar en zona segura.
+safe_zone1_x_min         = 24
+safe_zone1_x_max         = 56
+safe_zone1_y_min         = 4
+safe_zone1_y_max         = 36
+safe_zone2_x_min         = 29
+safe_zone2_x_max         = 49
+safe_zone2_y_min         = 53
+safe_zone2_y_max         = 71
 
 # ── Efectos de Muerte ────────────────────────────────────────
 [death_effects]

@@ -66,6 +66,12 @@ public:
         int cemetery_x_max;
         int cemetery_y_min;
         int cemetery_y_max;
+
+        // Zonas seguras (ciudad principal y pueblo sur), espejadas de
+        // ServerGameLoop.cpp: para no spawnear el VFX de hechizos/proyectiles
+        // cuando el servidor va a rechazar la acción por estar en zona segura.
+        int safe_zone1_x_min, safe_zone1_x_max, safe_zone1_y_min, safe_zone1_y_max;
+        int safe_zone2_x_min, safe_zone2_x_max, safe_zone2_y_min, safe_zone2_y_max;
     };
 
     // Estructura para atajos de teclado (se cargan por nombre desde el TOML,

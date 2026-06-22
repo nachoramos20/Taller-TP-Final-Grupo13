@@ -16,6 +16,7 @@ target_sources(argentum_grupo13_server
     game/commands/ChatCommands.cpp
     game/commands/ChatCommand_Bank.cpp
     game/commands/ChatCommand_Clan.cpp
+    game/commands/CheatCommands.cpp
     game/PersistenceMonitor.cpp
     game/world/World.cpp
     game/world/WorldCollision.cpp

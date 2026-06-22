@@ -60,15 +60,8 @@ void ChatCommand::handle_meditar(World& world) {
 }
 
 void ChatCommand::handle_resucitar(World& world) {
-    // BUG FIX: /resucitar requiere estar cerca de un Sacerdote,
-    // igual que /curar. Sin este chequeo el jugador podía resucitar
-    // desde cualquier parte del mapa.
-    if (!world.player_near_service_npc(client_id, NpcId::PRIEST)) {
-        world.push_message(client_id, 0,
-            "Debes estar cerca del Sacerdote para resucitar.\n"
-            "Acércate y haz click en él primero.");
-        return;
-    }
+    // El chequeo de cercanía al sacerdote (y cuál de los dos) vive en
+    // ResurrectCommand::execute, compartido con la tecla R.
     ResurrectCommand(client_id).execute(world);
 }
 

@@ -12,6 +12,12 @@ public:
     virtual ~ServerCommand() = default;
 };
 
+// Sube de nivel a p tantas veces como la exp acumulada lo permita (recalcula
+// max_hp/max_mp y notifica por chat). Implementado en CombatCommands.cpp;
+// se llama también desde MagicCommands.cpp para no perder niveles cuando se
+// mata con hechizos.
+void check_level_up(PlayerData& p, World& world);
+
 class MoveCommand : public ServerCommand {
 public:
     MoveCommand(uint16_t client_id, uint16_t new_x, uint16_t new_y);
@@ -185,6 +191,18 @@ private:
     uint16_t client_id;
     uint16_t target_id;
     uint8_t  spell_id;
+};
+
+// Cheats disparados por combinación de teclas en el cliente (ver
+// InputController y protocol.h::CheatId). Pensados para facilitar pruebas
+// (ej. probar /resucitar sin esperar a que un NPC mate al jugador).
+class CheatCommand : public ServerCommand {
+public:
+    CheatCommand(uint16_t client_id, uint8_t cheat_id);
+    void execute(World& world) override;
+private:
+    uint16_t client_id;
+    uint8_t  cheat_id;
 };
 
 #endif // COMMANDS_H

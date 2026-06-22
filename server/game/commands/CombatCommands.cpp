@@ -7,6 +7,7 @@
 
 struct WeaponInfo {
     ItemKind  kind      = ItemKind::NONE;
+    uint8_t   item_id   = 0;
     uint16_t  mana_cost = 0;
     int       range     = 1;
     WeaponBounds bounds = {1, 3};
@@ -23,6 +24,7 @@ static WeaponInfo read_weapon(const PlayerData& p) {
 
     const ItemDef& def = Items::get(static_cast<ItemId>(item_id));
     w.kind      = def.kind;
+    w.item_id   = item_id;
     w.mana_cost = def.mana_cost;
     w.range     = (def.range_tiles > 0) ? def.range_tiles : 1;
     w.bounds    = {def.min_value, def.max_value};
@@ -46,7 +48,7 @@ static uint16_t calc_defense(const PlayerData& defender) {
     return static_cast<uint16_t>(def);
 }
 
-static void check_level_up(PlayerData& p, World& world) {
+void check_level_up(PlayerData& p, World& world) {
     uint8_t orig_level = p.level;
     while (true) {
         uint32_t limit = Equations::exp_required_for_level(p.level);
@@ -126,6 +128,32 @@ void AttackCommand::execute(World& world) {
         return;
     }
 
+    attacker->meditating = false;
+    WeaponInfo w = read_weapon(*attacker);
+    int dist = Equations::manhattan_distance(attacker->pos_x, attacker->pos_y, target->pos_x, target->pos_y);
+
+    // La flauta élfica no ataca: lanza "curar" sobre el objetivo y le
+    // restaura vida (ver enunciado, item "Flauta élfica"). No es un ataque,
+    // así que se resuelve ANTES de fair-play/clan (sí podés curar a un
+    // compañero de clan o a alguien fuera de tu rango de nivel).
+    if (w.item_id == static_cast<uint8_t>(ItemId::ELVEN_FLUTE)) {
+        if (!attacker->cheat_infinite_mp && attacker->mp < w.mana_cost) {
+            world.push_message(client_id, 0, "No tenés maná suficiente para tocar la flauta.");
+            return;
+        }
+        if (dist > w.range) {
+            world.push_message(client_id, 0, "Objetivo demasiado lejos.");
+            return;
+        }
+        if (!attacker->cheat_infinite_mp) attacker->mp -= w.mana_cost;
+        uint16_t heal = static_cast<uint16_t>(Equations::rand_range(w.bounds.dmin, w.bounds.dmax));
+        target->hp = std::min(target->max_hp, static_cast<uint16_t>(target->hp + heal));
+        world.push_message(client_id, 1, "Curaste a " + std::string(target->username) + " por " + std::to_string(heal) + " de vida.");
+        world.push_message(target_id, 1, std::string(attacker->username) + " te curó " + std::to_string(heal) + " de vida.");
+        attacker->attack_cooldown = GameConfig::get().formulas().attack_cooldown_melee;
+        return;
+    }
+
     if (!Equations::is_pvp_allowed(attacker->level, target->level)) {
         world.push_message(client_id, 0, "No puedes atacar a ese jugador (fair-play).");
         return;
@@ -135,16 +163,12 @@ void AttackCommand::execute(World& world) {
         return;
     }
 
-    attacker->meditating = false;
-    WeaponInfo w = read_weapon(*attacker);
-
-    if (w.kind == ItemKind::WEAPON_MAGIC && attacker->mp < w.mana_cost) {
+    if (w.kind == ItemKind::WEAPON_MAGIC && !attacker->cheat_infinite_mp && attacker->mp < w.mana_cost) {
         world.push_message(client_id, 0, "No tenés maná suficiente para disparar el arma mágica.");
         return;
     }
 
     bool is_ranged = (w.kind == ItemKind::WEAPON_RANGED || w.kind == ItemKind::WEAPON_MAGIC);
-    int dist = Equations::manhattan_distance(attacker->pos_x, attacker->pos_y, target->pos_x, target->pos_y);
     if (dist > (is_ranged ? w.range : 1)) {
         world.push_message(client_id, 0, "Objetivo demasiado lejos.");
         return;
@@ -159,7 +183,7 @@ void AttackCommand::execute(World& world) {
         return;
     }
 
-    if (w.kind == ItemKind::WEAPON_MAGIC) attacker->mp -= w.mana_cost;
+    if (w.kind == ItemKind::WEAPON_MAGIC && !attacker->cheat_infinite_mp) attacker->mp -= w.mana_cost;
 
     uint16_t damage = Equations::calc_weapon_damage(attacker->strength, w.bounds);
     if (crit) {
@@ -177,7 +201,9 @@ void AttackCommand::execute(World& world) {
 
     world.clan_notify_attack(target_id);
 
-    if (target->hp <= damage) {
+    if (target->cheat_infinite_hp) {
+        // Vida infinita: no recibe daño ni muere.
+    } else if (target->hp <= damage) {
         target->hp         = 0;
         target->is_ghost   = true;
         target->meditating = false;
@@ -216,7 +242,7 @@ void AttackNpcCommand::execute(World& world) {
     const NpcTemplate& tpl = Npcs::tpl(npc->type);
     WeaponInfo w = read_weapon(*attacker);
 
-    if (w.kind == ItemKind::WEAPON_MAGIC && attacker->mp < w.mana_cost) {
+    if (w.kind == ItemKind::WEAPON_MAGIC && !attacker->cheat_infinite_mp && attacker->mp < w.mana_cost) {
         world.push_message(client_id, 0, "No tenés maná suficiente para disparar el arma mágica.");
         return;
     }
@@ -236,7 +262,7 @@ void AttackNpcCommand::execute(World& world) {
         return;
     }
 
-    if (w.kind == ItemKind::WEAPON_MAGIC) attacker->mp -= w.mana_cost;
+    if (w.kind == ItemKind::WEAPON_MAGIC && !attacker->cheat_infinite_mp) attacker->mp -= w.mana_cost;
 
     uint16_t damage = Equations::calc_weapon_damage(attacker->strength, w.bounds);
     if (crit) {

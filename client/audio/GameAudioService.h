@@ -21,6 +21,8 @@ public:
 
     // Combate
     void attack(uint8_t weapon_item, float dist_tiles);
+    // Cuando un enemigo (NPC u otro jugador) golpea al personaje propio.
+    void damage_received(float dist_tiles);
     void spell_cast(uint8_t spell_id, float dist_tiles);
     void npc_death(uint8_t npc_sprite_id, uint16_t entity_id, uint16_t pos_y,
                    float dist_tiles, uint8_t own_weapon_item);

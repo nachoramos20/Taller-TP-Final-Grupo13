@@ -151,6 +151,21 @@ bool World::player_near_service_npc(uint16_t client_id, NpcId required_type) con
     return false;
 }
 
+bool World::find_nearby_priest_pos(uint16_t client_id, uint16_t& out_x, uint16_t& out_y) const {
+    const PlayerData* p = find_player(client_id);
+    if (!p) return false;
+    for (const auto& npc : get_npcs()) {
+        if (npc.type != NpcId::PRIEST) continue;
+        int dist = std::abs(p->pos_x - npc.pos_x) + std::abs(p->pos_y - npc.pos_y);
+        if (dist <= 2) {
+            out_x = npc.pos_x;
+            out_y = npc.pos_y;
+            return true;
+        }
+    }
+    return false;
+}
+
 uint8_t World::get_nearby_merchant_zone(uint16_t client_id) const {
     const PlayerData* p = find_player(client_id);
     if (!p) return 255;

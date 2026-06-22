@@ -43,6 +43,8 @@ public:
     void on_world_click(std::function<void(int tile_x, int tile_y)> cb) { _on_world_click = std::move(cb); }
     // Callback para "usar poción" desde atajo de teclado
     void on_use_potion(std::function<void()> cb) { _on_use_potion = std::move(cb); }
+    // Callback para "resucitar" desde atajo de teclado (sonido del sacerdote)
+    void on_resurrect(std::function<void()> cb) { _on_resurrect = std::move(cb); }
 
 private:
     void handle_keydown(const SDL_Event& event, bool& running);
@@ -61,4 +63,5 @@ private:
 
     std::function<void(int, int)> _on_world_click;
     std::function<void()>         _on_use_potion;
+    std::function<void()>         _on_resurrect;
 };

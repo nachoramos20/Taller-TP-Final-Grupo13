@@ -28,17 +28,29 @@ void ResurrectCommand::execute(World& world) {
     PlayerData* p = world.get_player_mutable(client_id);
     if (!p || !p->is_ghost) return;
 
+    // Hay un sacerdote por ciudad/pueblo: hay que resucitar junto al que el
+    // jugador tiene cerca, no siempre en el mismo punto fijo (antes ahí
+    // siempre era la ciudad principal, sin importar de qué sacerdote se
+    // tratara). Vale tanto para la tecla R como para /resucitar.
+    uint16_t priest_x, priest_y;
+    if (!world.find_nearby_priest_pos(client_id, priest_x, priest_y)) {
+        world.push_message(client_id, 0,
+            "Debes estar cerca del Sacerdote para resucitar.\n"
+            "Acércate y haz click en él primero.");
+        return;
+    }
+
     const CombatFormulas& f = GameConfig::get().formulas();
 
     world.update_occupied({p->pos_x, p->pos_y}, false);
-    p->pos_x      = f.respawn_x;
-    p->pos_y      = f.respawn_y;
+    p->pos_x      = priest_x;
+    p->pos_y      = static_cast<uint16_t>(priest_y + 1);
     p->is_ghost   = false;
     p->meditating = false;
     p->hp         = static_cast<uint16_t>(p->max_hp * f.hp_fraction);
     p->mp         = 0;
     world.update_occupied({p->pos_x, p->pos_y}, true);
-    world.push_message(client_id, 0, "Resucitaste junto al sanador en la ciudad.");
+    world.push_message(client_id, 0, "Resucitaste junto al sanador.");
 }
 
 static uint16_t weapon_base_damage(const PlayerData& p) {
@@ -92,7 +104,7 @@ void CastSpellCommand::execute(World& world) {
 
     // BUG FIX #1: verificar maná ANTES de hacer cualquier cosa
     // (antes esto ya estaba, pero se deja explícito con mensaje claro)
-    if (caster->mp < sd.mana_cost) {
+    if (!caster->cheat_infinite_mp && caster->mp < sd.mana_cost) {
         world.push_message(client_id, 0, "Maná insuficiente para " + sd.name + ".");
         return;
     }
@@ -129,7 +141,7 @@ void CastSpellCommand::execute(World& world) {
 
     // Recién acá se confirma el hechizo: salir de meditación y consumir maná
     caster->meditating = false;
-    caster->mp -= sd.mana_cost;
+    if (!caster->cheat_infinite_mp) caster->mp -= sd.mana_cost;
 
     uint16_t base_dmg = weapon_base_damage(*caster);
     uint16_t damage = Equations::calc_spell_damage(base_dmg, sd.dmg_multiplier, sd.flat_bonus, caster->intelligence);
@@ -137,7 +149,9 @@ void CastSpellCommand::execute(World& world) {
     world.push_message(client_id, 1, "Lanzaste " + sd.name + " e hiciste " + std::to_string(damage) + " de daño.");
 
     if (target_p) {
-        if (target_p->hp <= damage) {
+        if (target_p->cheat_infinite_hp) {
+            // Vida infinita: no recibe daño ni muere.
+        } else if (target_p->hp <= damage) {
             target_p->hp       = 0;
             target_p->is_ghost = true;
             target_p->meditating = false;
@@ -152,11 +166,13 @@ void CastSpellCommand::execute(World& world) {
         }
         // EXP por daño a jugador
         caster->exp += Equations::exp_per_damage(damage, caster->level, target_p->level);
+        check_level_up(*caster, world);
     } else if (target_n) {
         if (target_n->hp <= damage) {
             // BUG FIX #2: otorgar EXP al matar NPC con hechizo
             const NpcTemplate& tpl = Npcs::tpl(target_n->type);
             caster->exp += Equations::exp_on_kill(target_n->max_hp, caster->level, 1) + tpl.exp_reward;
+            check_level_up(*caster, world);
 
             uint32_t gold = Equations::gold_drop_npc(target_n->max_hp);
             caster->gold += gold;
@@ -168,6 +184,7 @@ void CastSpellCommand::execute(World& world) {
             target_n->hp -= damage;
             // EXP por daño a NPC
             caster->exp += Equations::exp_per_damage(damage, caster->level, 1);
+            check_level_up(*caster, world);
         }
     }
 

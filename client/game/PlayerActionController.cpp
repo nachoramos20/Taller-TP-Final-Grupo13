@@ -21,6 +21,18 @@ void PlayerActionController::handle_world_click(int tile_x, int tile_y) {
         bool is_service_npc = (e.entity_type == static_cast<uint8_t>(EntityType::NPC))
                               && (e.sprite_id >= 7);  // MERCHANT=7, BANKER=8, PRIEST=9
 
+        // BUG FIX anim zona segura: ni el servidor permite atacar/lanzar
+        // hechizos desde o hacia una zona segura (ciudad/pueblo) — no
+        // spawnear el VFX/sonido cuando claramente va a ser rechazado.
+        bool attack_blocked_by_safe_zone = !is_service_npc &&
+            (is_in_safe_zone(static_cast<uint16_t>(_player.tile_x), static_cast<uint16_t>(_player.tile_y)) ||
+             is_in_safe_zone(e.pos_x, e.pos_y));
+
+        if (attack_blocked_by_safe_zone) {
+            if (_chat) _chat->add_message("No podés atacar en una zona segura.");
+            return;
+        }
+
         if (is_service_npc) {
             if (_command_queue) _command_queue->push(Command::npc_interact(e.entity_id));
             if (_chat) _chat->add_message("Hablando con " + e.username + "...");
@@ -75,10 +87,11 @@ void PlayerActionController::handle_world_click(int tile_x, int tile_y) {
                 int weapon_range = weapon_client_range(my_weapon);
                 bool in_range = (range_dist <= weapon_range);
 
-                // Para armas mágicas también verificar maná mínimo (≥1)
+                // Para armas mágicas también verificar que el maná alcance
+                // el costo real del arma (antes solo se chequeaba "> 0").
                 bool has_mana = true;
                 if (weapon_is_magic(my_weapon) && _stats) {
-                    has_mana = (_stats->current_mp() > 0);
+                    has_mana = (_stats->current_mp() >= weapon_client_mana_cost(my_weapon));
                 }
 
                 if (!in_range) {
@@ -100,9 +113,12 @@ void PlayerActionController::handle_world_click(int tile_x, int tile_y) {
                                  static_cast<uint16_t>(_player.tile_y),
                                  e.pos_x, e.pos_y, weapon_is_magic(my_weapon));
                 _audio.attack(my_weapon, dist);
-                if (_chat)
-                    _chat->add_message("Atacando a " + (e.username.empty()
-                        ? std::string("#") + std::to_string(e.entity_id) : e.username));
+                if (_chat) {
+                    std::string who = e.username.empty()
+                        ? std::string("#") + std::to_string(e.entity_id) : e.username;
+                    bool is_heal = (my_weapon == static_cast<uint8_t>(ItemId::ELVEN_FLUTE));
+                    _chat->add_message((is_heal ? "Curando a " : "Atacando a ") + who);
+                }
             } else {
                 // Arma melee: sin proyectil, sin validación de rango client-side
                 if (_command_queue) _command_queue->push(Command::attack(e.entity_id));
@@ -138,6 +154,16 @@ void PlayerActionController::handle_chat_command(const std::string& text) {
     if (_state.priest_npc_id != -1) {
         float dist = dist_to_npc(_state.priest_npc_id);
         if (text.rfind("/curar", 0) == 0) _audio.priest_heal(dist);
-        else if (text.rfind("/resucitar", 0) == 0) _audio.priest_resurrect(dist);
+    }
+    if (text.rfind("/resucitar", 0) == 0) try_play_resurrect_sound();
+}
+
+void PlayerActionController::try_play_resurrect_sound() {
+    for (const auto& e : _state.entities) {
+        if (e.entity_type != static_cast<uint8_t>(EntityType::NPC)) continue;
+        if (static_cast<NpcId>(e.sprite_id) != NpcId::PRIEST) continue;
+        if (manhattan_dist_to_player_tiles(_player, e.pos_x, e.pos_y) > 2) continue;
+        _audio.priest_resurrect(dist_to_player_tiles(_player, e.pos_x, e.pos_y));
+        return;
     }
 }

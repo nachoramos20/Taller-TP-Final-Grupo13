@@ -58,11 +58,27 @@ void InputController::handle_events(bool& running) {
 }
 
 void InputController::handle_keydown(const SDL_Event& event, bool& running) {
-    auto it = _key_actions.find(event.key.keysym.sym);
-    if (it == _key_actions.end()) return;
-
     bool inventory_open = _inventory && _inventory->is_visible();
     bool chat_active    = _chat && _chat->input_active();
+
+    // Cheats (Ctrl+Shift+tecla): vida infinita, mana infinito, morir/revivir
+    // automáticamente. Se ignoran mientras se escribe en el chat para no
+    // disparar por accidente con esas combinaciones.
+    if (!chat_active) {
+        Uint16 mods = event.key.keysym.mod;
+        if ((mods & KMOD_CTRL) && (mods & KMOD_SHIFT) && _command_queue) {
+            switch (event.key.keysym.sym) {
+                case SDLK_h: _command_queue->push(Command::cheat(CheatId::INFINITE_HP));    return;
+                case SDLK_n: _command_queue->push(Command::cheat(CheatId::INFINITE_MP));    return;
+                case SDLK_k: _command_queue->push(Command::cheat(CheatId::INSTANT_DEATH));  return;
+                case SDLK_r: _command_queue->push(Command::cheat(CheatId::INSTANT_REVIVE)); return;
+                default: break;
+            }
+        }
+    }
+
+    auto it = _key_actions.find(event.key.keysym.sym);
+    if (it == _key_actions.end()) return;
 
     switch (it->second) {
         case InputAction::ToggleNameTag:
@@ -82,8 +98,10 @@ void InputController::handle_keydown(const SDL_Event& event, bool& running) {
                 _command_queue->push(Command::meditate());
             break;
         case InputAction::Resurrect:
-            if (!inventory_open && !chat_active && _command_queue)
+            if (!inventory_open && !chat_active && _command_queue) {
                 _command_queue->push(Command::resurrect());
+                if (_on_resurrect) _on_resurrect();
+            }
             break;
         case InputAction::PickItem:
             if (!inventory_open && !chat_active && _command_queue)
