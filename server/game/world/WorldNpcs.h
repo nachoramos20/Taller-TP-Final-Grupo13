@@ -44,6 +44,7 @@ public:
     std::vector<NpcData>&       all_mutable() { return npcs; }
 
     void spawn(NpcId type, uint16_t x, uint16_t y);  // legacy/manual
+    void kill_all_in_zone(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
     void tick(uint32_t current_tick);
     NpcData* find(uint16_t id);
     void cleanup_dead();

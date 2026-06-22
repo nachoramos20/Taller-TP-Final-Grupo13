@@ -24,6 +24,9 @@ public:
     // Elimina manchas de sangre que ya expiraron
     void cleanup_expired(uint32_t current_tick);
 
+    // Elimina todos los items del suelo dentro de un rectángulo.
+    void remove_in_zone(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+
     // Droppea oro excedente + inventario al morir el jugador.
     void drop_player_loot(PlayerData& dead);
 };

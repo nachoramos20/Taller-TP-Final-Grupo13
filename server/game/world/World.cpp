@@ -114,6 +114,20 @@ WorldSpawner& World::spawner() {
     return spawner_;
 }
 
+// ---- Mazmorras ----
+Mazmorra& World::add_dungeon(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+    mazmorras_.emplace_back(npcs_, items_, x1, y1, x2, y2);
+    return mazmorras_.back();
+}
+
+Mazmorra* World::get_dungeon_at(uint16_t x, uint16_t y) {
+    for (Mazmorra& mazmorra : mazmorras_) {
+        if (mazmorra.in_mazmorra(x,y))
+            return &mazmorra;
+    }
+    return nullptr;
+}
+
 bool World::in_safe_zone(uint16_t x, uint16_t y) const {
     return spawner_.in_safe_zone(x, y);
 }

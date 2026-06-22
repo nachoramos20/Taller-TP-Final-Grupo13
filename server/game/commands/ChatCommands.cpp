@@ -39,7 +39,8 @@ void ChatCommand::execute(World& world) {
     else if (token == "/clan-ban")      { handle_clan_ban(world, rest); }
     else if (token == "/clan-kick")     { handle_clan_kick(world, rest); }
     else if (token == "/dejar-clan")    { handle_dejar_clan(world); }
-    // -- Cheats --
+    else if (token == "/entrar-mazmorra") { handle_entrar_mazmorra(world); }
+    else if (token == "/salir-mazmorra")  { handle_salir_mazmorra(world); }
     else if (token == "/set-nivel")          { handle_set_nivel(world, rest); }
     else if (token == "/set-vida")           { handle_set_vida(world, rest); }
     else if (token == "/set-fuerza")         { handle_set_fuerza(world, rest); }
@@ -222,6 +223,52 @@ void ChatCommand::handle_private_msg(World& world, const std::string& full_cmd) 
 
     world.push_message(target_id, 2, "[" + sender_name + " → ti]: " + msg);
     world.push_message(client_id,  2, "[tú → " + target_nick + "]: " + msg);
+}
+
+void ChatCommand::handle_entrar_mazmorra(World& world) {
+    PlayerData* player = world.get_player_mutable(client_id);
+    if (!player) {
+        return;
+    }
+
+    if (player->is_ghost) {
+        world.push_message(client_id, 0, "No puedes entrar a la mazmorra estando muerto.");
+        return;
+    }
+    
+    Mazmorra* mazmorra = world.get_dungeon_at(30, 40);
+    if (!mazmorra) {
+        world.push_message(client_id, 0, "Mazmorra no encontrada");
+        return;
+    }
+    
+    if (!mazmorra->activa()) {
+        mazmorra->set_activa(true);
+        mazmorra->respawn();
+    }
+    
+    world.move_player(client_id, 30,40);
+    world.push_message(client_id, 0, "Has entrado a la mazmorra.");
+}
+
+void ChatCommand::handle_salir_mazmorra(World& world) {
+    PlayerData* player = world.get_player_mutable(client_id);
+    if (!player) return;
+
+    Mazmorra* mazmorra = world.get_dungeon_at(player->pos_x, player->pos_y);
+    if (!mazmorra) {
+        world.push_message(client_id, 0, "No estás dentro de una mazmorra.");
+        return;
+    }
+
+    // Teletransportar al centro de la ciudad (zona segura)
+    uint16_t spawn_x = 40;
+    uint16_t spawn_y = 20;
+    world.move_player(client_id, spawn_x, spawn_y);
+    player->pos_x = spawn_x;
+    player->pos_y = spawn_y;
+
+    world.push_message(client_id, 0, "Has salido de la mazmorra.");
 }
 
 // ---- Cheats ----

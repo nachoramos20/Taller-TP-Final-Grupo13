@@ -67,6 +67,11 @@ void ServerGameLoop::run() {
     world.spawn_npc(NpcId::MERCHANT, 47, 70);
     world.spawn_npc(NpcId::BANKER,   33, 70);
 
+    // ── Mazmorra placeholder ──
+    Mazmorra& mazmorra = world.add_dungeon(70, 55, 80, 65);
+    mazmorra.add_spawn(NpcId::SKELETON, 72, 57);
+    mazmorra.add_spawn(NpcId::ZOMBIE,   78, 62);
+
     while (should_keep_running()) {
         process_commands();
         update();

@@ -149,6 +149,8 @@ private:
     void handle_clan_kick(World& world, const std::string& nick);
     void handle_dejar_clan(World& world);
     void handle_listar_comerciante(World& world);
+    void handle_entrar_mazmorra(World& world);
+    void handle_salir_mazmorra(World& world);
 
     // -- Cheats --
     void handle_set_nivel(World& world, const std::string& args);

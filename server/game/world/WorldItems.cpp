@@ -50,6 +50,13 @@ void WorldItems::cleanup_expired(uint32_t current_tick) {
         items.end());
 }
 
+void WorldItems::remove_in_zone(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+    std::erase_if(items, [&](const FloorItem& floor_item) {
+        return floor_item.pos_x >= x1 && floor_item.pos_x <= x2 &&
+               floor_item.pos_y >= y1 && floor_item.pos_y <= y2;
+    });
+}
+
 void WorldItems::drop_player_loot(PlayerData& dead) {
     uint32_t gold_max = static_cast<uint32_t>(100.0 * std::pow(dead.level, 1.1));
 
