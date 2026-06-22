@@ -46,7 +46,6 @@ struct WorldState {
     uint32_t current_tick = 0;
 
     bool    was_ghost = false;
-    bool    was_meditating = false;
     uint8_t last_level = 0;
     bool    level_initialized = false;
     bool    spawned = false;  // primer snapshot recibido 

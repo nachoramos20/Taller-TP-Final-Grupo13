@@ -28,9 +28,13 @@ public:
 
     // Progresión / economía
     void level_up();
-    void meditation_start();
     void coins_received();
     void player_spawn();
+
+    // Meditación: suena en loop mientras el jugador está meditando y se
+    // corta apenas sale de ese estado. Pensado para llamarse con el estado
+    // actual cada vez que llega un snapshot.
+    void update_meditation_loop(bool meditating);
 
     // UI: click genérico
     void click();

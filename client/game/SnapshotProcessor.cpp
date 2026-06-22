@@ -116,8 +116,7 @@ void SnapshotProcessor::update_progression_sounds(WorldState& state, const Snaps
     }
     state.was_ghost = (snap.is_ghost != 0);
 
-    if (snap.meditating != 0 && !state.was_meditating) _audio.meditation_start();
-    state.was_meditating = (snap.meditating != 0);
+    _audio.update_meditation_loop(snap.meditating != 0);
 
     if (state.level_initialized && snap.level > state.last_level) _audio.level_up();
     state.last_level = snap.level;

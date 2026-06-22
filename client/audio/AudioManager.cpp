@@ -21,6 +21,9 @@ static constexpr int SPEECH_CHANNEL  = 0;  // reservado: diálogo de NPC
 static constexpr int AMBIENT_CHANNEL = 1;  // reservado: sonido ambiente en loop (olas, etc.)
 static constexpr int LOOPING_CHANNEL = 2;  // reservado: loop gateado por condición (pasos largos, etc.)
 static constexpr int SECONDARY_AMBIENT_CHANNEL = 3;  // reservado: segundo ambiente en loop (viento del cementerio, etc.)
+static constexpr int MEDITATION_CHANNEL_A = 4;  // reservado: loop de meditación (vueltas pares)
+static constexpr int MEDITATION_CHANNEL_B = 5;  // reservado: loop de meditación (vueltas impares, se solapan con A)
+static constexpr uint32_t MEDITATION_OVERLAP_MS = 400;  // cuánto antes arranca la próxima vuelta
 
 AudioManager::AudioManager() {
     if (Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == 0)
@@ -30,7 +33,7 @@ AudioManager::AudioManager() {
         throw std::runtime_error(std::string("Mix_OpenAudio: ") + Mix_GetError());
 
     Mix_AllocateChannels(TOTAL_CHANNELS);
-    Mix_ReserveChannels(4);
+    Mix_ReserveChannels(6);
 
     Mix_VolumeMusic(DEFAULT_MUSIC_VOLUME);
 }
@@ -278,30 +281,76 @@ void AudioManager::set_secondary_ambient_loop(const std::string& path, float dis
     set_ambient_loop_on(SECONDARY_AMBIENT_CHANNEL, _secondary_ambient_path, path, dist_tiles, range);
 }
 
-void AudioManager::set_looping_while(const std::string& path, bool active, float volume_scale) {
+void AudioManager::set_looping_while_on(int channel, std::string& tracked_path, const std::string& path,
+                                        bool active, float volume_scale) {
     if (!active) {
-        if (!_looping_path.empty()) {
-            Mix_HaltChannel(LOOPING_CHANNEL);
-            _looping_path.clear();
+        if (!tracked_path.empty()) {
+            Mix_HaltChannel(channel);
+            tracked_path.clear();
         }
         return;
     }
 
-    if (_looping_path != path) {
+    if (tracked_path != path) {
         Mix_Chunk* chunk = load_ambient_chunk(path);
         if (!chunk) return;
-        Mix_HaltChannel(LOOPING_CHANNEL);
-        Mix_PlayChannel(LOOPING_CHANNEL, chunk, -1);  // loop infinito
-        Mix_Volume(LOOPING_CHANNEL, static_cast<int>(MAX_EFFECT_VOLUME * volume_scale));
-        _looping_path = path;
+        Mix_HaltChannel(channel);
+        Mix_PlayChannel(channel, chunk, -1);  // loop infinito
+        Mix_Volume(channel, static_cast<int>(MAX_EFFECT_VOLUME * volume_scale));
+        tracked_path = path;
+    }
+}
+
+void AudioManager::set_looping_while(const std::string& path, bool active, float volume_scale) {
+    set_looping_while_on(LOOPING_CHANNEL, _looping_path, path, active, volume_scale);
+}
+
+void AudioManager::set_meditation_loop(const std::string& path, bool active, float volume_scale) {
+    if (!active) {
+        if (_meditation_active_channel != -1) {
+            Mix_HaltChannel(MEDITATION_CHANNEL_A);
+            Mix_HaltChannel(MEDITATION_CHANNEL_B);
+            _meditation_active_channel = -1;
+            _meditation_path.clear();
+        }
+        return;
+    }
+
+    if (_meditation_active_channel == -1 || _meditation_path != path) {
+        Mix_Chunk* chunk = load_ambient_chunk(path);
+        if (!chunk) return;
+        Mix_HaltChannel(MEDITATION_CHANNEL_A);
+        Mix_HaltChannel(MEDITATION_CHANNEL_B);
+        Mix_PlayChannel(MEDITATION_CHANNEL_A, chunk, 0);  // sin loop propio: update() encadena la siguiente vuelta
+        Mix_Volume(MEDITATION_CHANNEL_A, static_cast<int>(MAX_EFFECT_VOLUME * volume_scale));
+        _meditation_path = path;
+        _meditation_active_channel = MEDITATION_CHANNEL_A;
+        _meditation_volume_scale = volume_scale;
+        uint32_t dur = chunk_duration_ms(chunk);
+        _meditation_next_switch_ms = SDL_GetTicks() + (dur > MEDITATION_OVERLAP_MS ? dur - MEDITATION_OVERLAP_MS : 0);
     }
 }
 
 void AudioManager::update() {
-    if (_speech_queue.empty()) return;
     uint32_t now = SDL_GetTicks();
-    if (now >= _speech_queue.front().fire_at_ms) {
+
+    if (!_speech_queue.empty() && now >= _speech_queue.front().fire_at_ms) {
         play_speech_now(_speech_queue.front().path, _speech_queue.front().dist_tiles);
         _speech_queue.erase(_speech_queue.begin());
+    }
+
+    if (_meditation_active_channel != -1 && now >= _meditation_next_switch_ms) {
+        Mix_Chunk* chunk = load_ambient_chunk(_meditation_path);  // ya cacheado
+        if (chunk) {
+            int other = (_meditation_active_channel == MEDITATION_CHANNEL_A)
+                        ? MEDITATION_CHANNEL_B : MEDITATION_CHANNEL_A;
+            // No se hace Mix_HaltChannel del canal actual: lo deja sonar su
+            // cola natural mientras el otro ya arrancó, así se solapan.
+            Mix_PlayChannel(other, chunk, 0);
+            Mix_Volume(other, static_cast<int>(MAX_EFFECT_VOLUME * _meditation_volume_scale));
+            _meditation_active_channel = other;
+            uint32_t dur = chunk_duration_ms(chunk);
+            _meditation_next_switch_ms = now + (dur > MEDITATION_OVERLAP_MS ? dur - MEDITATION_OVERLAP_MS : 0);
+        }
     }
 }

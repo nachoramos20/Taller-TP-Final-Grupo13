@@ -66,6 +66,14 @@ public:
     // condición actual.
     void set_looping_while(const std::string& path, bool active, float volume_scale = 1.0f);
 
+    // Loop de meditación con solapamiento: en vez de cortar y reiniciar en
+    // seco (lo que se siente como un corte si el audio tiene un fade-out al
+    // final), alterna entre dos canales y arranca la siguiente vuelta un
+    // poco antes de que termine la actual, así la entrada de la nueva tapa
+    // la cola de la anterior. Pensado para llamarse con el estado actual
+    // cada vez que llega un snapshot; update() encadena las vueltas.
+    void set_meditation_loop(const std::string& path, bool active, float volume_scale = 1.0f);
+
     void update();
 
 private:
@@ -85,6 +93,8 @@ private:
     uint32_t chunk_duration_ms(Mix_Chunk* chunk) const;
     void set_ambient_loop_on(int channel, std::string& tracked_path, const std::string& path,
                              float dist_tiles, float max_audible_tiles);
+    void set_looping_while_on(int channel, std::string& tracked_path, const std::string& path,
+                              bool active, float volume_scale);
 
     Mix_Music* _music = nullptr;
     std::unordered_map<std::string, Mix_Chunk*> _chunk_cache;
@@ -94,5 +104,11 @@ private:
     std::vector<QueuedSpeech> _speech_queue;  // resto de la secuencia actual, pendiente
     std::string _ambient_path;            // qué está sonando en el canal ambiente (vacío = nada)
     std::string _secondary_ambient_path;  // qué está sonando en el canal ambiente secundario
-    std::string _looping_path;   // qué está sonando en el canal de loop gateado (vacío = nada)
+    std::string _looping_path;     // qué está sonando en el canal de loop gateado (vacío = nada)
+
+    // Loop de meditación con solapamiento entre dos canales (ver set_meditation_loop)
+    std::string _meditation_path;
+    int         _meditation_active_channel = -1;  // -1 = inactivo
+    uint32_t    _meditation_next_switch_ms = 0;
+    float       _meditation_volume_scale = 1.0f;
 };

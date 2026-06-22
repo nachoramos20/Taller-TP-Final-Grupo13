@@ -90,8 +90,11 @@ void GameAudioService::level_up() {
     play_random(AudioConfig::instance().get_ui_sound("level_up"), 0.0f);
 }
 
-void GameAudioService::meditation_start() {
-    play_random(AudioConfig::instance().get_ambient_sound("meditation"), 0.0f);
+void GameAudioService::update_meditation_loop(bool meditating) {
+    if (!_audio) return;
+    const auto& sound = AudioConfig::instance().get_ambient_sound("meditation");
+    if (sound.empty()) return;
+    _audio->set_meditation_loop(sound.front(), meditating);
 }
 
 void GameAudioService::coins_received() {
