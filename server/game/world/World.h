@@ -78,6 +78,7 @@ public:
 
     // ---- NPCs ----
     void spawn_npc(NpcId type, uint16_t x, uint16_t y);
+    void spawn_npc_in_zone(NpcId type, uint16_t x, uint16_t y, uint8_t zone_id);
     void tick_npcs(uint32_t current_tick);
     NpcData* find_npc(uint16_t id);
 
@@ -123,6 +124,7 @@ public:
     NpcId    get_selected_npc(uint16_t client_id) const;
     void     clear_selected_npc(uint16_t client_id);
     bool     player_near_service_npc(uint16_t client_id, NpcId required_type) const;
+    uint8_t  get_nearby_merchant_zone(uint16_t client_id) const;  // 255 = ninguno
 };
 
 #endif // WORLD_H

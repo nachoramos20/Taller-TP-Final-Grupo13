@@ -1,26 +1,29 @@
 #include "GameLoop.h"
 #include "../config/ClientConfig.h"
 #include "../config/RacesClassesConfig.h"
+#include "../../common/protocol/protocol.h"
 
 // Constructores
 
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
     : GameLoop(window, renderer, nullptr, nullptr, nullptr, nullptr, nullptr,
-               RacesClassesConfig::instance().get_login_messages().welcome) {}
+               RacesClassesConfig::instance().get_login_messages().welcome, "") {}
 
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                    Queue<Command>* command_queue,
                    Queue<SnapshotDTO>* snapshot_queue,
                    Queue<MapaDTO>* map_queue,
                    std::atomic<bool>* connected,
-                   AudioManager* audio)
+                   AudioManager* audio,
+                   const std::string& username)
     : GameLoop(window, renderer, command_queue, snapshot_queue, map_queue, connected, audio,
-               RacesClassesConfig::instance().get_login_messages().connected) {}
+               RacesClassesConfig::instance().get_login_messages().connected, username) {}
 
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                     Queue<Command>* command_queue, Queue<SnapshotDTO>* snapshot_queue,
                     Queue<MapaDTO>* map_queue, std::atomic<bool>* connected,
-                    AudioManager* audio, const std::string& welcome_message)
+                    AudioManager* audio, const std::string& welcome_message,
+                    const std::string& username)
     : _window(window), _renderer(renderer),
       _camera(window.GetWidth(), window.GetHeight(), StatsPanel::PANEL_W),
       _command_queue(command_queue), _snapshot_queue(snapshot_queue),
@@ -39,10 +42,18 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
       _world_renderer(window, renderer, _camera),
       _input(_camera, _player, _command_queue, _chat.get(), _stats.get(), _inventory.get(), _pos_label.get()),
       _actions(_state, _player, _command_queue, _chat.get(), _stats.get(), _audio_service) {
+
+    if (!username.empty())
+        _stats->set_username(username);
+
     _chat->add_message(welcome_message);
 
     _input.on_world_click([this](int tile_x, int tile_y) {
         _actions.handle_world_click(tile_x, tile_y);
+    });
+
+    _input.on_use_potion([this]() {
+        handle_use_potion();
     });
 
     _chat->on_submit([this](const std::string& text) {
@@ -95,6 +106,9 @@ void GameLoop::update(float dt) {
             _snapshot_processor.apply_snapshot(_state, _player, snap);
     }
 
+    // Mantener la referencia al inventario actualizada en StatsPanel (para atajo poción)
+    _stats->set_inventory_ref(_state.inventory, SnapshotDTO::INVENTORY_SIZE);
+
     _player.update(dt);
     _camera.follow(_player);
     _pos_label->update(_player.tile_x, _player.tile_y);
@@ -127,4 +141,22 @@ void GameLoop::render() {
     if (_pos_label) _pos_label->render(sw, sh);
 
     _renderer.Present();
+}
+
+// Usar la primera poción de salud o maná que encuentre en el inventario
+void GameLoop::handle_use_potion() {
+    if (!_command_queue) return;
+
+    const uint8_t HEALTH_POTION = static_cast<uint8_t>(ItemId::HEALTH_POTION);
+    const uint8_t MANA_POTION   = static_cast<uint8_t>(ItemId::MANA_POTION);
+
+    for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++) {
+        uint8_t item = _state.inventory[i];
+        if (item == HEALTH_POTION || item == MANA_POTION) {
+            _command_queue->push(Command::use_item(static_cast<uint8_t>(i)));
+            if (_chat) _chat->add_message("Usaste una poción.");
+            return;
+        }
+    }
+    if (_chat) _chat->add_message("No tienes pociones en el inventario.");
 }

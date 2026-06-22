@@ -209,3 +209,7 @@ void WorldNpcs::tick(uint32_t ct) {
         spawn_internal(s.type, s.x, s.y, s.zone_id);
     }
 }
+
+void WorldNpcs::spawn_with_zone(NpcId type, uint16_t x, uint16_t y, uint8_t zone_id) {
+    spawn_internal(type, x, y, zone_id);
+}
