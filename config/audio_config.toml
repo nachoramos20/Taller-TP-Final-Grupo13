@@ -103,7 +103,7 @@ click              = ["assets/sounds/effects/ui/click.wav"]
 
 # ── Sonidos Ambiente ──────────────────────────────────────────
 [ambient_sounds]
-ocean              = ["assets/sounds/effects/ambient/mar_2.wav"]
+ocean              = ["assets/sounds/effects/ambient/mar.wav"]
 meditation         = ["assets/sounds/effects/ambient/meditacion.wav"]
 cemetery_wind      = ["assets/sounds/effects/weather/viento_cementerio.wav"]
 bosque_fauna       = [
