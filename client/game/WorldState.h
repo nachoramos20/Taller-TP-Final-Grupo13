@@ -49,6 +49,7 @@ struct WorldState {
     bool    was_meditating = false;
     uint8_t last_level = 0;
     bool    level_initialized = false;
+    bool    spawned = false;  // primer snapshot recibido 
 
     // Ids de los NPC de servicio con los que se está interactuando
     // actualmente (-1 = ninguno).

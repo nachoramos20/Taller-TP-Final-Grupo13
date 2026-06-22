@@ -98,6 +98,10 @@ void GameAudioService::coins_received() {
     play_random(AudioConfig::instance().get_economy_sound("monedas"), 0.0f);
 }
 
+void GameAudioService::player_spawn() {
+    play_random(AudioConfig::instance().get_ui_sound("player_spawn"), 0.0f);
+}
+
 void GameAudioService::click() {
     play_random(AudioConfig::instance().get_ui_sound("click"), 0.0f);
 }

@@ -25,9 +25,9 @@ void SnapshotProcessor::apply_snapshot(WorldState& state, PlayerState& player, c
         state.entities = *snap.entities;
     }
 
+    update_progression_sounds(state, snap);
     update_service_npc_ranges(state, player);
     announce_chat_messages(snap);
-    update_progression_sounds(state, snap);
     update_panels(snap);
     sync_own_equipment(state, snap);
     sync_own_position(state, player, snap);
@@ -100,7 +100,14 @@ void SnapshotProcessor::announce_chat_messages(const SnapshotDTO& snap) {
 }
 
 void SnapshotProcessor::update_progression_sounds(WorldState& state, const SnapshotDTO& snap) {
+    if (!state.spawned) _audio.player_spawn();
+    state.spawned = true;
+
     if (snap.is_ghost != 0 && !state.was_ghost) _audio.player_death(0.0f);
+    if (snap.is_ghost == 0 && state.was_ghost) {
+        // Resucité
+        state.shop_npc_id = state.bank_npc_id = state.priest_npc_id = -1;
+    }
     state.was_ghost = (snap.is_ghost != 0);
 
     if (snap.meditating != 0 && !state.was_meditating) _audio.meditation_start();

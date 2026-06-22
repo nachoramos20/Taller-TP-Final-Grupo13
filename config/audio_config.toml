@@ -100,6 +100,7 @@ monedas            = ["assets/sounds/effects/economy/monedas.wav"]
 [ui_sounds]
 level_up           = ["assets/sounds/effects/ui/sonido_al_subir_de_lvl.wav"]
 click              = ["assets/sounds/effects/ui/click.wav"]
+player_spawn       = ["assets/sounds/effects/ui/spawn_npc.wav"]
 
 # ── Sonidos Ambiente ──────────────────────────────────────────
 [ambient_sounds]

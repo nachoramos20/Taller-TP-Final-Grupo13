@@ -30,6 +30,7 @@ public:
     void level_up();
     void meditation_start();
     void coins_received();
+    void player_spawn();
 
     // UI: click genérico
     void click();
