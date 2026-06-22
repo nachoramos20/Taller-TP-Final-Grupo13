@@ -14,7 +14,7 @@ ServerGameLoop::ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_qu
     : command_queue(command_queue),
       queue_monitor(queue_monitor),
       save_queue(save_queue),
-      world(100, 100, std::move(collision_map), save_queue), tick(0),
+       world(120, 100, std::move(collision_map), save_queue), tick(0),
       regen_ticks(0) {}
 
 void ServerGameLoop::run() {
@@ -67,10 +67,10 @@ void ServerGameLoop::run() {
     world.spawn_npc(NpcId::MERCHANT, 47, 70);
     world.spawn_npc(NpcId::BANKER,   33, 70);
 
-    // ── Mazmorra placeholder ──
-    Mazmorra& mazmorra = world.add_dungeon(70, 55, 80, 65);
-    mazmorra.add_spawn(NpcId::SKELETON, 72, 57);
-    mazmorra.add_spawn(NpcId::ZOMBIE,   78, 62);
+    // mazmorra
+    Mazmorra& mazmorra = world.add_dungeon(92,4, 99,99);
+    //inicio 95,98
+    mazmorra.add_spawn(NpcId::ORC, 95, 95);
 
     while (should_keep_running()) {
         process_commands();

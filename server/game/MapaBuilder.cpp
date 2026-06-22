@@ -99,7 +99,7 @@ static constexpr uint16_t O_TUMBA_4         = 49;
 static constexpr uint16_t O_TUMBA_5         = 50;
 
 // límites del mapa
-static constexpr int MAP_W = 100;
+static constexpr int MAP_W = 120;
 static constexpr int MAP_H = 100;
 
 // zona jugable
@@ -466,7 +466,7 @@ void MapaBuilder::build_cementerio(MapaDTO& mapa) {
 }
 
 void MapaBuilder::build_costa(MapaDTO& mapa) {
-    mark_collision_rect(OLAS_X1, 0, MAP_W - 1, MAP_H - 1); // a partir de las olas no se puede caminar mas
+    //mark_collision_rect(OLAS_X1, 0, MAP_W - 1, MAP_H - 1); // a partir de las olas no se puede caminar mas
     // franja pasto->arena
     for (int y = 1; y <= 99; y += 2)
         get_tile(mapa, FRANJA_X1, y).floor_id = F_ARENA_FRANJA;
@@ -492,6 +492,13 @@ void MapaBuilder::build_costa(MapaDTO& mapa) {
             get_tile(mapa, x, y).floor_id = F_ARENA;
         for (int x = AGUA_X1; x <= AGUA_X2; x++)
             get_tile(mapa, x, y).floor_id = F_AGUA;
+    }
+
+    for (int y = 30; y <= 80; y++) {
+        for (int x = 110; x <= 119; x++) {
+            TileDTO& tile = get_tile(mapa, x, y);
+            tile.floor_id = F_PIEDRA;
+        }
     }
 }
 

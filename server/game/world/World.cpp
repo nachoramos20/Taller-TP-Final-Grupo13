@@ -26,6 +26,7 @@ void World::remove_player(uint16_t id) {
     players_.remove(id);
 }
 void World::move_player(uint16_t id, uint16_t x, uint16_t y) { players_.move(id, x, y); }
+void World::tp_player(uint16_t id, uint16_t x, uint16_t y) { players_.tp(id, x, y); }
 
 const std::unordered_map<uint16_t, PlayerData>& World::get_players() const { return players_.all(); }
 std::unordered_map<uint16_t, PlayerData>& World::get_players_mutable() { return players_.all_mutable(); }

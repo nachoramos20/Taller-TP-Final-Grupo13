@@ -23,6 +23,7 @@ public:
     void add(const PlayerData& player_data);
     void remove(uint16_t client_id);
     void move(uint16_t client_id, uint16_t new_x, uint16_t new_y);
+    void tp(uint16_t client_id, uint16_t new_x, uint16_t new_y);
 
     const std::unordered_map<uint16_t, PlayerData>& all() const { return players_map; }
     std::unordered_map<uint16_t, PlayerData>& all_mutable() { return players_map; }

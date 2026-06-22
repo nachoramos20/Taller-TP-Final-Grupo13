@@ -15,15 +15,24 @@ bool Mazmorra::in_mazmorra(uint16_t x, uint16_t y) {
     return x >= x1_ && x <= x2_ && y >= y1_ && y <= y2_;
 }
 
+void Mazmorra::player_entered() {
+    if (player_count_ == 0) {
+        respawn();
+    }
+    player_count_++;
+}
+
+void Mazmorra::player_left() {
+    if (player_count_ > 0) {
+        player_count_--;
+    }
+}
+
 void Mazmorra::respawn() {
-    // 1) Matar todos los NPCs dentro del rectángulo de la mazmorra
+    if (activa()) return;
     npcs_.kill_all_in_zone(x1_, y1_, x2_, y2_);
-
-    // 2) Limpiar items del suelo dentro del rectángulo
     items_.remove_in_zone(x1_, y1_, x2_, y2_);
-
-    // 3) Spawnear todos los puntos definidos
-    for (const MazmorraSpawnPoint& sp : spawns_) {
-        npcs_.spawn(sp.type, sp.x, sp.y);
+    for (const MazmorraSpawnPoint& spawn_point : spawns_) {
+        npcs_.spawn(spawn_point.type, spawn_point.x, spawn_point.y);
     }
 }

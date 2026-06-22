@@ -54,6 +54,7 @@ public:
     void add_player(const PlayerData& player_data);
     void remove_player(uint16_t client_id);
     void move_player(uint16_t client_id, uint16_t new_x, uint16_t new_y);
+    void tp_player(uint16_t client_id, uint16_t new_x, uint16_t new_y);
 
     const std::unordered_map<uint16_t, PlayerData>& get_players() const;
     const PlayerData* find_player(uint16_t client_id) const;

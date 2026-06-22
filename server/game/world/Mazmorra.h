@@ -21,15 +21,16 @@ public:
     void add_spawn(NpcId type, uint16_t x, uint16_t y);
     void respawn();
 
-    bool activa() const { return activa_; }
-    void set_activa(bool val) { activa_ = val; }
+    bool activa() const { return player_count_ > 0; }
     bool in_mazmorra(uint16_t x, uint16_t y);
+    void player_entered();
+    void player_left();
 
 private:
     WorldNpcs& npcs_;
     WorldItems& items_;
     uint16_t x1_, y1_, x2_, y2_;
-    bool activa_ = false;
+    uint16_t player_count_ = 0;
     std::vector<MazmorraSpawnPoint> spawns_;
 };
 

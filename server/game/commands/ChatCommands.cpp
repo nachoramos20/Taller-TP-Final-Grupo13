@@ -236,18 +236,19 @@ void ChatCommand::handle_entrar_mazmorra(World& world) {
         return;
     }
     
-    Mazmorra* mazmorra = world.get_dungeon_at(30, 40);
+    Mazmorra* mazmorra = world.get_dungeon_at(95, 98);
     if (!mazmorra) {
         world.push_message(client_id, 0, "Mazmorra no encontrada");
         return;
     }
-    
-    if (!mazmorra->activa()) {
-        mazmorra->set_activa(true);
-        mazmorra->respawn();
+    if (mazmorra->in_mazmorra(player->pos_x, player->pos_y)) {
+        world.push_message(client_id, 0, "Ya estás dentro de la mazmorra.");
+        return;
     }
+
+    mazmorra->player_entered();
     
-    world.move_player(client_id, 30,40);
+    world.tp_player(client_id, 95, 98);
     world.push_message(client_id, 0, "Has entrado a la mazmorra.");
 }
 
@@ -261,12 +262,12 @@ void ChatCommand::handle_salir_mazmorra(World& world) {
         return;
     }
 
+    mazmorra->player_left();
+
     // Teletransportar al centro de la ciudad (zona segura)
-    uint16_t spawn_x = 40;
-    uint16_t spawn_y = 20;
-    world.move_player(client_id, spawn_x, spawn_y);
-    player->pos_x = spawn_x;
-    player->pos_y = spawn_y;
+    uint16_t spawn_x = 60;
+    uint16_t spawn_y = 62;
+    world.tp_player(client_id, spawn_x, spawn_y);
 
     world.push_message(client_id, 0, "Has salido de la mazmorra.");
 }
