@@ -22,11 +22,7 @@ effect_cooldown_ms = 80      # Milisegundos mínimos entre repeticiones del mism
 espada         = ["assets/sounds/effects/combat/espadazo.wav"]
 hacha          = ["assets/sounds/effects/combat/hachazo_y_golpe_de_clavado.wav"]
 martillo       = ["assets/sounds/effects/combat/martillazo.wav"]
-generico       = [
-    "assets/sounds/effects/combat/golpe_con_arma.wav",
-    "assets/sounds/effects/combat/golpe_con_arma_2.wav",
-    "assets/sounds/effects/combat/apunalada.wav"
-]
+generico       = ["assets/sounds/effects/combat/apunalada.wav"]
 golpe_final_espada = ["assets/sounds/effects/combat/espadazo_y_sangre_cayendo.wav"]
 
 # ── Sonidos de Combate - Armas a Distancia ────────────────────
