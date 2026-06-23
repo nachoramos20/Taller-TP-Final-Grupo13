@@ -1,6 +1,8 @@
-target_sources(argentum_grupo13_server
+# librería con todo el código del servidor (sin main)
+add_library(argentum_grupo13_server_lib STATIC)
+
+target_sources(argentum_grupo13_server_lib
     PRIVATE
-    main.cpp
     net/Acceptor.cpp
     net/ClientHandler.cpp
     net/ServerReceiverThread.cpp
@@ -38,7 +40,25 @@ target_sources(argentum_grupo13_server
     game/PersistenceThread.cpp
 )
 
-target_include_directories(argentum_grupo13_server
+target_include_directories(argentum_grupo13_server_lib
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+target_link_libraries(argentum_grupo13_server_lib
+    PUBLIC
+    argentum_grupo13_common
+)
+
+# ejecutable del servidor
+add_executable(argentum_grupo13_server)
+
+target_sources(argentum_grupo13_server
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    main.cpp
+)
+
+target_link_libraries(argentum_grupo13_server
+    PUBLIC
+    argentum_grupo13_server_lib
 )
