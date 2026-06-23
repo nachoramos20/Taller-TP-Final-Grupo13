@@ -7,6 +7,8 @@ target_sources(argentum_grupo13_client
     ui/LoginScreen.cpp
     ui/ChatWidget.cpp
     ui/StatsPanel.cpp
+    ui/StatsPanelRenderer.cpp
+    ui/SpellSystem.cpp
     ui/InventoryPanel.cpp
     ui/InventoryRenderer.cpp
     ui/ItemLabels.cpp

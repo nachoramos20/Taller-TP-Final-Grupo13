@@ -5,10 +5,17 @@
 #include <SDL2/SDL_ttf.h>
 #include <string>
 #include <cstdint>
+#include <optional>
 #include <vector>
+#include "SpellSystem.h"
+#include "StatsPanelRenderer.h"
 
 class GameAudioService;
 
+// Dueño de los datos del jugador (hp/mp/oro/nivel/exp/clase) y de la
+// interacción de mouse (botones de inventario/ayuda/hechizo). El dibujado
+// vive en StatsPanelRenderer y la selección de hechizo en SpellSystem,
+// ambas usadas por composición — ver render().
 class StatsPanel {
 public:
     StatsPanel(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size = 14,
@@ -27,8 +34,8 @@ public:
     bool inventory_button_clicked() const { return _inv_clicked; }
 
     // Modo hechizo: si está activo, los clicks sobre enemigos lanzan _selected_spell.
-    bool    cast_mode_active() const { return _cast_mode; }
-    uint8_t selected_spell()  const { return _selected_spell; }
+    bool    cast_mode_active() const { return _spell_system.cast_mode_active(); }
+    uint8_t selected_spell()  const { return _spell_system.selected_spell(); }
 
     // Acceso al MP actual (para validación client-side antes de spawnear VFX)
     uint16_t current_mp() const { return _mp; }
@@ -38,8 +45,8 @@ public:
     uint8_t current_level() const { return _level; }
 
     // Costo de maná y rango del hechizo actualmente seleccionado (0 si ninguno)
-    uint16_t selected_spell_mana_cost() const;
-    int      selected_spell_range()     const;
+    uint16_t selected_spell_mana_cost() const { return _spell_system.selected_spell_mana_cost(_cls); }
+    int      selected_spell_range()     const { return _spell_system.selected_spell_range(_cls); }
 
     // Atajos de teclado: activa el hechizo por índice (0-based), o usa poción
     void activate_spell_by_index(int index);
@@ -55,18 +62,15 @@ public:
     static constexpr int PANEL_W = 250;
 
 private:
-    void draw_text(const std::string& text, int x, int y, SDL_Color color);
-    void draw_bar(int x, int y, int w, int h, float fraction, SDL_Color fill, SDL_Color bg);
-    void draw_rounded_rect(int x, int y, int w, int h, SDL_Color color);
-
-    // BUG FIX anim: agregado campo `range` para validación client-side
-    struct SpellInfo { uint8_t id; const char* label; uint16_t mana; int range; };
-    std::vector<SpellInfo> spells_for_class(uint8_t cls) const;
-
     SDL2pp::Renderer& _renderer;
     GameAudioService* _audio     = nullptr;
     TTF_Font*         _font      = nullptr;
     int               _font_size;
+
+    // Construido en el cuerpo del constructor (necesita _font ya
+    // abierto), por eso es optional en vez de miembro directo.
+    std::optional<StatsPanelRenderer> _render_impl;
+    SpellSystem _spell_system;
 
     std::string _username;
 
@@ -84,18 +88,10 @@ private:
     const uint8_t* _inv_ref  = nullptr;
     int            _inv_size = 0;
 
-    SDL_Rect _inv_btn_rect {};
     bool     _inv_clicked  = false;
-
-    SDL_Rect _help_btn_rect {};
     bool     _help_visible = false;
 
-    // Hechizos
-    static constexpr int MAX_SPELL_BTNS = 3;
-    SDL_Rect _spell_btn_rect[MAX_SPELL_BTNS] {};
-    uint8_t  _spell_btn_id [MAX_SPELL_BTNS] { 0, 0, 0 };
-    int      _spell_btn_count = 0;
-
-    bool     _cast_mode      = false;
-    uint8_t  _selected_spell = 0;
+    // Regiones clickeables calculadas por el último render(); handle_event()
+    // las usa para resolver clicks (ver StatsPanelRenderer.h).
+    StatsLayout _layout;
 };
