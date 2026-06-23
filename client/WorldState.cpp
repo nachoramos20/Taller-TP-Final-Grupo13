@@ -4,29 +4,17 @@
 #include "config/ClientConfig.h"
 #include "config/SpellVfxConfig.h"
 
-float dist_to_player_tiles(const PlayerState& player, uint16_t x, uint16_t y) {
-    float dx = static_cast<float>(x) - static_cast<float>(player.tile_x);
-    float dy = static_cast<float>(y) - static_cast<float>(player.tile_y);
-    return std::sqrt(dx * dx + dy * dy);
-}
-
-int manhattan_dist_to_player_tiles(const PlayerState& player, uint16_t x, uint16_t y) {
-    int dx = static_cast<int>(x) - static_cast<int>(player.tile_x);
-    int dy = static_cast<int>(y) - static_cast<int>(player.tile_y);
-    return std::abs(dx) + std::abs(dy);
-}
-
 // Busca el tile de agua más cercano al jugador en un radio acotado.
-float distance_to_nearest_water_tile(const WorldState& state, const PlayerState& player) {
+float WorldState::distance_to_nearest_water_tile(const PlayerState& player) const {
     static constexpr float NOT_FOUND_DIST = 999.0f;
-    if (!state.map_loaded) return NOT_FOUND_DIST;
+    if (!map_loaded) return NOT_FOUND_DIST;
 
     const auto& rendering = ClientConfig::instance().rendering;
     uint16_t water_floor_id = rendering.water_floor_id;
     int      search_radius  = rendering.water_search_radius_tiles;
 
-    int map_w = state.map.width;
-    int map_h = state.map.height;
+    int map_w = map.width;
+    int map_h = map.height;
     int px = player.tile_x;
     int py = player.tile_y;
 
@@ -38,7 +26,7 @@ float distance_to_nearest_water_tile(const WorldState& state, const PlayerState&
     float best = NOT_FOUND_DIST;
     for (int y = y0; y <= y1; ++y) {
         for (int x = x0; x <= x1; ++x) {
-            if (state.map.tiles[static_cast<size_t>(y) * map_w + x].floor_id != water_floor_id) continue;
+            if (map.tiles[static_cast<size_t>(y) * map_w + x].floor_id != water_floor_id) continue;
             float dx = static_cast<float>(x - px);
             float dy = static_cast<float>(y - py);
             float d = std::sqrt(dx * dx + dy * dy);
@@ -48,12 +36,12 @@ float distance_to_nearest_water_tile(const WorldState& state, const PlayerState&
     return best;
 }
 
-bool is_floor_grass(const WorldState& state, uint16_t x, uint16_t y) {
-    if (!state.map_loaded) return false;
-    if (x >= state.map.width || y >= state.map.height) return false;
+bool WorldState::is_floor_grass(uint16_t x, uint16_t y) const {
+    if (!map_loaded) return false;
+    if (x >= map.width || y >= map.height) return false;
 
     const auto& rendering = ClientConfig::instance().rendering;
-    uint16_t floor_id = state.map.tiles[static_cast<size_t>(y) * state.map.width + x].floor_id;
+    uint16_t floor_id = map.tiles[static_cast<size_t>(y) * map.width + x].floor_id;
     if (floor_id >= rendering.grass_floor_id_min && floor_id <= rendering.grass_floor_id_max) return true;
     if (floor_id == rendering.sand_floor_id) return true;  // arena de la costa
 
@@ -66,19 +54,19 @@ bool is_floor_grass(const WorldState& state, uint16_t x, uint16_t y) {
     return franja_arena_pasto || franja_rocoso_pasto || franja_tierra_pasto;
 }
 
-bool is_floor_dirt(const WorldState& state, uint16_t x, uint16_t y) {
-    if (!state.map_loaded) return false;
-    if (x >= state.map.width || y >= state.map.height) return false;
+bool WorldState::is_floor_dirt(uint16_t x, uint16_t y) const {
+    if (!map_loaded) return false;
+    if (x >= map.width || y >= map.height) return false;
 
-    uint16_t floor_id = state.map.tiles[static_cast<size_t>(y) * state.map.width + x].floor_id;
+    uint16_t floor_id = map.tiles[static_cast<size_t>(y) * map.width + x].floor_id;
     return floor_id == ClientConfig::instance().rendering.dirt_floor_id;
 }
 
-bool is_floor_city_stone(const WorldState& state, uint16_t x, uint16_t y) {
-    if (!state.map_loaded) return false;
-    if (x >= state.map.width || y >= state.map.height) return false;
+bool WorldState::is_floor_city_stone(uint16_t x, uint16_t y) const {
+    if (!map_loaded) return false;
+    if (x >= map.width || y >= map.height) return false;
 
-    uint16_t floor_id = state.map.tiles[static_cast<size_t>(y) * state.map.width + x].floor_id;
+    uint16_t floor_id = map.tiles[static_cast<size_t>(y) * map.width + x].floor_id;
     return floor_id == ClientConfig::instance().rendering.city_stone_floor_id;
 }
 
@@ -112,13 +100,13 @@ bool is_in_safe_zone(uint16_t x, uint16_t y) {
     return in_zone1 || in_zone2;
 }
 
-uint8_t own_weapon_item(const WorldState& state) {
-    return (state.eq_weapon != 0xFF && state.eq_weapon < SnapshotDTO::INVENTORY_SIZE)
-               ? state.inventory[state.eq_weapon]
+uint8_t WorldState::own_weapon_item() const {
+    return (eq_weapon != 0xFF && eq_weapon < SnapshotDTO::INVENTORY_SIZE)
+               ? inventory[eq_weapon]
                : 0;
 }
 
-void spawn_spell_effect(WorldState& state, uint8_t spell_id, uint16_t pos_x, uint16_t pos_y) {
+void WorldState::spawn_spell_effect(uint8_t spell_id, uint16_t pos_x, uint16_t pos_y) {
     if (!SpellVfxConfig::instance().has_spell(spell_id)) return;
     const auto& effect = SpellVfxConfig::instance().get_effect_info(spell_id);
 
@@ -126,37 +114,37 @@ void spawn_spell_effect(WorldState& state, uint8_t spell_id, uint16_t pos_x, uin
     fx.spell_id      = spell_id;
     fx.pos_x         = pos_x;
     fx.pos_y         = pos_y;
-    fx.start_tick    = state.current_tick;
+    fx.start_tick    = current_tick;
     fx.sheet_cols    = effect.sheet_cols;
     fx.frame_w       = effect.frame_w;
     fx.frame_h       = effect.frame_h;
     fx.frame_indices = effect.frame_indices;
     fx.path          = effect.path;
-    state.spell_effects.push_back(fx);
+    spell_effects.push_back(fx);
 }
 
-void spawn_projectile(WorldState& state, uint16_t from_x, uint16_t from_y,
-                       uint16_t to_x, uint16_t to_y, bool is_magic) {
+void WorldState::spawn_projectile(uint16_t from_x, uint16_t from_y,
+                                  uint16_t to_x, uint16_t to_y, bool is_magic) {
     Projectile p{};
     p.from_x     = from_x;
     p.from_y     = from_y;
     p.to_x       = to_x;
     p.to_y       = to_y;
-    p.start_tick = state.current_tick;
+    p.start_tick = current_tick;
     p.is_magic   = is_magic;
-    state.projectiles.push_back(p);
+    projectiles.push_back(p);
 }
 
-void update_entity_motion(WorldState& state, const std::vector<EntityDTO>& new_entities) {
+void WorldState::update_entity_motion(const std::vector<EntityDTO>& new_entities) {
     for (const auto& e : new_entities) {
         float new_x = static_cast<float>(e.pos_x);
         float new_y = static_cast<float>(e.pos_y);
 
-        auto it = state.entity_motion.find(e.entity_id);
-        if (it == state.entity_motion.end()) {
+        auto it = entity_motion.find(e.entity_id);
+        if (it == entity_motion.end()) {
             // Entidad nueva (recién entra en rango): aparece directo, sin
             // deslizar desde un origen arbitrario.
-            state.entity_motion[e.entity_id] = EntityMotion{ new_x, new_y, new_x, new_y, 1.0f };
+            entity_motion[e.entity_id] = EntityMotion{ new_x, new_y, new_x, new_y, 1.0f };
             continue;
         }
 
@@ -176,32 +164,32 @@ void update_entity_motion(WorldState& state, const std::vector<EntityDTO>& new_e
     }
 
     // Descartar entidades que salieron de rango/murieron.
-    for (auto it = state.entity_motion.begin(); it != state.entity_motion.end();) {
+    for (auto it = entity_motion.begin(); it != entity_motion.end();) {
         bool found = false;
         for (const auto& e : new_entities)
             if (e.entity_id == it->first) { found = true; break; }
-        it = found ? std::next(it) : state.entity_motion.erase(it);
+        it = found ? std::next(it) : entity_motion.erase(it);
     }
 }
 
-void advance_entity_motion(WorldState& state, float dt) {
-    for (auto& [id, m] : state.entity_motion) {
+void WorldState::advance_entity_motion(float dt) {
+    for (auto& [id, m] : entity_motion) {
         if (m.progress >= 1.0f) continue;
         m.progress += dt / MOVE_DURATION;
         if (m.progress > 1.0f) m.progress = 1.0f;
     }
 }
 
-float entity_pixel_x(const WorldState& state, const EntityDTO& e) {
-    auto it = state.entity_motion.find(e.entity_id);
-    if (it == state.entity_motion.end()) return static_cast<float>(e.pos_x * tile_size());
+float WorldState::entity_pixel_x(const EntityDTO& e) const {
+    auto it = entity_motion.find(e.entity_id);
+    if (it == entity_motion.end()) return static_cast<float>(e.pos_x * ClientConfig::instance().tile_size());
     const EntityMotion& m = it->second;
-    return (m.from_x + (m.to_x - m.from_x) * m.progress) * tile_size();
+    return (m.from_x + (m.to_x - m.from_x) * m.progress) * ClientConfig::instance().tile_size();
 }
 
-float entity_pixel_y(const WorldState& state, const EntityDTO& e) {
-    auto it = state.entity_motion.find(e.entity_id);
-    if (it == state.entity_motion.end()) return static_cast<float>(e.pos_y * tile_size());
+float WorldState::entity_pixel_y(const EntityDTO& e) const {
+    auto it = entity_motion.find(e.entity_id);
+    if (it == entity_motion.end()) return static_cast<float>(e.pos_y * ClientConfig::instance().tile_size());
     const EntityMotion& m = it->second;
-    return (m.from_y + (m.to_y - m.from_y) * m.progress) * tile_size();
+    return (m.from_y + (m.to_y - m.from_y) * m.progress) * ClientConfig::instance().tile_size();
 }

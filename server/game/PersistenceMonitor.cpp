@@ -1,5 +1,4 @@
 #include "PersistenceMonitor.h"
-#include "Stats.h"
 #include "Items.h"
 #include "config/GameConfig.h"
 
@@ -118,14 +117,14 @@ make_initial_player(const std::string& username, uint8_t race, uint8_t cls) {
     data.meditating = false;
 
     // Stats según raza y clase
-    auto rf = Stats::race_of(race);
+    auto rf = GameConfig::get().race(race);
 
     data.strength     = rf.base_str;
     data.agility      = rf.base_agi;
     data.intelligence = rf.base_int;
     data.constitution = rf.base_const;
 
-    data.max_hp = Stats::initial_max_hp(race, cls);
+    data.max_hp = GameConfig::get().initial_max_hp(race, cls);
     data.hp     = data.max_hp;
 
     // Si la clase no puede meditar (Guerrero), no tiene maná
@@ -133,7 +132,7 @@ make_initial_player(const std::string& username, uint8_t race, uint8_t cls) {
         data.max_mp = 0;
         data.mp     = 0;
     } else {
-        data.max_mp = Stats::initial_max_mp(race, cls);
+        data.max_mp = GameConfig::get().initial_max_mp(race, cls);
         data.mp     = data.max_mp;
     }
 

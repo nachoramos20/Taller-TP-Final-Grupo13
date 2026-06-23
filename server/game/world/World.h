@@ -70,7 +70,8 @@ public:
     // ---- Snapshot ----
     SnapshotDTO build_snapshot(uint16_t client_id,
                                uint32_t tick,
-                               const std::shared_ptr<std::vector<EntityDTO>>& entities) const;
+                               const std::shared_ptr<std::vector<EntityDTO>>& entities,
+                               const std::shared_ptr<std::vector<SpellEventDTO>>& spell_events) const;
     std::shared_ptr<std::vector<EntityDTO>> get_entities() const;
 
     // ---- Colisiones ----
@@ -95,6 +96,19 @@ public:
     void push_message(uint16_t to_id, uint8_t type, const std::string& text);
     void push_broadcast(uint8_t type, const std::string& text);
     std::shared_ptr<std::vector<ChatMessageDTO>> collect_messages(uint16_t client_id);
+
+    // ---- Eventos de VFX (ataque/hechizo) ----
+    // Se agrega uno cuando un ataque/hechizo es procesado con éxito (no
+    // rechazado por fair-play/rango/maná), para que los demás clientes vean
+    // el VFX del atacante. Igual que get_entities(): get_spell_events() se
+    // llama una sola vez por tick en ServerGameLoop::broadcast_snapshots() y
+    // se comparte entre los snapshots de todos los clientes; clear_spell_events()
+    // se llama una vez al final del tick.
+    void push_spell_event(uint16_t caster_id, uint8_t spell_id,
+                          uint16_t target_x, uint16_t target_y,
+                          bool is_magic_projectile);
+    std::shared_ptr<std::vector<SpellEventDTO>> get_spell_events() const;
+    void clear_spell_events();
 
     // ---- Banco ----
     bool bank_deposit_item(uint16_t client_id, uint8_t inv_slot);

@@ -1,6 +1,5 @@
 #include "ServerGameLoop.h"
 #include "entities/PlayerData.h"
-#include "Stats.h"
 #include "config/GameConfig.h"
 #include "world/WorldBuilder.h"
 
@@ -34,6 +33,7 @@ void ServerGameLoop::run() {
         update();
         broadcast_snapshots();
         world.clear_broadcast_messages();
+        world.clear_spell_events();
 
         tick++;
         if (tick % 60 == 0) save_players();
@@ -94,10 +94,11 @@ void ServerGameLoop::update() {
 
 void ServerGameLoop::broadcast_snapshots() {
     auto entities = world.get_entities();
+    auto spell_events = world.get_spell_events();
     const auto& players = world.get_players();
 
     for (const auto& [client_id, player] : players) {
-        SnapshotDTO snap = world.build_snapshot(client_id, tick, entities);
+        SnapshotDTO snap = world.build_snapshot(client_id, tick, entities, spell_events);
         queue_monitor.send_to(client_id, snap);
     }
 }

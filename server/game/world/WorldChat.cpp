@@ -33,3 +33,17 @@ void WorldChat::clear_broadcasts() {
             [](const PendingMessage& m){ return m.to_client_id == 0; }),
         pending.end());
 }
+
+void WorldChat::push_spell_event(uint16_t caster_id, uint8_t spell_id,
+                                 uint16_t target_x, uint16_t target_y,
+                                 bool is_magic_projectile) {
+    pending_spell_events_.push_back({caster_id, spell_id, target_x, target_y, is_magic_projectile});
+}
+
+std::shared_ptr<std::vector<SpellEventDTO>> WorldChat::get_spell_events() const {
+    return std::make_shared<std::vector<SpellEventDTO>>(pending_spell_events_);
+}
+
+void WorldChat::clear_spell_events() {
+    pending_spell_events_.clear();
+}

@@ -1,6 +1,6 @@
 #include "Commands.h"
 #include "../Items.h"
-#include "../Stats.h"
+#include "../config/GameConfig.h"
 #include <algorithm>
 #include <sstream>
 #include <vector>
@@ -317,8 +317,8 @@ void ChatCommand::handle_set_nivel(World& world, const std::string& args) {
         }
         p->level = static_cast<uint8_t>(nivel);
         // Recalcular max_hp/max_mp según el nuevo nivel
-        uint16_t base_hp = Stats::initial_max_hp(p->race, p->cls);
-        uint16_t base_mp = Stats::initial_max_mp(p->race, p->cls);
+        uint16_t base_hp = GameConfig::get().initial_max_hp(p->race, p->cls);
+        uint16_t base_mp = GameConfig::get().initial_max_mp(p->race, p->cls);
         p->max_hp = base_hp + (nivel - 1) * 10;
         p->max_mp = base_mp + (nivel - 1) * 5;
         p->hp = p->max_hp;

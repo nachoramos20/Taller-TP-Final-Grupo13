@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include "AssetManager.h"
 #include "SpriteLayout.h"
+#include "render_types.h"
 #include "../PlayerState.h"
 
 struct Animation {
@@ -25,27 +26,6 @@ struct NpcLayout {
     SDL2pp::Rect src_rect(int dir_idx, int frame) const {
         return SDL2pp::Rect(frame * frame_w, dir_idx * frame_h, frame_w, frame_h);
     }
-};
-
-// Límites reales del sprite ya dibujado en pantalla
-struct SpriteBounds {
-    int top_y;
-    int center_x;
-    int width;
-};
-
-// Equipo visual a renderizar encima del personaje
-struct EquipVisual {
-    std::string armor_path;
-    std::string helmet_path;
-    int         helmet_src_x = 0;
-    int         helmet_src_y = 0;
-    int         helmet_src_w = 0;
-    int         helmet_src_h = 0;
-    int         helmet_offset_y[4] = {0, 0, 0, 0}; 
-    int         helmet_offset_x[4] = {0, 0, 0, 0};
-    std::string weapon_path;
-    std::string shield_path;
 };
 
 class AnimationSystem {

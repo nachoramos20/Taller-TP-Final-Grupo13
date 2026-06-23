@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cmath>
 #include <cstdint>
 #include "config/ClientConfig.h"
 
-inline int tile_size() { return ClientConfig::instance().rendering.tile_size; }
 static constexpr float MOVE_DURATION = 0.25f;
 
 enum class Direction : uint8_t {
@@ -25,15 +25,36 @@ struct PlayerState {
     bool is_moving() const { return move_progress < 1.0f; }
 
     float pixel_x() const {
-        float from = static_cast<float>(prev_tile_x * tile_size());
-        float to   = static_cast<float>(tile_x * tile_size());
+        int   tile_size_px = ClientConfig::instance().tile_size();
+        float from = static_cast<float>(prev_tile_x * tile_size_px);
+        float to   = static_cast<float>(tile_x * tile_size_px);
         return from + (to - from) * move_progress;
     }
 
     float pixel_y() const {
-        float from = static_cast<float>(prev_tile_y * tile_size());
-        float to   = static_cast<float>(tile_y * tile_size());
+        int   tile_size_px = ClientConfig::instance().tile_size();
+        float from = static_cast<float>(prev_tile_y * tile_size_px);
+        float to   = static_cast<float>(tile_y * tile_size_px);
         return from + (to - from) * move_progress;
+    }
+
+    // Antes funciones globales en WorldState.h/.cpp (dist_to_player_tiles /
+    // manhattan_dist_to_player_tiles); operan únicamente sobre tile_x/tile_y
+    // de este PlayerState, así que pasan a ser métodos suyos.
+    float dist_to_player_tiles(uint16_t x, uint16_t y) const {
+        float dx = static_cast<float>(x) - static_cast<float>(tile_x);
+        float dy = static_cast<float>(y) - static_cast<float>(tile_y);
+        return std::sqrt(dx * dx + dy * dy);
+    }
+
+    // Distancia Manhattan usada para validar rango de hechizos y armas a
+    // distancia ANTES de spawnear el efecto visual/sonido. La euclidiana de
+    // dist_to_player_tiles da una distancia menor en diagonal, lo que hacía
+    // que el cliente creyera estar en rango cuando el servidor ya lo rechazaba.
+    int manhattan_dist_to_player_tiles(uint16_t x, uint16_t y) const {
+        int dx = static_cast<int>(x) - static_cast<int>(tile_x);
+        int dy = static_cast<int>(y) - static_cast<int>(tile_y);
+        return std::abs(dx) + std::abs(dy);
     }
 
     void move_to(int new_tile_x, int new_tile_y, Direction dir) {

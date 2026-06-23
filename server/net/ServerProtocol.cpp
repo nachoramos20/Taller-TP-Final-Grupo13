@@ -157,6 +157,7 @@ void ServerProtocol::send_snapshot(const SnapshotDTO& snapshot) {
             send_uint8(e.is_ghost); send_uint8(e.hp_pct);
             send_uint8(e.equipped_weapon); send_uint8(e.equipped_armor);
             send_uint8(e.equipped_helmet); send_uint8(e.equipped_shield);
+            send_uint8(e.level);
         }
     } else {
         send_uint8(0);
@@ -167,6 +168,19 @@ void ServerProtocol::send_snapshot(const SnapshotDTO& snapshot) {
         for (const ChatMessageDTO& m : *snapshot.messages) {
             send_uint8(m.msg_type);
             send_string(m.text);
+        }
+    } else {
+        send_uint8(0);
+    }
+
+    if (snapshot.spell_events) {
+        send_uint8(static_cast<uint8_t>(snapshot.spell_events->size()));
+        for (const SpellEventDTO& ev : *snapshot.spell_events) {
+            send_uint16(ev.caster_id);
+            send_uint8(ev.spell_id);
+            send_uint16(ev.target_x);
+            send_uint16(ev.target_y);
+            send_uint8(ev.is_magic_projectile ? 1 : 0);
         }
     } else {
         send_uint8(0);

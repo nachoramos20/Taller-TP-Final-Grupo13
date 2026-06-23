@@ -33,6 +33,10 @@ public:
     // Acceso al MP actual (para validación client-side antes de spawnear VFX)
     uint16_t current_mp() const { return _mp; }
 
+    // Nivel propio (para replicar localmente el chequeo de fair-play antes
+    // de spawnear VFX de ataque/hechizo contra otro jugador).
+    uint8_t current_level() const { return _level; }
+
     // Costo de maná y rango del hechizo actualmente seleccionado (0 si ninguno)
     uint16_t selected_spell_mana_cost() const;
     int      selected_spell_range()     const;

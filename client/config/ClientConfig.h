@@ -139,6 +139,10 @@ public:
     // Cargar configuración desde TOML
     bool load(const std::string& config_path);
 
+    // Antes una función global suelta en PlayerState.h; es un simple
+    // forwarder a rendering.tile_size, así que pasa a ser un método.
+    int tile_size() const { return rendering.tile_size; }
+
 private:
     ClientConfig() = default;
     ~ClientConfig() = default;

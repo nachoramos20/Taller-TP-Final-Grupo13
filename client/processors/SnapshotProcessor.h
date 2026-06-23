@@ -26,6 +26,13 @@ public:
 
 private:
     void detect_deaths(WorldState& state, const PlayerState& player, const SnapshotDTO& snap);
+
+    // VFX de ataque/hechizo de OTROS jugadores (el propio ya lo spawneó
+    // PlayerActionController de forma optimista al clickear). Busca al
+    // caster en state.entities (ya actualizado a este snapshot) para saber
+    // desde dónde sale el proyectil; si no está visible, no hay "desde
+    // dónde" dibujarlo y se descarta ese evento puntual.
+    void apply_spell_events(WorldState& state, const SnapshotDTO& snap);
     void update_service_npc_ranges(WorldState& state, const PlayerState& player);
     void update_service_npc_range(int32_t& npc_id, float range_tiles, const WorldState& state,
                                    const PlayerState& player, const std::function<void(float)>& on_farewell);

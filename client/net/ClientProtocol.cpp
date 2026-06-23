@@ -161,6 +161,7 @@ SnapshotDTO ClientProtocol::recv_snapshot() {
         e.equipped_armor  = recv_uint8();
         e.equipped_helmet = recv_uint8();
         e.equipped_shield = recv_uint8();
+        e.level           = recv_uint8();
     }
 
     uint8_t msg_count = recv_uint8();
@@ -169,6 +170,17 @@ SnapshotDTO ClientProtocol::recv_snapshot() {
     for (ChatMessageDTO& m : *snapshot.messages) {
         m.msg_type = recv_uint8();
         m.text     = recv_string();
+    }
+
+    uint8_t spell_event_count = recv_uint8();
+    snapshot.spell_events = std::make_shared<std::vector<SpellEventDTO>>();
+    snapshot.spell_events->resize(spell_event_count);
+    for (SpellEventDTO& ev : *snapshot.spell_events) {
+        ev.caster_id           = recv_uint16();
+        ev.spell_id            = recv_uint8();
+        ev.target_x            = recv_uint16();
+        ev.target_y            = recv_uint16();
+        ev.is_magic_projectile = recv_uint8() != 0;
     }
 
     return snapshot;

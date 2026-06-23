@@ -14,7 +14,7 @@ namespace {
 constexpr float REFERENCE_TILE_SIZE = 64.0f;
 
 int scaled_offset(int offset) {
-    return static_cast<int>(offset * (tile_size() / REFERENCE_TILE_SIZE));
+    return static_cast<int>(offset * (ClientConfig::instance().tile_size() / REFERENCE_TILE_SIZE));
 }
 }
 
@@ -56,10 +56,10 @@ void WorldRenderer::render_floor(const WorldState& state) {
     int map_h = state.map_loaded ? state.map.height : map_size;
 
     int margin = 8;
-    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / tile_size() - margin);
-    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / tile_size() - margin);
-    int last_x  = std::min(map_w - 1, first_x + screen_w / tile_size() + margin * 2);
-    int last_y  = std::min(map_h - 1, first_y + screen_h / tile_size() + margin * 2);
+    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / ClientConfig::instance().tile_size() - margin);
+    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / ClientConfig::instance().tile_size() - margin);
+    int last_x  = std::min(map_w - 1, first_x + screen_w / ClientConfig::instance().tile_size() + margin * 2);
+    int last_y  = std::min(map_h - 1, first_y + screen_h / ClientConfig::instance().tile_size() + margin * 2);
 
     for (int ty = first_y; ty <= last_y; ty++) {
         for (int tx = first_x; tx <= last_x; tx++) {
@@ -74,15 +74,15 @@ void WorldRenderer::render_floor(const WorldState& state) {
             int sy = _camera.tile_to_screen_y(ty);
 
             if (entry.path.empty()) {
-                if (sx >= -tile_size() && sx <= screen_w &&
-                    sy >= -tile_size() && sy <= screen_h) {
+                if (sx >= -ClientConfig::instance().tile_size() && sx <= screen_w &&
+                    sy >= -ClientConfig::instance().tile_size() && sy <= screen_h) {
                     _renderer.SetDrawColor(0, 0, 0, 255);
-                    _renderer.FillRect(SDL2pp::Rect(sx, sy, tile_size(), tile_size()));
+                    _renderer.FillRect(SDL2pp::Rect(sx, sy, ClientConfig::instance().tile_size(), ClientConfig::instance().tile_size()));
                 }
                 continue;
             }
 
-            SDL2pp::Rect dst(sx, sy, tile_size(), tile_size());
+            SDL2pp::Rect dst(sx, sy, ClientConfig::instance().tile_size(), ClientConfig::instance().tile_size());
             if (entry.has_src_rect()) {
                 SDL2pp::Rect src(entry.src_x, entry.src_y, entry.src_w, entry.src_h);
                 _renderer.Copy(_assets.get(entry.path), src, dst);
@@ -110,7 +110,7 @@ void WorldRenderer::render_floor(const WorldState& state) {
             if (sx > screen_w + obj_sup_size) continue;
             if (sx < -(obj_sup_size + obj_sup_size))   continue;
 
-            int size_px = entry.tile_size * tile_size();
+            int size_px = entry.tile_size * ClientConfig::instance().tile_size();
             SDL2pp::Rect dst(sx + scaled_offset(entry.offset_x), sy_raw + scaled_offset(entry.offset_y),
                               size_px, size_px);
             _renderer.Copy(_assets.get(entry.path), SDL2pp::NullOpt, dst);
@@ -129,10 +129,10 @@ void WorldRenderer::render_obj_sup(const WorldState& state) {
     int margin_x = 8;
     int margin_y_up   = 6;
     int margin_y_down = 16;
-    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / tile_size() - margin_x);
-    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / tile_size() - margin_y_up);
-    int last_x  = std::min(map_w - 1, first_x + screen_w / tile_size() + margin_x * 2);
-    int last_y  = std::min(map_h - 1, first_y + screen_h / tile_size() + margin_y_up + margin_y_down);
+    int first_x = std::max(0, -_camera.tile_to_screen_x(0) / ClientConfig::instance().tile_size() - margin_x);
+    int first_y = std::max(0, -_camera.tile_to_screen_y(0) / ClientConfig::instance().tile_size() - margin_y_up);
+    int last_x  = std::min(map_w - 1, first_x + screen_w / ClientConfig::instance().tile_size() + margin_x * 2);
+    int last_y  = std::min(map_h - 1, first_y + screen_h / ClientConfig::instance().tile_size() + margin_y_up + margin_y_down);
 
     for (int ty = first_y; ty <= last_y; ty++) {
         for (int tx = first_x; tx <= last_x; tx++) {
@@ -145,15 +145,15 @@ void WorldRenderer::render_obj_sup(const WorldState& state) {
             int frame_idx = (state.current_tick / ClientConfig::instance().rendering.obj_sup_ticks_per_frame)
                             % static_cast<int>(entry.frames.size());
 
-            int obj_h = entry.size_tiles  * tile_size();
-            int obj_w = entry.width_tiles * tile_size();
+            int obj_h = entry.size_tiles  * ClientConfig::instance().tile_size();
+            int obj_w = entry.width_tiles * ClientConfig::instance().tile_size();
 
             int sx = _camera.tile_to_screen_x(tx);
             int sy = _camera.tile_to_screen_y(ty);
 
             SDL2pp::Rect dst(
-                sx - (obj_w - tile_size()) / 2 + scaled_offset(entry.offset_x),
-                sy - obj_h + tile_size() + scaled_offset(entry.offset_y),
+                sx - (obj_w - ClientConfig::instance().tile_size()) / 2 + scaled_offset(entry.offset_x),
+                sy - obj_h + ClientConfig::instance().tile_size() + scaled_offset(entry.offset_y),
                 obj_w,
                 obj_h
             );
@@ -170,7 +170,7 @@ void WorldRenderer::render_floor_item(const EntityDTO& e, int screen_x, int scre
     uint8_t variant_idx = e.direction % static_cast<uint8_t>(variants.size());
     const std::string& path = variants[variant_idx];
 
-    SDL2pp::Rect dst(screen_x, screen_y, tile_size(), tile_size());
+    SDL2pp::Rect dst(screen_x, screen_y, ClientConfig::instance().tile_size(), ClientConfig::instance().tile_size());
     SDL2pp::Texture& tex = _assets.get(path);
     if (tex.GetWidth() == 256 && tex.GetHeight() == 256)
         _renderer.Copy(tex, SDL2pp::Rect(0, 192, 48, 64), dst);
@@ -257,8 +257,8 @@ void WorldRenderer::render_entities(WorldState& state, const PlayerState& player
         [](const EntityDTO& a, const EntityDTO& b) { return a.pos_y < b.pos_y; });
 
     for (const auto& e : state.entities) {
-        int screen_x = _camera.world_to_screen_x(entity_pixel_x(state, e));
-        int screen_y = _camera.world_to_screen_y(entity_pixel_y(state, e));
+        int screen_x = _camera.world_to_screen_x(state.entity_pixel_x(e));
+        int screen_y = _camera.world_to_screen_y(state.entity_pixel_y(e));
 
         if (e.entity_type == static_cast<uint8_t>(EntityType::ITEM_FLOOR)) {
             render_floor_item(e, screen_x, screen_y);
@@ -375,19 +375,19 @@ void WorldRenderer::render_spells(WorldState& state) {
         SDL2pp::Texture& tex = _assets.get(fx.path);
         SDL2pp::Rect src(col * fx.frame_w, row * fx.frame_h, fx.frame_w, fx.frame_h);
 
-        int center_x = _camera.world_to_screen_x(static_cast<float>(fx.pos_x * tile_size()))
-                       + tile_size() / 2;
-        int center_y = _camera.world_to_screen_y(static_cast<float>(fx.pos_y * tile_size()))
-                       + tile_size() / 2;
+        int center_x = _camera.world_to_screen_x(static_cast<float>(fx.pos_x * ClientConfig::instance().tile_size()))
+                       + ClientConfig::instance().tile_size() / 2;
+        int center_y = _camera.world_to_screen_y(static_cast<float>(fx.pos_y * ClientConfig::instance().tile_size()))
+                       + ClientConfig::instance().tile_size() / 2;
 
         const auto& render = SpellVfxConfig::instance().get_render_info(fx.spell_id);
         int dw = render.display_w, dh = render.display_h;
         int ox = render.offset_x, oy = render.offset_y;
         if (dw <= 0 || dh <= 0) {
-            dw = tile_size() * 2;
-            dh = tile_size() * 2;
-            ox = -tile_size() / 2;
-            oy = -tile_size();
+            dw = ClientConfig::instance().tile_size() * 2;
+            dh = ClientConfig::instance().tile_size() * 2;
+            ox = -ClientConfig::instance().tile_size() / 2;
+            oy = -ClientConfig::instance().tile_size();
         }
 
         SDL2pp::Rect dst(center_x + ox, center_y + oy, dw, dh);
@@ -410,8 +410,8 @@ void WorldRenderer::render_projectiles(WorldState& state) {
                 / static_cast<float>(duration_ticks);
         t = std::clamp(t, 0.0f, 1.0f);
 
-        float world_x = (p.from_x + (p.to_x - p.from_x) * t) * tile_size() + tile_size() / 2.0f;
-        float world_y = (p.from_y + (p.to_y - p.from_y) * t) * tile_size() + tile_size() / 2.0f;
+        float world_x = (p.from_x + (p.to_x - p.from_x) * t) * ClientConfig::instance().tile_size() + ClientConfig::instance().tile_size() / 2.0f;
+        float world_y = (p.from_y + (p.to_y - p.from_y) * t) * ClientConfig::instance().tile_size() + ClientConfig::instance().tile_size() / 2.0f;
 
         int sx = _camera.world_to_screen_x(world_x);
         int sy = _camera.world_to_screen_y(world_y);
@@ -446,7 +446,7 @@ void WorldRenderer::render_deaths(WorldState& state) {
                          + std::to_string(frame + 1) + ".png";
         int sx = _camera.tile_to_screen_x(static_cast<int>(d.pos_x));
         int sy = _camera.tile_to_screen_y(static_cast<int>(d.pos_y));
-        SDL2pp::Rect dst(sx, sy, tile_size(), tile_size());
+        SDL2pp::Rect dst(sx, sy, ClientConfig::instance().tile_size(), ClientConfig::instance().tile_size());
         _renderer.Copy(_assets.get(path), SDL2pp::NullOpt, dst);
     }
 }

@@ -144,8 +144,8 @@ void InputController::handle_mouse_click(int mouse_x, int mouse_y) {
 
     int world_x = mouse_x - _camera.tile_to_screen_x(0);
     int world_y = mouse_y - _camera.tile_to_screen_y(0);
-    int tile_x  = world_x / tile_size();
-    int tile_y  = world_y / tile_size();
+    int tile_x  = world_x / ClientConfig::instance().tile_size();
+    int tile_y  = world_y / ClientConfig::instance().tile_size();
     _on_world_click(tile_x, tile_y);
 }
 

@@ -22,9 +22,11 @@ void SnapshotProcessor::apply_snapshot(WorldState& state, PlayerState& player, c
 
     if (snap.entities) {
         detect_deaths(state, player, snap);
-        update_entity_motion(state, *snap.entities);
+        state.update_entity_motion(*snap.entities);
         state.entities = *snap.entities;
     }
+
+    apply_spell_events(state, snap);
 
     update_progression_sounds(state, snap);
     update_service_npc_ranges(state, player);
@@ -44,8 +46,8 @@ void SnapshotProcessor::detect_deaths(WorldState& state, const PlayerState& play
         if (found) continue;
 
         state.death_effects.push_back({prev.pos_x, prev.pos_y, SDL_GetTicks()});
-        float dist = dist_to_player_tiles(player, prev.pos_x, prev.pos_y);
-        _audio.npc_death(prev.sprite_id, prev.entity_id, prev.pos_y, dist, own_weapon_item(state));
+        float dist = player.dist_to_player_tiles(prev.pos_x, prev.pos_y);
+        _audio.npc_death(prev.sprite_id, prev.entity_id, prev.pos_y, dist, state.own_weapon_item());
     }
 
     for (const EntityDTO& next_entity : *snap.entities) {
@@ -54,10 +56,31 @@ void SnapshotProcessor::detect_deaths(WorldState& state, const PlayerState& play
 
         for (const EntityDTO& prev : state.entities) {
             if (prev.entity_id == next_entity.entity_id && prev.is_ghost == 0) {
-                _audio.player_death(dist_to_player_tiles(player, next_entity.pos_x, next_entity.pos_y));
+                _audio.player_death(player.dist_to_player_tiles(next_entity.pos_x, next_entity.pos_y));
                 break;
             }
         }
+    }
+}
+
+void SnapshotProcessor::apply_spell_events(WorldState& state, const SnapshotDTO& snap) {
+    if (!snap.spell_events) return;
+
+    for (const SpellEventDTO& event : *snap.spell_events) {
+        if (event.caster_id == state.my_entity_id) continue;  // ya lo spawneamos localmente
+
+        if (event.spell_id > 0) {
+            state.spawn_spell_effect(event.spell_id, event.target_x, event.target_y);
+            continue;
+        }
+
+        const EntityDTO* caster = nullptr;
+        for (const EntityDTO& entity : state.entities)
+            if (entity.entity_id == event.caster_id) { caster = &entity; break; }
+        if (!caster) continue;  // caster fuera de rango/no visible: no hay "desde dónde" dibujarlo
+
+        state.spawn_projectile(caster->pos_x, caster->pos_y,
+                               event.target_x, event.target_y, event.is_magic_projectile);
     }
 }
 
@@ -70,7 +93,7 @@ void SnapshotProcessor::update_service_npc_range(int32_t& npc_id, float range_ti
     for (const EntityDTO& entity : state.entities)
         if (entity.entity_id == npc_id) { npc = &entity; break; }
 
-    bool left = (npc == nullptr) || (dist_to_player_tiles(player, npc->pos_x, npc->pos_y) > range_tiles);
+    bool left = (npc == nullptr) || (player.dist_to_player_tiles(npc->pos_x, npc->pos_y) > range_tiles);
     if (!left) return;
 
     if (on_farewell) on_farewell(0.0f);
@@ -156,8 +179,8 @@ void SnapshotProcessor::sync_own_position(const WorldState& state, PlayerState& 
             entity.pos_y != static_cast<uint16_t>(player.tile_y)) {
             Direction direction = static_cast<Direction>(entity.direction);
             player.move_to(entity.pos_x, entity.pos_y, direction);
-            if (is_floor_grass(state, entity.pos_x, entity.pos_y) ||
-                is_floor_dirt(state, entity.pos_x, entity.pos_y))
+            if (state.is_floor_grass(entity.pos_x, entity.pos_y) ||
+                state.is_floor_dirt(entity.pos_x, entity.pos_y))
                 _audio.footstep_grass();
         }
         break;

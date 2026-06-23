@@ -144,6 +144,10 @@ void CastSpellCommand::execute(World& world) {
     caster->meditating = false;
     if (!caster->cheat_infinite_mp) caster->mp -= sd.mana_cost;
 
+    // Avisar a los demás clientes del hechizo (el propio caster ya lo vio
+    // localmente al clickear/seleccionar el hechizo).
+    world.push_spell_event(client_id, spell_id, tx, ty, /*is_magic_projectile*/ true);
+
     uint16_t base_dmg = weapon_base_damage(*caster);
     uint16_t damage = Equations::calc_spell_damage(base_dmg, sd.dmg_multiplier, sd.flat_bonus, caster->intelligence);
 

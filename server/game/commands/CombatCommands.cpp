@@ -1,7 +1,6 @@
 #include "Commands.h"
 #include "../Equations.h"
 #include "../Items.h"
-#include "../Stats.h"
 #include "../config/GameConfig.h"
 #include <algorithm>
 
@@ -120,6 +119,7 @@ void AttackCommand::execute(World& world) {
         world.push_message(client_id, 1, "Curaste a " + std::string(target->username) + " por " + std::to_string(heal) + " de vida.");
         world.push_message(target_id, 1, std::string(attacker->username) + " te curó " + std::to_string(heal) + " de vida.");
         attacker->attack_cooldown = GameConfig::get().formulas().attack_cooldown_melee;
+        world.push_spell_event(client_id, 0, target->pos_x, target->pos_y, /*is_magic_projectile*/ true);
         return;
     }
 
@@ -141,6 +141,17 @@ void AttackCommand::execute(World& world) {
     if (dist > (is_ranged ? w.range : 1)) {
         world.push_message(client_id, 0, "Objetivo demasiado lejos.");
         return;
+    }
+
+    // El ataque está confirmado a partir de acá (pasó fair-play, clan, maná
+    // y rango): si es a distancia, avisarle a los demás clientes para que
+    // vean el proyectil del atacante. El propio cliente ya lo spawneó
+    // localmente al clickear; esto es solo para los demás. Se manda antes
+    // de resolver esquive/crítico porque el proyectil viaja igual aunque
+    // termine esquivado.
+    if (is_ranged) {
+        world.push_spell_event(client_id, 0, target->pos_x, target->pos_y,
+                               /*is_magic_projectile*/ w.kind == ItemKind::WEAPON_MAGIC);
     }
 
     bool crit = Equations::is_critical();
@@ -221,6 +232,13 @@ void AttackNpcCommand::execute(World& world) {
     if (dist > (is_ranged ? w.range : 1)) {
         world.push_message(client_id, 0, "El NPC está demasiado lejos.");
         return;
+    }
+
+    // Igual que en AttackCommand: avisar a los demás clientes del proyectil
+    // (el atacante ya lo vio localmente al clickear).
+    if (is_ranged) {
+        world.push_spell_event(client_id, 0, npc->pos_x, npc->pos_y,
+                               /*is_magic_projectile*/ w.kind == ItemKind::WEAPON_MAGIC);
     }
 
     bool crit = Equations::is_critical();

@@ -35,6 +35,7 @@ std::shared_ptr<std::vector<EntityDTO>> WorldSnapshot::get_entities() const {
         e.equipped_armor  = resolve_equipped_item(player, player.equipped_armor);
         e.equipped_helmet = resolve_equipped_item(player, player.equipped_helmet);
         e.equipped_shield = resolve_equipped_item(player, player.equipped_shield);
+        e.level           = player.level;
         entities->push_back(e);
     }
 
@@ -69,7 +70,8 @@ std::shared_ptr<std::vector<EntityDTO>> WorldSnapshot::get_entities() const {
 
 SnapshotDTO WorldSnapshot::build(uint16_t client_id,
                                  uint32_t tick,
-                                 const std::shared_ptr<std::vector<EntityDTO>>& entities) const {
+                                 const std::shared_ptr<std::vector<EntityDTO>>& entities,
+                                 const std::shared_ptr<std::vector<SpellEventDTO>>& spell_events) const {
     SnapshotDTO snapshot{};
     snapshot.tick = tick;
 
@@ -97,5 +99,6 @@ SnapshotDTO WorldSnapshot::build(uint16_t client_id,
 
     snapshot.entities = entities;
     snapshot.messages = chat.collect(client_id);
+    snapshot.spell_events = spell_events;
     return snapshot;
 }

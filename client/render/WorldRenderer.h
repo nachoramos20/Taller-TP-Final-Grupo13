@@ -6,6 +6,7 @@
 
 #include "AssetManager.h"
 #include "AnimationSystem.h"
+#include "render_types.h"
 #include "SpriteConfig.h"
 #include "ObjectSupConfig.h"
 #include "Camera.h"

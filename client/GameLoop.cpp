@@ -106,15 +106,15 @@ void GameLoop::update(float dt) {
     _hud.stats()->set_inventory_ref(_state.inventory, SnapshotDTO::INVENTORY_SIZE);
 
     _player.update(dt);
-    advance_entity_motion(_state, dt);
+    _state.advance_entity_motion(dt);
     _camera.follow(_player);
     _hud.position_label()->update(_player.tile_x, _player.tile_y);
     if (_audio) {
         _audio->update();
-        _audio_service.update_ocean_ambient(distance_to_nearest_water_tile(_state, _player));
+        _audio_service.update_ocean_ambient(_state.distance_to_nearest_water_tile(_player));
         bool walking_on_city_stone = _player.is_moving()
-            && is_floor_city_stone(_state, static_cast<uint16_t>(_player.tile_x),
-                                    static_cast<uint16_t>(_player.tile_y));
+            && _state.is_floor_city_stone(static_cast<uint16_t>(_player.tile_x),
+                                          static_cast<uint16_t>(_player.tile_y));
         _audio_service.update_city_stone_footsteps(walking_on_city_stone);
         _audio_service.update_forest_ambience(is_in_forest_zone(
             static_cast<uint16_t>(_player.tile_x), static_cast<uint16_t>(_player.tile_y)));

@@ -82,43 +82,43 @@ struct WorldState {
 
     MapaDTO map;
     bool    map_loaded = false;
+
+    // Antes funciones globales en WorldState.cpp, todas con `const
+    // WorldState&`/`WorldState&` como primer parámetro: pasan a ser métodos.
+
+    float distance_to_nearest_water_tile(const PlayerState& player) const;
+    bool  is_floor_grass(uint16_t x, uint16_t y) const;
+    bool  is_floor_dirt(uint16_t x, uint16_t y) const;
+    bool  is_floor_city_stone(uint16_t x, uint16_t y) const;
+
+    // Item id del arma equipada por el jugador propio (0 si no tiene nada equipado).
+    uint8_t own_weapon_item() const;
+
+    // Actualiza el destino de interpolación de cada entidad del snapshot nuevo
+    // y descarta las que ya no existen. Llamar antes de pisar
+    // entities con el snapshot nuevo.
+    void update_entity_motion(const std::vector<EntityDTO>& new_entities);
+
+    // Avanza el progreso de todas las interpolaciones en curso. Llamar todos
+    // los frames con el dt real (no por snapshot).
+    void advance_entity_motion(float dt);
+
+    // Posición interpolada en píxeles de una entidad (no aplica al jugador
+    // propio, que se dibuja con PlayerState::pixel_x/y).
+    float entity_pixel_x(const EntityDTO& e) const;
+    float entity_pixel_y(const EntityDTO& e) const;
+
+    void spawn_spell_effect(uint8_t spell_id, uint16_t pos_x, uint16_t pos_y);
+    void spawn_projectile(uint16_t from_x, uint16_t from_y,
+                          uint16_t to_x, uint16_t to_y, bool is_magic);
 };
 
-float dist_to_player_tiles(const PlayerState& player, uint16_t x, uint16_t y);
-
-// Distancia Manhattan usada para validar rango de hechizos y armas a
-// distancia ANTES de spawnear el efecto visual/sonido. La euclidiana de
-// dist_to_player_tiles da una distancia menor en diagonal, lo que hacía que
-// el cliente creyera estar en rango cuando el servidor ya lo rechazaba.
-int manhattan_dist_to_player_tiles(const PlayerState& player, uint16_t x, uint16_t y);
-float distance_to_nearest_water_tile(const WorldState& state, const PlayerState& player);
-bool  is_floor_grass(const WorldState& state, uint16_t x, uint16_t y);
-bool  is_floor_dirt(const WorldState& state, uint16_t x, uint16_t y);
-bool  is_floor_city_stone(const WorldState& state, uint16_t x, uint16_t y);
+// No tienen un WorldState/PlayerState como sujeto: son chequeos de geometría
+// fija contra zonas de ClientConfig, no datos de ninguna instancia. Quedan
+// como funciones libres.
 bool  is_in_forest_zone(uint16_t x, uint16_t y);
 float distance_to_cemetery_zone(int x, int y);
 
 // Ciudad/pueblo (ver ServerGameLoop.cpp): el servidor rechaza hechizos y
 // ataques a distancia ahí, así que tampoco hay que spawnear su VFX/sonido.
 bool is_in_safe_zone(uint16_t x, uint16_t y);
-
-// Item id del arma equipada por el jugador propio (0 si no tiene nada equipado).
-uint8_t own_weapon_item(const WorldState& state);
-
-// Actualiza el destino de interpolación de cada entidad del snapshot nuevo
-// y descarta las que ya no existen. Llamar antes de pisar
-// state.entities con el snapshot nuevo.
-void update_entity_motion(WorldState& state, const std::vector<EntityDTO>& new_entities);
-
-// Avanza el progreso de todas las interpolaciones en curso. Llamar todos los
-// frames con el dt real (no por snapshot).
-void advance_entity_motion(WorldState& state, float dt);
-
-// Posición interpolada en píxeles de una entidad (no aplica al jugador
-// propio, que se dibuja con PlayerState::pixel_x/y).
-float entity_pixel_x(const WorldState& state, const EntityDTO& e);
-float entity_pixel_y(const WorldState& state, const EntityDTO& e);
-
-void spawn_spell_effect(WorldState& state, uint8_t spell_id, uint16_t pos_x, uint16_t pos_y);
-void spawn_projectile(WorldState& state, uint16_t from_x, uint16_t from_y,
-                       uint16_t to_x, uint16_t to_y, bool is_magic);

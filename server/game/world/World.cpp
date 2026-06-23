@@ -1,6 +1,5 @@
 #include "World.h"
 #include "../Equations.h"
-#include "../Stats.h"
 #include "../config/GameConfig.h"
 #include <algorithm>
 
@@ -41,8 +40,8 @@ void World::check_level_up(PlayerData& p) {
         // Antes: max_hp = initial_max_hp * level  → escala muy rápido.
         // Ahora: max_hp = initial_max_hp + (level - 1) * incremento_por_nivel
         // Incremento: 10% de la HP/MP inicial por nivel.
-        uint16_t base_hp = Stats::initial_max_hp(p.race, p.cls);
-        uint16_t base_mp = Stats::initial_max_mp(p.race, p.cls);
+        uint16_t base_hp = GameConfig::get().initial_max_hp(p.race, p.cls);
+        uint16_t base_mp = GameConfig::get().initial_max_mp(p.race, p.cls);
         uint16_t hp_per_level = static_cast<uint16_t>(base_hp * 0.10f);
         uint16_t mp_per_level = static_cast<uint16_t>(base_mp * 0.10f);
 
@@ -70,8 +69,9 @@ PlayerData* World::get_player_mutable(uint16_t id) { return players_.find_mutabl
 
 // ---- Snapshot ----
 SnapshotDTO World::build_snapshot(uint16_t client_id, uint32_t tick,
-                                  const std::shared_ptr<std::vector<EntityDTO>>& entities) const {
-    return snapshot_.build(client_id, tick, entities);
+                                  const std::shared_ptr<std::vector<EntityDTO>>& entities,
+                                  const std::shared_ptr<std::vector<SpellEventDTO>>& spell_events) const {
+    return snapshot_.build(client_id, tick, entities, spell_events);
 }
 std::shared_ptr<std::vector<EntityDTO>> World::get_entities() const { return snapshot_.get_entities(); }
 
@@ -114,6 +114,16 @@ std::shared_ptr<std::vector<ChatMessageDTO>> World::collect_messages(uint16_t cl
     return chat_.collect(client_id);
 }
 void World::clear_broadcast_messages() { chat_.clear_broadcasts(); }
+
+void World::push_spell_event(uint16_t caster_id, uint8_t spell_id,
+                             uint16_t target_x, uint16_t target_y,
+                             bool is_magic_projectile) {
+    chat_.push_spell_event(caster_id, spell_id, target_x, target_y, is_magic_projectile);
+}
+std::shared_ptr<std::vector<SpellEventDTO>> World::get_spell_events() const {
+    return chat_.get_spell_events();
+}
+void World::clear_spell_events() { chat_.clear_spell_events(); }
 
 // ---- Banco ----
 bool World::bank_deposit_item(uint16_t id, uint8_t slot) { return bank_.deposit_item(id, slot); }
