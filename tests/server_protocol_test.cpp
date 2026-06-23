@@ -13,7 +13,7 @@
 #include <utility>
 
 #include "../server/net/ServerProtocol.h"
-#include "../server/game/Commands.h"
+#include "../server/game/commands/Commands.h"
 #include "../common/protocol/protocol.h"
 #include "../common/protocol/dtos.h"
 
@@ -538,16 +538,16 @@ TEST(ServerProtocolSendTest, SendSnapshot) {
     snap.mp = 50;  snap.max_mp = 150;
     snap.exp = 9999;
     snap.level = 5;
-    snap.cls = static_cast<uint8_t>(Class::WARRIOR);
+    snap.character_class = static_cast<uint8_t>(Class::WARRIOR);
     snap.gold = 12345;
     snap.is_ghost = 0;
     snap.meditating = 1;
     for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++)
         snap.inventory[i] = i + 1;
-    snap.equipped_wpn = 1;
-    snap.equipped_arm = 2;
-    snap.equipped_helm = 3;
-    snap.equipped_shld = 4;
+    snap.equipped_weapon = 1;
+    snap.equipped_armor = 2;
+    snap.equipped_helmet = 3;
+    snap.equipped_shield = 4;
 
     // 1 entidad
     std::shared_ptr<std::vector<EntityDTO>> entities = std::make_shared<std::vector<EntityDTO>>();
@@ -571,6 +571,17 @@ TEST(ServerProtocolSendTest, SendSnapshot) {
     messages->push_back(mensaje);
     snap.messages = messages;
 
+    // 1 spell event
+    std::shared_ptr<std::vector<SpellEventDTO>> spell_events = std::make_shared<std::vector<SpellEventDTO>>();
+    SpellEventDTO ev;
+    ev.caster_id = 10;
+    ev.spell_id = 5;
+    ev.target_x = 20;
+    ev.target_y = 30;
+    ev.is_magic_projectile = true;
+    spell_events->push_back(ev);
+    snap.spell_events = spell_events;
+
     {
         Socket server_socket = sockets.make_server_socket();
         ServerProtocol protocolo_server(std::move(server_socket));
@@ -584,16 +595,16 @@ TEST(ServerProtocolSendTest, SendSnapshot) {
                   + sizeof(snap.hp) + sizeof(snap.max_hp)
                   + sizeof(snap.mp) + sizeof(snap.max_mp)
                   + sizeof(snap.exp) + sizeof(snap.level)
-                  + sizeof(snap.cls)
+                  + sizeof(snap.character_class)
                   + sizeof(snap.gold)
                   + sizeof(snap.is_ghost) + sizeof(snap.meditating);
 
     size_t size_inventario_snap = sizeof(uint8_t)                   // INVENTORY_SIZE (cantidad de items) 
                   + SnapshotDTO::INVENTORY_SIZE * sizeof(uint8_t)
-                  + sizeof(snap.equipped_wpn)
-                  + sizeof(snap.equipped_arm)
-                  + sizeof(snap.equipped_helm)
-                  + sizeof(snap.equipped_shld);
+                  + sizeof(snap.equipped_weapon)
+                  + sizeof(snap.equipped_armor)
+                  + sizeof(snap.equipped_helmet)
+                  + sizeof(snap.equipped_shield);
 
     size_t size_vector_entidades = sizeof(uint8_t);                  // count de entidades (1)
     size_vector_entidades += sizeof(entidad.entity_id)
@@ -603,13 +614,20 @@ TEST(ServerProtocolSendTest, SendSnapshot) {
            +  sizeof(entidad.direction) + sizeof(entidad.sprite_id)
            +  sizeof(entidad.is_ghost) + sizeof(entidad.hp_pct)
            +  sizeof(entidad.equipped_weapon) + sizeof(entidad.equipped_armor)
-           +  sizeof(entidad.equipped_helmet) + sizeof(entidad.equipped_shield);
+           +  sizeof(entidad.equipped_helmet) + sizeof(entidad.equipped_shield)
+           +  sizeof(entidad.level);
 
     size_t size_mensajes = sizeof(uint8_t);                  // count de mensajes (1)
     size_mensajes += sizeof(mensaje.msg_type)
            +  sizeof(uint8_t) + mensaje.text.size();  // send_str8
 
-    size_t total_bytes = size_info_snap + size_inventario_snap + size_vector_entidades + size_mensajes;
+    size_t size_spell_events = sizeof(uint8_t);                  // count de spell events (1)
+    size_spell_events += sizeof(ev.caster_id)
+           +  sizeof(ev.spell_id)
+           +  sizeof(ev.target_x) + sizeof(ev.target_y)
+           +  sizeof(ev.is_magic_projectile);
+
+    size_t total_bytes = size_info_snap + size_inventario_snap + size_vector_entidades + size_mensajes + size_spell_events;
     std::vector<uint8_t> buffer = recv_bytes(sockets.fd_client, total_bytes);
 
     size_t pos = 0;  // Empezar después del MsgType
@@ -624,7 +642,7 @@ TEST(ServerProtocolSendTest, SendSnapshot) {
     memcpy(&snap_recibido.max_mp, &buffer[pos], sizeof(snap_recibido.max_mp)); pos += sizeof(snap_recibido.max_mp); snap_recibido.max_mp = ntohs(snap_recibido.max_mp);
     memcpy(&snap_recibido.exp, &buffer[pos], sizeof(snap_recibido.exp)); pos += sizeof(snap_recibido.exp); snap_recibido.exp = ntohl(snap_recibido.exp);
     memcpy(&snap_recibido.level, &buffer[pos], sizeof(snap_recibido.level)); pos += sizeof(snap_recibido.level);
-    memcpy(&snap_recibido.cls, &buffer[pos], sizeof(snap_recibido.cls)); pos += sizeof(snap_recibido.cls);
+    memcpy(&snap_recibido.character_class, &buffer[pos], sizeof(snap_recibido.character_class)); pos += sizeof(snap_recibido.character_class);
     memcpy(&snap_recibido.gold, &buffer[pos], sizeof(snap_recibido.gold)); pos += sizeof(snap_recibido.gold); snap_recibido.gold = ntohl(snap_recibido.gold);
     memcpy(&snap_recibido.is_ghost, &buffer[pos], sizeof(snap_recibido.is_ghost)); pos += sizeof(snap_recibido.is_ghost);
     memcpy(&snap_recibido.meditating, &buffer[pos], sizeof(snap_recibido.meditating)); pos += sizeof(snap_recibido.meditating);
@@ -633,10 +651,10 @@ TEST(ServerProtocolSendTest, SendSnapshot) {
     for (int i = 0; i < inventory_size; i++) {
         memcpy(&snap_recibido.inventory[i], &buffer[pos], sizeof(snap_recibido.inventory[i])); pos += sizeof(snap_recibido.inventory[i]);
     }
-    memcpy(&snap_recibido.equipped_wpn, &buffer[pos], sizeof(snap_recibido.equipped_wpn)); pos += sizeof(snap_recibido.equipped_wpn);
-    memcpy(&snap_recibido.equipped_arm, &buffer[pos], sizeof(snap_recibido.equipped_arm)); pos += sizeof(snap_recibido.equipped_arm);
-    memcpy(&snap_recibido.equipped_helm, &buffer[pos], sizeof(snap_recibido.equipped_helm)); pos += sizeof(snap_recibido.equipped_helm);
-    memcpy(&snap_recibido.equipped_shld, &buffer[pos], sizeof(snap_recibido.equipped_shld)); pos += sizeof(snap_recibido.equipped_shld);
+    memcpy(&snap_recibido.equipped_weapon, &buffer[pos], sizeof(snap_recibido.equipped_weapon)); pos += sizeof(snap_recibido.equipped_weapon);
+    memcpy(&snap_recibido.equipped_armor, &buffer[pos], sizeof(snap_recibido.equipped_armor)); pos += sizeof(snap_recibido.equipped_armor);
+    memcpy(&snap_recibido.equipped_helmet, &buffer[pos], sizeof(snap_recibido.equipped_helmet)); pos += sizeof(snap_recibido.equipped_helmet);
+    memcpy(&snap_recibido.equipped_shield, &buffer[pos], sizeof(snap_recibido.equipped_shield)); pos += sizeof(snap_recibido.equipped_shield);
     uint8_t entity_count;
     memcpy(&entity_count, &buffer[pos], sizeof(entity_count)); pos += sizeof(entity_count);
     EXPECT_EQ(entity_count, 1);
@@ -656,6 +674,7 @@ TEST(ServerProtocolSendTest, SendSnapshot) {
     memcpy(&entidad_recibida.equipped_armor, &buffer[pos], sizeof(entidad_recibida.equipped_armor)); pos += sizeof(entidad_recibida.equipped_armor);
     memcpy(&entidad_recibida.equipped_helmet, &buffer[pos], sizeof(entidad_recibida.equipped_helmet)); pos += sizeof(entidad_recibida.equipped_helmet);
     memcpy(&entidad_recibida.equipped_shield, &buffer[pos], sizeof(entidad_recibida.equipped_shield));    pos += sizeof(entidad_recibida.equipped_shield);
+    memcpy(&entidad_recibida.level, &buffer[pos], sizeof(entidad_recibida.level)); pos += sizeof(entidad_recibida.level);
     uint8_t message_count;
     memcpy(&message_count, &buffer[pos], sizeof(message_count)); pos += sizeof(message_count);
     EXPECT_EQ(message_count, 1);
@@ -664,6 +683,16 @@ TEST(ServerProtocolSendTest, SendSnapshot) {
     uint8_t text_len;
     memcpy(&text_len, &buffer[pos], sizeof(text_len)); pos += sizeof(text_len);
     mensaje_recibido.text = std::string(buffer.begin() + pos, buffer.begin() + pos + text_len); pos += text_len;
+    uint8_t spell_events_count;
+    memcpy(&spell_events_count, &buffer[pos], sizeof(spell_events_count)); pos += sizeof(spell_events_count);
+    EXPECT_EQ(spell_events_count, 1);
+    SpellEventDTO spell_recibido;
+    memcpy(&spell_recibido.caster_id, &buffer[pos], sizeof(spell_recibido.caster_id)); pos += sizeof(spell_recibido.caster_id); spell_recibido.caster_id = ntohs(spell_recibido.caster_id);
+    memcpy(&spell_recibido.spell_id, &buffer[pos], sizeof(spell_recibido.spell_id)); pos += sizeof(spell_recibido.spell_id);
+    memcpy(&spell_recibido.target_x, &buffer[pos], sizeof(spell_recibido.target_x)); pos += sizeof(spell_recibido.target_x); spell_recibido.target_x = ntohs(spell_recibido.target_x);
+    memcpy(&spell_recibido.target_y, &buffer[pos], sizeof(spell_recibido.target_y)); pos += sizeof(spell_recibido.target_y); spell_recibido.target_y = ntohs(spell_recibido.target_y);
+    uint8_t is_magic;
+    memcpy(&is_magic, &buffer[pos], sizeof(is_magic)); pos += sizeof(is_magic);
     EXPECT_EQ(snap_recibido.tick, snap.tick);
     EXPECT_EQ(snap_recibido.self_entity_id, snap.self_entity_id);
     EXPECT_EQ(snap_recibido.hp, snap.hp);
@@ -672,16 +701,16 @@ TEST(ServerProtocolSendTest, SendSnapshot) {
     EXPECT_EQ(snap_recibido.max_mp, snap.max_mp);
     EXPECT_EQ(snap_recibido.exp, snap.exp);
     EXPECT_EQ(snap_recibido.level, snap.level);
-    EXPECT_EQ(snap_recibido.cls, snap.cls);
+    EXPECT_EQ(snap_recibido.character_class, snap.character_class);
     EXPECT_EQ(snap_recibido.gold, snap.gold);
     EXPECT_EQ(snap_recibido.is_ghost, snap.is_ghost);
     EXPECT_EQ(snap_recibido.meditating, snap.meditating);
     for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++)
         EXPECT_EQ(snap_recibido.inventory[i], snap.inventory[i]);
-    EXPECT_EQ(snap_recibido.equipped_wpn, snap.equipped_wpn);
-    EXPECT_EQ(snap_recibido.equipped_arm, snap.equipped_arm);
-    EXPECT_EQ(snap_recibido.equipped_helm, snap.equipped_helm);
-    EXPECT_EQ(snap_recibido.equipped_shld, snap.equipped_shld);
+    EXPECT_EQ(snap_recibido.equipped_weapon, snap.equipped_weapon);
+    EXPECT_EQ(snap_recibido.equipped_armor, snap.equipped_armor);
+    EXPECT_EQ(snap_recibido.equipped_helmet, snap.equipped_helmet);
+    EXPECT_EQ(snap_recibido.equipped_shield, snap.equipped_shield);
     EXPECT_EQ(entidad_recibida.entity_id, entidad.entity_id);
     EXPECT_EQ(entidad_recibida.entity_type, entidad.entity_type);
     EXPECT_EQ(entidad_recibida.username, entidad.username);
@@ -695,8 +724,14 @@ TEST(ServerProtocolSendTest, SendSnapshot) {
     EXPECT_EQ(entidad_recibida.equipped_armor, entidad.equipped_armor);
     EXPECT_EQ(entidad_recibida.equipped_helmet, entidad.equipped_helmet);
     EXPECT_EQ(entidad_recibida.equipped_shield, entidad.equipped_shield);
+    EXPECT_EQ(entidad_recibida.level, entidad.level);
     EXPECT_EQ(mensaje_recibido.msg_type, mensaje.msg_type);
     EXPECT_EQ(mensaje_recibido.text, mensaje.text);
+    EXPECT_EQ(spell_recibido.caster_id, ev.caster_id);
+    EXPECT_EQ(spell_recibido.spell_id, ev.spell_id);
+    EXPECT_EQ(spell_recibido.target_x, ev.target_x);
+    EXPECT_EQ(spell_recibido.target_y, ev.target_y);
+    EXPECT_EQ(is_magic, 1);
 }
 
 
@@ -708,13 +743,15 @@ TEST(ServerProtocolSendTest, SendSnapshotNoEntitiesNoMessages) {
     snap.hp = 100; snap.max_hp = 100;
     snap.mp = 50;  snap.max_mp = 50;
     snap.exp = 0;  snap.level = 1;
-    snap.cls = static_cast<uint8_t>(Class::MAGE);
+    snap.character_class = static_cast<uint8_t>(Class::MAGE);
     snap.gold = 0;
     snap.is_ghost = 0; snap.meditating = 0;
     for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++)
         snap.inventory[i] = 0;
-    snap.equipped_wpn = 0; snap.equipped_arm = 0;
-    snap.equipped_helm = 0; snap.equipped_shld = 0;
+    snap.equipped_weapon = 0; 
+    snap.equipped_armor = 0;
+    snap.equipped_helmet = 0; 
+    snap.equipped_shield = 0;
     snap.entities = nullptr;
     snap.messages = nullptr;
 
@@ -730,22 +767,24 @@ TEST(ServerProtocolSendTest, SendSnapshotNoEntitiesNoMessages) {
                   + sizeof(snap.hp) + sizeof(snap.max_hp)
                   + sizeof(snap.mp) + sizeof(snap.max_mp)
                   + sizeof(snap.exp) + sizeof(snap.level)
-                  + sizeof(snap.cls)
+                  + sizeof(snap.character_class)
                   + sizeof(snap.gold)
                   + sizeof(snap.is_ghost) + sizeof(snap.meditating);
 
     size_t size_inventario_snap = sizeof(uint8_t)                   // INVENTORY_SIZE (cantidad de items)
                   + SnapshotDTO::INVENTORY_SIZE * sizeof(uint8_t)
-                  + sizeof(snap.equipped_wpn)
-                  + sizeof(snap.equipped_arm)
-                  + sizeof(snap.equipped_helm)
-                  + sizeof(snap.equipped_shld);
+                  + sizeof(snap.equipped_weapon)
+                  + sizeof(snap.equipped_armor)
+                  + sizeof(snap.equipped_helmet)
+                  + sizeof(snap.equipped_shield);
 
     size_t size_entidades = sizeof(uint8_t);
 
     size_t size_mensajes = sizeof(uint8_t);
 
-    size_t total_bytes = size_info_snap + size_inventario_snap + size_entidades + size_mensajes;
+    size_t size_spell_events = sizeof(uint8_t);
+
+    size_t total_bytes = size_info_snap + size_inventario_snap + size_entidades + size_mensajes + size_spell_events;
     std::vector<uint8_t> buffer = recv_bytes(sockets.fd_client, total_bytes);
 
     EXPECT_EQ(buffer[0], static_cast<uint8_t>(MsgType::SNAPSHOT));
@@ -755,6 +794,8 @@ TEST(ServerProtocolSendTest, SendSnapshotNoEntitiesNoMessages) {
     EXPECT_EQ(buffer[entities_offset], 0);
     size_t messages_offset = entities_offset + size_entidades;
     EXPECT_EQ(buffer[messages_offset], 0);
+    size_t spell_events_offset = messages_offset + size_mensajes;
+    EXPECT_EQ(buffer[spell_events_offset], 0);
 }
 
 // Test misc
