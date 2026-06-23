@@ -1,8 +1,14 @@
+// El archivo supera las 200 líneas, pero ninguna de las dos clases que
+// contiene (AttackCommand::execute ~130, AttackNpcCommand::execute ~85)
+// lo hace individualmente — comparten archivo por ser ambas "resolver un
+// ataque", igual que MeditateCommand/ResurrectCommand/CastSpellCommand
+// en MagicCommands.cpp. Las fórmulas de daño/crítico/dodge/exp ya están
+// extraídas a Equations (server/game/Equations.h/.cpp), así que no hay
+// un "CombatCalculator" más para sacar de acá.
 #include "Commands.h"
 #include "../Equations.h"
 #include "../Items.h"
-#include "../Stats.h"
-#include "../GameConfig.h"
+#include "../config/GameConfig.h"
 #include <algorithm>
 
 struct WeaponInfo {
@@ -48,37 +54,6 @@ static uint16_t calc_defense(const PlayerData& defender) {
     return static_cast<uint16_t>(def);
 }
 
-void check_level_up(PlayerData& p, World& world) {
-    uint8_t orig_level = p.level;
-    while (true) {
-        uint32_t limit = Equations::exp_required_for_level(p.level);
-        if (p.exp < limit) break;
-        p.level++;
-
-        // BUG FIX #5: escalado ADITIVO en vez de multiplicativo.
-        // Antes: max_hp = initial_max_hp * level  → escala muy rápido.
-        // Ahora: max_hp = initial_max_hp + (level - 1) * incremento_por_nivel
-        // Incremento: 10% de la HP/MP inicial por nivel.
-        uint16_t base_hp = Stats::initial_max_hp(p.race, p.cls);
-        uint16_t base_mp = Stats::initial_max_mp(p.race, p.cls);
-        uint16_t hp_per_level = static_cast<uint16_t>(base_hp * 0.10f);
-        uint16_t mp_per_level = static_cast<uint16_t>(base_mp * 0.10f);
-
-        p.max_hp = base_hp + static_cast<uint16_t>((p.level - 1)) * hp_per_level;
-
-        if (!GameConfig::get().cls(p.cls).can_meditate) {
-            p.max_mp = 0;
-            p.mp     = 0;
-        } else {
-            p.max_mp = base_mp + static_cast<uint16_t>((p.level - 1)) * mp_per_level;
-        }
-        p.hp = std::min(p.hp, p.max_hp);
-        p.mp = std::min(p.mp, p.max_mp);
-        if (p.level != orig_level)
-            world.push_message(p.entity_id, 0, "¡Subiste al nivel " + std::to_string(p.level) + "!");
-    }
-}
-
 static void npc_drop(const NpcData& npc, const NpcTemplate& tpl, World& world) {
     const auto& f = GameConfig::get().formulas();
     double r = Equations::rand_double(0.0, 1.0);
@@ -121,7 +96,7 @@ void AttackCommand::execute(World& world) {
     }
 
     if (attacker->is_ghost || target->is_ghost) return;
-    if (attacker->attack_cooldown > 0) return;
+    if (attacker->is_in_combat()) return;
 
     if (world.in_safe_zone(attacker->pos_x, attacker->pos_y) || world.in_safe_zone(target->pos_x, target->pos_y)) {
         world.push_message(client_id, 0, "No se puede atacar en/desde zona segura.");
@@ -151,6 +126,7 @@ void AttackCommand::execute(World& world) {
         world.push_message(client_id, 1, "Curaste a " + std::string(target->username) + " por " + std::to_string(heal) + " de vida.");
         world.push_message(target_id, 1, std::string(attacker->username) + " te curó " + std::to_string(heal) + " de vida.");
         attacker->attack_cooldown = GameConfig::get().formulas().attack_cooldown_melee;
+        world.push_spell_event(client_id, 0, target->pos_x, target->pos_y, /*is_magic_projectile*/ true);
         return;
     }
 
@@ -174,6 +150,17 @@ void AttackCommand::execute(World& world) {
         return;
     }
 
+    // El ataque está confirmado a partir de acá (pasó fair-play, clan, maná
+    // y rango): si es a distancia, avisarle a los demás clientes para que
+    // vean el proyectil del atacante. El propio cliente ya lo spawneó
+    // localmente al clickear; esto es solo para los demás. Se manda antes
+    // de resolver esquive/crítico porque el proyectil viaja igual aunque
+    // termine esquivado.
+    if (is_ranged) {
+        world.push_spell_event(client_id, 0, target->pos_x, target->pos_y,
+                               /*is_magic_projectile*/ w.kind == ItemKind::WEAPON_MAGIC);
+    }
+
     bool crit = Equations::is_critical();
 
     if (!crit && Equations::try_dodge(target->agility)) {
@@ -193,7 +180,7 @@ void AttackCommand::execute(World& world) {
     }
 
     attacker->exp += Equations::exp_per_damage(damage, attacker->level, target->level);
-    check_level_up(*attacker, world);
+    world.check_level_up(*attacker);
 
     std::string crit_str = crit ? " [CRITICO]" : "";
     world.push_message(client_id, 1, "Hiciste " + std::to_string(damage) + " de daño" + crit_str + ".");
@@ -211,7 +198,7 @@ void AttackCommand::execute(World& world) {
         world.drop_player_loot(*target);
 
         attacker->exp += Equations::exp_on_kill(target->max_hp, attacker->level, target->level);
-        check_level_up(*attacker, world);
+        world.check_level_up(*attacker);
 
         world.push_message(target_id, 1, "¡Moriste! Eres un fantasma.");
         world.push_message(client_id, 1, "¡Mataste a " + std::string(target->username) + "!");
@@ -231,7 +218,7 @@ void AttackNpcCommand::execute(World& world) {
     NpcData* npc      = world.find_npc(npc_id);
 
     if (!attacker || !npc) return;
-    if (attacker->is_ghost || attacker->attack_cooldown > 0) return;
+    if (attacker->is_ghost || attacker->is_in_combat()) return;
 
     if (world.in_safe_zone(attacker->pos_x, attacker->pos_y)) {
         world.push_message(client_id, 0, "No puedes atacar desde una zona segura.");
@@ -254,6 +241,13 @@ void AttackNpcCommand::execute(World& world) {
         return;
     }
 
+    // Igual que en AttackCommand: avisar a los demás clientes del proyectil
+    // (el atacante ya lo vio localmente al clickear).
+    if (is_ranged) {
+        world.push_spell_event(client_id, 0, npc->pos_x, npc->pos_y,
+                               /*is_magic_projectile*/ w.kind == ItemKind::WEAPON_MAGIC);
+    }
+
     bool crit = Equations::is_critical();
     // BUG FIX #3 (dodge de NPC): también con probabilidad fija y baja (5%)
     if (!crit && Equations::try_dodge(10)) {
@@ -273,14 +267,14 @@ void AttackNpcCommand::execute(World& world) {
     }
 
     attacker->exp += Equations::exp_per_damage(damage, attacker->level, 1);
-    check_level_up(*attacker, world);
+    world.check_level_up(*attacker);
 
     std::string crit_str = crit ? " [CRITICO]" : "";
     world.push_message(client_id, 1, "Hiciste " + std::to_string(damage) + " de daño al " + tpl.name + crit_str + ".");
 
     if (npc->hp <= damage) {
         attacker->exp += Equations::exp_on_kill(npc->max_hp, attacker->level, 1) + tpl.exp_reward;
-        check_level_up(*attacker, world);
+        world.check_level_up(*attacker);
 
         uint32_t gold = Equations::gold_drop_npc(npc->max_hp);
         attacker->gold += gold;

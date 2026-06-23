@@ -51,6 +51,7 @@ public:
         uint16_t grass_floor_id_max;
         uint16_t city_stone_floor_id;
         uint16_t dirt_floor_id;
+        uint16_t sand_floor_id;
 
         // Zona del bosque (dos rectángulos con el mismo rango de X, uno al
         // norte y otro al sur), para sonido ambiente de fauna.
@@ -137,6 +138,10 @@ public:
 
     // Cargar configuración desde TOML
     bool load(const std::string& config_path);
+
+    // Antes una función global suelta en PlayerState.h; es un simple
+    // forwarder a rendering.tile_size, así que pasa a ser un método.
+    int tile_size() const { return rendering.tile_size; }
 
 private:
     ClientConfig() = default;

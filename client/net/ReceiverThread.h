@@ -2,10 +2,9 @@
 
 #include "../../common/thread.h"
 #include "../../common/queue.h"
-#include "../../common/socket.h"
-#include "../../common/protocol/Deserializer.h"
 #include "../../common/protocol/dtos.h"
-#include "../../common/MapaDTO.h"
+#include "../../common/protocol/MapaDTO.h"
+#include "ClientProtocol.h"
 
 #include <atomic>
 #include <string>
@@ -14,7 +13,7 @@ enum class HandshakeResult { PENDING, OK, ERROR };
 
 class ReceiverThread : public Thread {
 public:
-    ReceiverThread(Socket& socket,
+    ReceiverThread(ClientProtocol& protocol,
                    Queue<SnapshotDTO>& snapshot_queue,
                    Queue<MapaDTO>& map_queue,
                    std::atomic<bool>& connected);
@@ -29,7 +28,7 @@ public:
 private:
     void game_loop_receive();
 
-    Deserializer        _deserializer;
+    ClientProtocol&     _protocol;
     Queue<SnapshotDTO>& _snapshot_queue;
     Queue<MapaDTO>&     _map_queue;
     std::atomic<bool>&  _connected;

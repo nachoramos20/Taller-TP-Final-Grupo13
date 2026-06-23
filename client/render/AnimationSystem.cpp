@@ -1,4 +1,5 @@
 #include "AnimationSystem.h"
+#include "../config/ClientConfig.h"
 #include <algorithm>
 
 AnimationSystem::AnimationSystem()
@@ -23,6 +24,8 @@ int AnimationSystem::frame_for_tick(uint32_t tick, int n_frames) const {
     return (tick / TICKS_PER_FRAME) % n_frames;
 }
 
+// No se aplica tabla: Direction tiene exactamente las 4 direcciones
+// cardinales del juego, es un enum cerrado que no va a crecer.
 int AnimationSystem::direction_to_index(Direction dir) const {
     switch (dir) {
         case Direction::SOUTH: return DIR_SOUTH;
@@ -119,13 +122,13 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
     const SDL2pp::Rect& head_src = _head_rects[dir_idx];
 
     // Escala el personaje en la misma proporción que el tile_size.
-    float scale = tile_size() / 64.0f;
+    float scale = ClientConfig::instance().tile_size() / 64.0f;
     int body_w = static_cast<int>(BodyLayout::FRAME_W * scale);
     int body_h = static_cast<int>(body_src.h * scale);
 
     SDL2pp::Rect body_dst(
-        screen_x - body_w / 2 + tile_size() / 2,
-        screen_y - body_h + tile_size(),
+        screen_x - body_w / 2 + ClientConfig::instance().tile_size() / 2,
+        screen_y - body_h + ClientConfig::instance().tile_size(),
         body_w,
         body_h
     );
@@ -226,13 +229,13 @@ SpriteBounds AnimationSystem::render_npc(SDL2pp::Renderer& renderer,
 
     SDL2pp::Rect src(frame * frame_w, dir_idx * frame_h, frame_w, frame_h);
 
-    int dst_h = static_cast<int>(tile_size() * scale);
+    int dst_h = static_cast<int>(ClientConfig::instance().tile_size() * scale);
     int dst_w = (frame_h > 0) ? (dst_h * frame_w / frame_h) : dst_h;
 
-    int top_y = screen_y + tile_size() - dst_h;
+    int top_y = screen_y + ClientConfig::instance().tile_size() - dst_h;
 
     SDL2pp::Rect dst(
-        screen_x + (tile_size() - dst_w) / 2,
+        screen_x + (ClientConfig::instance().tile_size() - dst_w) / 2,
         top_y + draw_offset_y,
         dst_w,
         dst_h

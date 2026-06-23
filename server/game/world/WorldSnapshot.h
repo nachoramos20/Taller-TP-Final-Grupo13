@@ -27,7 +27,8 @@ public:
 
     SnapshotDTO build(uint16_t client_id,
                       uint32_t tick,
-                      const std::shared_ptr<std::vector<EntityDTO>>& entities) const;
+                      const std::shared_ptr<std::vector<EntityDTO>>& entities,
+                      const std::shared_ptr<std::vector<SpellEventDTO>>& spell_events) const;
 };
 
 #endif

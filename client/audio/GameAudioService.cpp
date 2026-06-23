@@ -2,8 +2,8 @@
 #include "AudioManager.h"
 #include "../config/AudioConfig.h"
 #include "../config/SpellVfxConfig.h"
-#include "../render/ItemVisualConfig.h"
-#include "../render/NpcVisualConfig.h"
+#include "../config/ItemVisualConfig.h"
+#include "../config/NpcVisualConfig.h"
 #include <SDL.h>
 #include <cstdlib>
 

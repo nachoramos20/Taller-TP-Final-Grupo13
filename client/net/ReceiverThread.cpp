@@ -3,11 +3,11 @@
 #include <iostream>
 #include <string>
 
-ReceiverThread::ReceiverThread(Socket& socket,
+ReceiverThread::ReceiverThread(ClientProtocol& protocol,
                                Queue<SnapshotDTO>& snapshot_queue,
                                Queue<MapaDTO>& map_queue,
                                std::atomic<bool>& connected)
-    : _deserializer(socket),
+    : _protocol(protocol),
       _snapshot_queue(snapshot_queue),
       _map_queue(map_queue),
       _connected(connected),
@@ -19,11 +19,16 @@ void ReceiverThread::run() {
         bool got_ok  = false;
         bool got_map = false;
 
+        // No se aplica tabla en este switch ni en el de game_loop_receive:
+        // son 2-3 casos fijos (el handshake y el game loop no agregan
+        // tipos de mensaje nuevos sin tocar también el protocolo), y cada
+        // rama tiene control de flujo propio (mueve banderas locales,
+        // hace return) que no encaja en una firma uniforme de tabla.
         while (should_keep_running() && !(got_ok && got_map)) {
-            MsgType opcode = _deserializer.recv_opcode();
+            MsgType opcode = _protocol.recv_opcode();
             switch (opcode) {
                 case MsgType::LOGIN_OK: {
-                    uint16_t eid = _deserializer.recv_login_ok();
+                    uint16_t eid = _protocol.recv_login_ok();
                     _my_entity_id = eid;
                     std::string msg = "OK:" + std::to_string(eid);
                     _login_ok_queue.push(std::move(msg));
@@ -31,7 +36,7 @@ void ReceiverThread::run() {
                     break;
                 }
                 case MsgType::LOGIN_ERROR: {
-                    std::string err = _deserializer.recv_login_error();
+                    std::string err = _protocol.recv_login_error();
                     _login_error_queue.push(err);
                     // No paramos: el servidor puede seguir aceptando reintentos
                     // en el mismo socket (el ServerReceiverThread los soporta).
@@ -42,7 +47,7 @@ void ReceiverThread::run() {
                     return;
                 }
                 case MsgType::MAPA: {
-                    MapaDTO map = _deserializer.recv_map();
+                    MapaDTO map = _protocol.recv_map();
                     _map_queue.push(std::move(map));
                     got_map = true;
                     break;
@@ -66,15 +71,15 @@ void ReceiverThread::run() {
 void ReceiverThread::game_loop_receive() {
     try {
         while (should_keep_running()) {
-            MsgType opcode = _deserializer.recv_opcode();
+            MsgType opcode = _protocol.recv_opcode();
             switch (opcode) {
                 case MsgType::SNAPSHOT: {
-                    SnapshotDTO snap = _deserializer.recv_snapshot();
+                    SnapshotDTO snap = _protocol.recv_snapshot();
                     _snapshot_queue.push(std::move(snap));
                     break;
                 }
                 case MsgType::MAPA: {
-                    MapaDTO map = _deserializer.recv_map();
+                    MapaDTO map = _protocol.recv_map();
                     _map_queue.push(std::move(map));
                     break;
                 }

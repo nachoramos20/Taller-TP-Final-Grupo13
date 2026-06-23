@@ -5,9 +5,8 @@
 #include "../../common/thread.h"
 #include "../../common/queue.h"
 #include "../../common/socket.h"
-#include "../../common/protocol/Serializer.h"
 #include "../../common/protocol/dtos.h"
-#include "PlayerData.h"
+#include "entities/PlayerData.h"
 #include "PersistenceMonitor.h"
 
 class PersistenceThread : public Thread {

@@ -6,9 +6,6 @@ struct WeaponBounds { int dmin; int dmax; };
 struct DefenseBounds { int dmin; int dmax; };
 
 namespace Equations {
-    // Inicialización del RNG de manera interna
-    void init();
-
     // Auxiliares
     int rand_range(int lo, int hi);
     double rand_double(double lo, double hi);

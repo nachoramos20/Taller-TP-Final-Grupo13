@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "../PlayerData.h"
+#include "../entities/PlayerData.h"
 #include "../../../common/queue.h"
 
 class WorldCollision;

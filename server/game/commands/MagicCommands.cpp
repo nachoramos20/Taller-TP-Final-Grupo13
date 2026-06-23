@@ -1,6 +1,7 @@
 #include "Commands.h"
+#include "../../../common/protocol/WeaponRules.h"
 #include "../Equations.h"
-#include "../GameConfig.h"
+#include "../config/GameConfig.h"
 #include "../Items.h"
 #include <algorithm>
 
@@ -72,7 +73,7 @@ CastSpellCommand::CastSpellCommand(uint16_t c, uint16_t t, uint8_t s)
 
 void CastSpellCommand::execute(World& world) {
     PlayerData* caster = world.get_player_mutable(client_id);
-    if (!caster || caster->is_ghost || caster->attack_cooldown > 0) return;
+    if (!caster || caster->is_ghost || caster->is_in_combat()) return;
 
     if (world.in_safe_zone(caster->pos_x, caster->pos_y)) {
         world.push_message(client_id, 0, "No puedes lanzar hechizos desde una zona segura.");
@@ -143,6 +144,10 @@ void CastSpellCommand::execute(World& world) {
     caster->meditating = false;
     if (!caster->cheat_infinite_mp) caster->mp -= sd.mana_cost;
 
+    // Avisar a los demás clientes del hechizo (el propio caster ya lo vio
+    // localmente al clickear/seleccionar el hechizo).
+    world.push_spell_event(client_id, spell_id, tx, ty, /*is_magic_projectile*/ true);
+
     uint16_t base_dmg = weapon_base_damage(*caster);
     uint16_t damage = Equations::calc_spell_damage(base_dmg, sd.dmg_multiplier, sd.flat_bonus, caster->intelligence);
 
@@ -166,13 +171,13 @@ void CastSpellCommand::execute(World& world) {
         }
         // EXP por daño a jugador
         caster->exp += Equations::exp_per_damage(damage, caster->level, target_p->level);
-        check_level_up(*caster, world);
+        world.check_level_up(*caster);
     } else if (target_n) {
         if (target_n->hp <= damage) {
             // BUG FIX #2: otorgar EXP al matar NPC con hechizo
             const NpcTemplate& tpl = Npcs::tpl(target_n->type);
             caster->exp += Equations::exp_on_kill(target_n->max_hp, caster->level, 1) + tpl.exp_reward;
-            check_level_up(*caster, world);
+            world.check_level_up(*caster);
 
             uint32_t gold = Equations::gold_drop_npc(target_n->max_hp);
             caster->gold += gold;
@@ -184,7 +189,7 @@ void CastSpellCommand::execute(World& world) {
             target_n->hp -= damage;
             // EXP por daño a NPC
             caster->exp += Equations::exp_per_damage(damage, caster->level, 1);
-            check_level_up(*caster, world);
+            world.check_level_up(*caster);
         }
     }
 

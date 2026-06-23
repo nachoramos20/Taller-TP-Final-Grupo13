@@ -1,9 +1,37 @@
+// Patrón aplicado: Factory + tabla de configuración (en vez de 3 switches
+// por Class + un if para el escudo) para el equipo inicial de
+// apply_initial_equipment. Agregar una clase nueva es agregar una fila a
+// initial_loadouts(), no una rama más en cada uno de los 3 switches.
 #include "PersistenceMonitor.h"
-#include "Stats.h"
 #include "Items.h"
-#include "GameConfig.h"
+#include "config/GameConfig.h"
 
 #include <fstream>
+#include <unordered_map>
+
+namespace {
+    struct InitialLoadout {
+        ItemId weapon;
+        ItemId armor;
+        ItemId helmet;
+        bool   has_shield;
+    };
+
+    const std::unordered_map<Class, InitialLoadout>& initial_loadouts() {
+        using I = ItemId;
+        // Arma inicial: siempre la de menor tier dentro de la categoría de
+        // la clase. Las versiones "épicas"/"legendarias" quedan como
+        // drops/compras, no como punto de partida. Escudo solo para
+        // Warrior/Paladin (las otras clases no pueden usarlo).
+        static const std::unordered_map<Class, InitialLoadout> table = {
+            {Class::WARRIOR, {I::SWORD,      I::WARRIOR_EPIC_ARMOR, I::IRON_HELMET, true}},
+            {Class::PALADIN, {I::SIMPLE_BOW, I::MAGE_ROYAL_ARMOR,   I::IRON_HELMET, true}},
+            {Class::CLERIC,  {I::ELVEN_FLUTE,I::CLERIC_BLACK_ARMOR, I::HOOD,        false}},
+            {Class::MAGE,    {I::ASH_STICK,  I::LEATHER_ARMOR,      I::MAGIC_HAT,   false}},
+        };
+        return table;
+    }
+}
 
 PersistenceMonitor::PersistenceMonitor(Queue<PlayerData>& save_queue): save_queue(save_queue) {
     std::ifstream index_file(PLAYERS_INDEX_FILENAME, std::ios::in | std::ios::binary);
@@ -33,58 +61,16 @@ static void give_item(PlayerData& p, uint8_t item_id,
 
 static void apply_initial_equipment(PlayerData& p) {
     using I = ItemId;
-    const auto cls  = static_cast<Class>(p.cls);
+    const auto cls = static_cast<Class>(p.cls);
 
-    // Arma inicial: siempre la de menor tier dentro de la categoría de la clase.
-    // Las versiones "epicas"/"legendarias" quedan como drops/compras, no como punto de partida.
-    switch (cls) {
-        case Class::WARRIOR:
-            give_item(p, static_cast<uint8_t>(I::SWORD),       p.equipped_weapon, true);
-            break;
-        case Class::PALADIN:
-            give_item(p, static_cast<uint8_t>(I::SIMPLE_BOW),   p.equipped_weapon, true);
-            break;
-        case Class::CLERIC:
-            give_item(p, static_cast<uint8_t>(I::ELVEN_FLUTE), p.equipped_weapon, true);
-            break;
-        case Class::MAGE:
-            give_item(p, static_cast<uint8_t>(I::ASH_STICK),  p.equipped_weapon, true);
-            break;
-    }
-
-    // Armadura
-    switch (cls) {
-        case Class::WARRIOR:
-            give_item(p, static_cast<uint8_t>(I::WARRIOR_EPIC_ARMOR), p.equipped_armor, true);
-            break;
-        case Class::PALADIN:
-            give_item(p, static_cast<uint8_t>(I::MAGE_ROYAL_ARMOR),  p.equipped_armor, true);
-            break;
-        case Class::CLERIC:
-            give_item(p, static_cast<uint8_t>(I::CLERIC_BLACK_ARMOR),p.equipped_armor, true);
-            break;
-        case Class::MAGE:
-            give_item(p, static_cast<uint8_t>(I::LEATHER_ARMOR),p.equipped_armor, true);
-            break;
-    }
-
-    // Casco
-    switch (cls) {
-        case Class::WARRIOR:
-        case Class::PALADIN:
-            give_item(p, static_cast<uint8_t>(I::IRON_HELMET), p.equipped_helmet, true);
-            break;
-        case Class::CLERIC:
-            give_item(p, static_cast<uint8_t>(I::HOOD),        p.equipped_helmet, true);
-            break;
-        case Class::MAGE:
-            give_item(p, static_cast<uint8_t>(I::MAGIC_HAT),   p.equipped_helmet, true);
-            break;
-    }
-
-    // Escudo (solo Warrior y Paladin)
-    if (cls == Class::WARRIOR || cls == Class::PALADIN) {
-        give_item(p, static_cast<uint8_t>(I::IRON_SHIELD), p.equipped_shield, true);
+    auto it = initial_loadouts().find(cls);
+    if (it != initial_loadouts().end()) {
+        const InitialLoadout& loadout = it->second;
+        give_item(p, static_cast<uint8_t>(loadout.weapon), p.equipped_weapon, true);
+        give_item(p, static_cast<uint8_t>(loadout.armor),  p.equipped_armor,  true);
+        give_item(p, static_cast<uint8_t>(loadout.helmet), p.equipped_helmet, true);
+        if (loadout.has_shield)
+            give_item(p, static_cast<uint8_t>(I::IRON_SHIELD), p.equipped_shield, true);
     }
 
     // Pociones iniciales (una de vida para todos)
@@ -118,14 +104,14 @@ make_initial_player(const std::string& username, uint8_t race, uint8_t cls) {
     data.meditating = false;
 
     // Stats según raza y clase
-    auto rf = Stats::race_of(race);
+    auto rf = GameConfig::get().race(race);
 
     data.strength     = rf.base_str;
     data.agility      = rf.base_agi;
     data.intelligence = rf.base_int;
     data.constitution = rf.base_const;
 
-    data.max_hp = Stats::initial_max_hp(race, cls);
+    data.max_hp = GameConfig::get().initial_max_hp(race, cls);
     data.hp     = data.max_hp;
 
     // Si la clase no puede meditar (Guerrero), no tiene maná
@@ -133,7 +119,7 @@ make_initial_player(const std::string& username, uint8_t race, uint8_t cls) {
         data.max_mp = 0;
         data.mp     = 0;
     } else {
-        data.max_mp = Stats::initial_max_mp(race, cls);
+        data.max_mp = GameConfig::get().initial_max_mp(race, cls);
         data.mp     = data.max_mp;
     }
 

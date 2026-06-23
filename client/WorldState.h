@@ -1,0 +1,124 @@
+#pragma once
+
+#include <cstdint>
+#include <string>
+
+#include <unordered_map>
+#include <vector>
+
+#include "../common/protocol/dtos.h"
+#include "../common/protocol/MapaDTO.h"
+#include "PlayerState.h"
+
+// Interpolación de movimiento de una entidad (NPC u otro jugador) entre la
+// posición de tile que tenía y la nueva que llegó en el snapshot, para que
+// se vea deslizar en vez de saltar de golpe (igual que el jugador propio
+// vía PlayerState, pero indexado por entity_id en vez de ser uno solo).
+struct EntityMotion {
+    float from_x = 0.0f, from_y = 0.0f;
+    float to_x   = 0.0f, to_y   = 0.0f;
+    float progress = 1.0f;  // 0 (recién arrancó) .. 1 (ya llegó)
+};
+
+// Efecto visual de hechizo (solo cliente)
+struct SpellEffect {
+    uint8_t  spell_id;
+    uint16_t pos_x, pos_y;   // posición del objetivo en tiles
+    uint32_t start_tick;
+    int      sheet_cols;
+    int      frame_w, frame_h;
+    std::vector<int> frame_indices;
+    std::string path;
+};
+
+// Animación de proyectil para ataques a distancia (solo cliente, sin sprite
+// propio: se dibuja como una marca viajando del atacante al objetivo).
+struct Projectile {
+    uint16_t from_x, from_y;
+    uint16_t to_x, to_y;
+    uint32_t start_tick;
+    bool     is_magic;  // color distinto para distinguir flecha de hechizo
+};
+
+// Animación de muerte de NPC
+struct DeathEffect {
+    uint16_t pos_x, pos_y;
+    uint32_t start_ms;   // SDL_GetTicks() al crear el efecto
+};
+
+// Estado del mundo derivado de los snapshots del servidor: entidades
+// visibles, equipo/inventario propio, efectos visuales en curso, mapa
+// cargado, y los NPCs de servicio con los que se está interactuando.
+// `SnapshotProcessor` lo actualiza con cada snapshot; `WorldRenderer` lo lee
+// para dibujar, y `PlayerActionController` lo lee/empuja efectos nuevos al
+// resolver clicks y comandos de chat.
+struct WorldState {
+    std::vector<EntityDTO> entities;
+    uint16_t my_entity_id = 0;
+    uint32_t current_tick = 0;
+
+    // Interpolación de movimiento por entidad. No incluye
+    // al jugador propio, que ya interpola por su cuenta vía PlayerState.
+    std::unordered_map<uint16_t, EntityMotion> entity_motion;
+
+    bool    was_ghost = false;
+    uint8_t last_level = 0;
+    bool    level_initialized = false;
+    bool    spawned = false;  // primer snapshot recibido
+
+    // Ids de los NPC de servicio con los que se está interactuando
+    // actualmente (-1 = ninguno).
+    int32_t shop_npc_id   = -1;
+    int32_t bank_npc_id   = -1;
+    int32_t priest_npc_id = -1;
+
+    // Equipo del jugador propio (slots de inventario, 0xFF = vacío)
+    uint8_t inventory[SnapshotDTO::INVENTORY_SIZE]{};
+    uint8_t eq_weapon = 0xFF, eq_armor = 0xFF, eq_helmet = 0xFF, eq_shield = 0xFF;
+
+    std::vector<SpellEffect> spell_effects;
+    std::vector<Projectile>  projectiles;
+    std::vector<DeathEffect> death_effects;
+
+    MapaDTO map;
+    bool    map_loaded = false;
+
+    // Antes funciones globales en WorldState.cpp, todas con `const
+    // WorldState&`/`WorldState&` como primer parámetro: pasan a ser métodos.
+
+    float distance_to_nearest_water_tile(const PlayerState& player) const;
+    bool  is_floor_grass(uint16_t x, uint16_t y) const;
+    bool  is_floor_dirt(uint16_t x, uint16_t y) const;
+    bool  is_floor_city_stone(uint16_t x, uint16_t y) const;
+
+    // Item id del arma equipada por el jugador propio (0 si no tiene nada equipado).
+    uint8_t own_weapon_item() const;
+
+    // Actualiza el destino de interpolación de cada entidad del snapshot nuevo
+    // y descarta las que ya no existen. Llamar antes de pisar
+    // entities con el snapshot nuevo.
+    void update_entity_motion(const std::vector<EntityDTO>& new_entities);
+
+    // Avanza el progreso de todas las interpolaciones en curso. Llamar todos
+    // los frames con el dt real (no por snapshot).
+    void advance_entity_motion(float dt);
+
+    // Posición interpolada en píxeles de una entidad (no aplica al jugador
+    // propio, que se dibuja con PlayerState::pixel_x/y).
+    float entity_pixel_x(const EntityDTO& e) const;
+    float entity_pixel_y(const EntityDTO& e) const;
+
+    void spawn_spell_effect(uint8_t spell_id, uint16_t pos_x, uint16_t pos_y);
+    void spawn_projectile(uint16_t from_x, uint16_t from_y,
+                          uint16_t to_x, uint16_t to_y, bool is_magic);
+};
+
+// No tienen un WorldState/PlayerState como sujeto: son chequeos de geometría
+// fija contra zonas de ClientConfig, no datos de ninguna instancia. Quedan
+// como funciones libres.
+bool  is_in_forest_zone(uint16_t x, uint16_t y);
+float distance_to_cemetery_zone(int x, int y);
+
+// Ciudad/pueblo (ver ServerGameLoop.cpp): el servidor rechaza hechizos y
+// ataques a distancia ahí, así que tampoco hay que spawnear su VFX/sonido.
+bool is_in_safe_zone(uint16_t x, uint16_t y);

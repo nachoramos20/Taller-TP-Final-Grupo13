@@ -17,6 +17,7 @@ struct PendingMessage {
 class WorldChat {
 private:
     std::vector<PendingMessage> pending;
+    std::vector<SpellEventDTO>  pending_spell_events_;
 public:
     void push_message(uint16_t to_id, uint8_t type, const std::string& text);
     void push_broadcast(uint8_t type, const std::string& text);
@@ -26,6 +27,17 @@ public:
     std::shared_ptr<std::vector<ChatMessageDTO>> collect(uint16_t client_id);
 
     void clear_broadcasts();
+
+    // Eventos de VFX (ataque/hechizo exitoso) de este tick. A diferencia de
+    // los mensajes de chat no existe variante "dirigida": todo evento es
+    // siempre para todos los clientes, así que no hace falta filtrar por
+    // client_id como en collect() — se buscan una sola vez por tick (igual
+    // que las entidades) y se comparten entre todos los snapshots de ese tick.
+    void push_spell_event(uint16_t caster_id, uint8_t spell_id,
+                          uint16_t target_x, uint16_t target_y,
+                          bool is_magic_projectile);
+    std::shared_ptr<std::vector<SpellEventDTO>> get_spell_events() const;
+    void clear_spell_events();
 };
 
 #endif

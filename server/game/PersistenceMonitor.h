@@ -1,7 +1,7 @@
 #ifndef PERSISTENCE_MONITOR_H
 #define PERSISTENCE_MONITOR_H
 
-#include "PlayerData.h"
+#include "entities/PlayerData.h"
 #include "../../common/queue.h"
 
 #include <cstdint>

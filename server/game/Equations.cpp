@@ -1,5 +1,5 @@
 #include "Equations.h"
-#include "GameConfig.h"
+#include "config/GameConfig.h"
 #include <random>
 #include <cmath>
 #include <algorithm>

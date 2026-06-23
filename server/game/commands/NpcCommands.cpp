@@ -37,6 +37,10 @@ void NpcInteractCommand::execute(World& world) {
     // Registrar el NPC seleccionado en el mundo para que los comandos lo validen
     world.set_selected_npc(client_id, npc->type);
 
+    // No se aplica tabla/Strategy: son 3 NPCs de servicio fijos (mercader,
+    // banquero, sacerdote) y cada rama es un solo mensaje de texto estático.
+    // Si se agregara un cuarto NPC de servicio con lógica distinta, ahí sí
+    // valdría la pena.
     switch (npc->type) {
         case NpcId::MERCHANT:
             world.push_message(client_id, 0,

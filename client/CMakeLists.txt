@@ -1,32 +1,42 @@
 target_sources(argentum_grupo13_client
     PRIVATE
     main.cpp
-    game/GameLoop.cpp
-    game/LoginScreen.cpp
-    game/ChatWidget.cpp
-    game/StatsPanel.cpp
-    game/InventoryPanel.cpp
-    game/PositionLabel.cpp
-    game/WorldState.cpp
-    game/SnapshotProcessor.cpp
-    game/WorldRenderer.cpp
-    game/InputController.cpp
-    game/PlayerActionController.cpp
+    GameLoop.cpp
+    WorldState.cpp
+    ui/HudManager.cpp
+    ui/LoginScreen.cpp
+    ui/ChatWidget.cpp
+    ui/StatsPanel.cpp
+    ui/StatsPanelRenderer.cpp
+    ui/SpellSystem.cpp
+    ui/InventoryPanel.cpp
+    ui/InventoryRenderer.cpp
+    ui/ItemLabels.cpp
+    ui/PositionLabel.cpp
+    processors/SnapshotProcessor.cpp
+    controllers/InputController.cpp
+    controllers/PlayerActionController.cpp
+    render/WorldRenderer.cpp
+    render/EntityRenderer.cpp
+    render/VFXRenderer.cpp
     render/Camera.cpp
     render/AssetManager.cpp
     render/AnimationSystem.cpp
     render/SpriteConfig.cpp
     render/ObjectSupConfig.cpp
-    render/ItemVisualConfig.cpp
-    render/NpcVisualConfig.cpp
+    net/ClientProtocol.cpp
     net/SenderThread.cpp
     net/ReceiverThread.cpp
+    net/NetSession.cpp
     audio/AudioManager.cpp
     audio/GameAudioService.cpp
     config/AudioConfig.cpp
     config/ClientConfig.cpp
+    config/ConfigLoader.cpp
     config/SpellVfxConfig.cpp
     config/RacesClassesConfig.cpp
+    config/ItemVisualConfig.cpp
+    config/NpcVisualConfig.cpp
 )
 
 target_include_directories(argentum_grupo13_client

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../game/PlayerState.h"
+#include "../PlayerState.h"
 
 class Camera {
 public:

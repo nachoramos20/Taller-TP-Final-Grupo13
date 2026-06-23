@@ -19,6 +19,10 @@ struct HeadLayout {
     int overlaps[4];
     int offset_x[4];
     float armor_scale_y = 1.0f;
+    // No se aplica tabla: son las 4 razas jugables fijas del juego, cada
+    // una con un literal de layout que no es un valor único sino un grupo
+    // de 5 campos relacionados — ya está expresado como tabla de hecho,
+    // solo que en forma de switch en vez de std::array/map.
     static HeadLayout for_sprite(uint8_t sprite_id) {
         switch (sprite_id) {
             case 1: return {15, {0,21,42,63}, {21,21,21,21}, {11,14,11,11}, {0,0,0,0}, 1.0f};   // humano

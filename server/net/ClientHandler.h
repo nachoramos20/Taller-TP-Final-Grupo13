@@ -18,7 +18,7 @@ public:
                   Queue<std::shared_ptr<ServerCommand>>& command_queue,
                   QueueMonitor& queue_monitor,
                   PersistenceMonitor& persistence_monitor,
-                  MapaDTO& mapa);
+                  MapaDTO& initial_map);
 
     void start();
     void stop();

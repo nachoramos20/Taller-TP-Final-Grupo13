@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "../Clan.h"
+#include "../entities/Clan.h"
 
 class WorldPlayers;
 class WorldChat;

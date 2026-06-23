@@ -16,8 +16,11 @@ target_sources(argentum_grupo13_server_lib
     game/commands/MagicCommands.cpp
     game/commands/NpcCommands.cpp
     game/commands/ChatCommands.cpp
-    game/commands/ChatCommand_Bank.cpp
-    game/commands/ChatCommand_Clan.cpp
+    game/commands/BankCommands.cpp
+    game/commands/MerchantCommands.cpp
+    game/commands/ClanCommands.cpp
+    game/commands/DungeonCommands.cpp
+    game/commands/ChatCheatCommands.cpp
     game/commands/CheatCommands.cpp
     game/PersistenceMonitor.cpp
     game/world/World.cpp
@@ -31,12 +34,13 @@ target_sources(argentum_grupo13_server_lib
     game/world/WorldSpawner.cpp
     game/world/WorldSnapshot.cpp
     game/world/Mazmorra.cpp
+    game/world/WorldBuilder.cpp
     game/QueueMonitor.cpp
-    game/MapaBuilder.cpp
+    game/world/MapaBuilder.cpp
     game/Items.cpp
     game/Npc.cpp
     game/Equations.cpp
-    game/GameConfig.cpp
+    game/config/GameConfig.cpp
     game/PersistenceThread.cpp
 )
 

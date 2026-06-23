@@ -69,6 +69,7 @@ bool ClientConfig::load(const std::string& config_path) {
             rendering.grass_floor_id_max = rendering_table["grass_floor_id_max"].value_or<uint16_t>(9);
             rendering.city_stone_floor_id = rendering_table["city_stone_floor_id"].value_or<uint16_t>(1);
             rendering.dirt_floor_id = rendering_table["dirt_floor_id"].value_or<uint16_t>(10);
+            rendering.sand_floor_id = rendering_table["sand_floor_id"].value_or<uint16_t>(45);
             rendering.forest_x_min = rendering_table["forest_x_min"].value_or(4);
             rendering.forest_x_max = rendering_table["forest_x_max"].value_or(22);
             rendering.forest_y1_min = rendering_table["forest_y1_min"].value_or(5);
