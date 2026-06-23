@@ -394,7 +394,7 @@ TEST(ClientProtocolSendTest, SendCheat) {
     EXPECT_EQ(buffer[1], cheat_id);
 }
 
-// Tests de recepción (servidor -> cliente)
+// Tests recibir
 
 TEST(ClientProtocolRecvTest, RecvOpcode) {
     TestSockets sockets;
@@ -479,7 +479,7 @@ TEST(ClientProtocolRecvTest, RecvMap) {
 TEST(ClientProtocolRecvTest, RecvSnapshot) {
     TestSockets sockets;
 
-    // Enviar datos del snapshot manualmente (como lo haría el server)
+    // Enviar datos del snapshot manualmente
     send_uint32(sockets.fd_server, 42);     // tick
     send_uint16(sockets.fd_server, 1);      // self_entity_id
     send_uint16(sockets.fd_server, 100);    // hp
