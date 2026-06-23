@@ -1,3 +1,9 @@
+// Patrón aplicado: Command + tabla de dispatch para el switch de 11
+// InputAction en handle_keydown (ver action_table()). El switch de 4
+// cheats por Ctrl+Shift+tecla se deja como if/else: son pocos, estables,
+// y van gateados por un combo de modificadores que no comparten con el
+// resto de los atajos, así que meterlos en la misma tabla complicaría
+// más de lo que simplifica.
 #include "InputController.h"
 #include "../ui/ChatWidget.h"
 #include "../ui/StatsPanel.h"
@@ -81,61 +87,58 @@ void InputController::handle_keydown(const SDL_Event& event, bool& running) {
     auto it = _key_actions.find(event.key.keysym.sym);
     if (it == _key_actions.end()) return;
 
-    switch (it->second) {
-        case InputAction::ToggleNameTag:
-            if (!inventory_open && !chat_active && _pos_label) _pos_label->toggle_visibility();
-            break;
-        case InputAction::ToggleInventory:
-            if (!chat_active && _inventory) _inventory->toggle();
-            break;
-        case InputAction::DropItem:
-            if (inventory_open && !chat_active && _command_queue) {
-                int slot = _inventory->selected_slot();
-                if (slot >= 0) _command_queue->push(Command::drop(static_cast<uint8_t>(slot)));
+    const auto& table = action_table();
+    auto handler = table.find(it->second);
+    if (handler != table.end()) handler->second(*this, inventory_open, chat_active, running);
+}
+
+const std::unordered_map<InputAction, InputController::ActionHandler>& InputController::action_table() {
+    static const std::unordered_map<InputAction, ActionHandler> table = {
+        {InputAction::ToggleNameTag, [](InputController& s, bool inv, bool chat, bool&) {
+            if (!inv && !chat && s._pos_label) s._pos_label->toggle_visibility();
+        }},
+        {InputAction::ToggleInventory, [](InputController& s, bool, bool chat, bool&) {
+            if (!chat && s._inventory) s._inventory->toggle();
+        }},
+        {InputAction::DropItem, [](InputController& s, bool inv, bool chat, bool&) {
+            if (inv && !chat && s._command_queue) {
+                int slot = s._inventory->selected_slot();
+                if (slot >= 0) s._command_queue->push(Command::drop(static_cast<uint8_t>(slot)));
             }
-            break;
-        case InputAction::Meditate:
-            if (!inventory_open && !chat_active && _command_queue)
-                _command_queue->push(Command::meditate());
-            break;
-        case InputAction::Resurrect:
-            if (!inventory_open && !chat_active && _command_queue) {
-                _command_queue->push(Command::resurrect());
-                if (_on_resurrect) _on_resurrect();
+        }},
+        {InputAction::Meditate, [](InputController& s, bool inv, bool chat, bool&) {
+            if (!inv && !chat && s._command_queue) s._command_queue->push(Command::meditate());
+        }},
+        {InputAction::Resurrect, [](InputController& s, bool inv, bool chat, bool&) {
+            if (!inv && !chat && s._command_queue) {
+                s._command_queue->push(Command::resurrect());
+                if (s._on_resurrect) s._on_resurrect();
             }
-            break;
-        case InputAction::PickItem:
-            if (!inventory_open && !chat_active && _command_queue)
-                _command_queue->push(Command::pick_item());
-            break;
-        case InputAction::Quit:
-            running = false;
-            break;
+        }},
+        {InputAction::PickItem, [](InputController& s, bool inv, bool chat, bool&) {
+            if (!inv && !chat && s._command_queue) s._command_queue->push(Command::pick_item());
+        }},
+        {InputAction::Quit, [](InputController&, bool, bool, bool& running) { running = false; }},
         // ─── Atajos de hechizo ───
-        case InputAction::Spell1:
-            if (!inventory_open && !chat_active && _stats)
-                _stats->activate_spell_by_index(0);
-            break;
-        case InputAction::Spell2:
-            if (!inventory_open && !chat_active && _stats)
-                _stats->activate_spell_by_index(1);
-            break;
-        case InputAction::Spell3:
-            if (!inventory_open && !chat_active && _stats)
-                _stats->activate_spell_by_index(2);
-            break;
+        {InputAction::Spell1, [](InputController& s, bool inv, bool chat, bool&) {
+            if (!inv && !chat && s._stats) s._stats->activate_spell_by_index(0);
+        }},
+        {InputAction::Spell2, [](InputController& s, bool inv, bool chat, bool&) {
+            if (!inv && !chat && s._stats) s._stats->activate_spell_by_index(1);
+        }},
+        {InputAction::Spell3, [](InputController& s, bool inv, bool chat, bool&) {
+            if (!inv && !chat && s._stats) s._stats->activate_spell_by_index(2);
+        }},
         // ─── Atajo de poción ───
-        case InputAction::UsePotion:
-            if (!inventory_open && !chat_active && _on_use_potion)
-                _on_use_potion();
-            break;
+        {InputAction::UsePotion, [](InputController& s, bool inv, bool chat, bool&) {
+            if (!inv && !chat && s._on_use_potion) s._on_use_potion();
+        }},
         // ─── Atajo de ayuda ───
-        case InputAction::Help:
-            if (!inventory_open && !chat_active && _stats)
-                _stats->toggle_help();
-            break;
-        default: break;
-    }
+        {InputAction::Help, [](InputController& s, bool inv, bool chat, bool&) {
+            if (!inv && !chat && s._stats) s._stats->toggle_help();
+        }},
+    };
+    return table;
 }
 
 void InputController::handle_mouse_click(int mouse_x, int mouse_y) {

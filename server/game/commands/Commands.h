@@ -4,7 +4,17 @@
 #include "../world/World.h"
 #include "../entities/PlayerData.h"
 #include "../../../common/protocol/protocol.h"
+#include <functional>
 #include <string>
+#include <unordered_map>
+#include <vector>
+
+// Catálogo de items que vende el comerciante de una zona (0=Ciudad,
+// 1=Pueblo, cualquier otro valor = catálogo básico). Compartida por
+// ChatCommand::handle_comprar (ChatCommands.cpp) y
+// ChatCommand::handle_listar_comerciante (ChatCommand_Bank.cpp) — antes
+// cada una tenía su propio switch con el mismo catálogo hardcodeado.
+std::vector<ItemId> merchant_catalog_for_zone(uint8_t zone_id);
 
 class ServerCommand {
 public:
@@ -142,6 +152,13 @@ public:
 private:
     uint16_t    client_id;
     std::string cmd;
+
+    // Tabla de dispatch por texto de comando (Command pattern): cada entrada
+    // envuelve un handle_* en una firma uniforme. Construida una sola vez
+    // (static local en dispatch_table()), evita la cadena de if/else if.
+    using DispatchTable = std::unordered_map<std::string,
+        std::function<void(ChatCommand&, World&, const std::string&)>>;
+    static const DispatchTable& dispatch_table();
 
     void handle_meditar(World& world);
     void handle_resucitar(World& world);

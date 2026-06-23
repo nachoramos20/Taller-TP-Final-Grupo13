@@ -51,6 +51,14 @@ private:
     void handle_keydown(const SDL_Event& event, bool& running);
     void handle_mouse_click(int mouse_x, int mouse_y);
 
+    // Tabla de dispatch por InputAction (Command pattern, en vez del switch
+    // de 11 casos en handle_keydown): cada entrada ejecuta la acción de un
+    // atajo ya resuelto por _key_actions. `inventory_open`/`chat_active` se
+    // pasan calculados porque casi todas las acciones los usan para
+    // bloquearse mientras el inventario o el chat están activos.
+    using ActionHandler = std::function<void(InputController&, bool inventory_open, bool chat_active, bool& running)>;
+    static const std::unordered_map<InputAction, ActionHandler>& action_table();
+
     Camera&         _camera;
     PlayerState&    _player;
     Queue<Command>* _command_queue;

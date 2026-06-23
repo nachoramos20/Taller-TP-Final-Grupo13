@@ -1,3 +1,8 @@
+// Patrón aplicado: Factory + tabla de dispatch (en vez del switch de 14
+// casos por MsgType). Cada entrada envuelve un receive_* existente; el
+// tipo concreto que devuelve (shared_ptr<MoveCommand>, etc.) convierte
+// implícitamente a shared_ptr<ServerCommand> al volver de la lambda, así
+// que no hace falta tocar la firma de ningún receive_*.
 #include "ServerProtocol.h"
 
 #include <utility>
@@ -5,30 +10,36 @@
 
 ServerProtocol::ServerProtocol(Socket&& socket) : Protocol(std::move(socket)) {}
 
+const std::unordered_map<MsgType, ServerProtocol::CommandFactory>& ServerProtocol::dispatch_table() {
+    static const std::unordered_map<MsgType, CommandFactory> table = {
+        {MsgType::MOVE,         [](ServerProtocol& p, uint16_t id) { return p.receive_move_command(id); }},
+        {MsgType::ATTACK,       [](ServerProtocol& p, uint16_t id) { return p.receive_attack(id); }},
+        {MsgType::EQUIP_ITEM,   [](ServerProtocol& p, uint16_t id) { return p.receive_equip(id); }},
+        {MsgType::UNEQUIP_ITEM, [](ServerProtocol& p, uint16_t id) { return p.receive_unequip(id); }},
+        {MsgType::DROP_ITEM,    [](ServerProtocol& p, uint16_t id) { return p.receive_drop(id); }},
+        {MsgType::MOVE_ITEM,    [](ServerProtocol& p, uint16_t id) { return p.receive_move_item(id); }},
+        {MsgType::PICK_ITEM,    [](ServerProtocol& p, uint16_t id) { return p.receive_pick(id); }},
+        {MsgType::USE_ITEM,     [](ServerProtocol& p, uint16_t id) { return p.receive_use(id); }},
+        {MsgType::MEDITATE,     [](ServerProtocol& p, uint16_t id) { return p.receive_meditate(id); }},
+        {MsgType::RESURRECT,    [](ServerProtocol& p, uint16_t id) { return p.receive_resurrect(id); }},
+        {MsgType::LOGOUT,       [](ServerProtocol& p, uint16_t id) { return p.receive_logout(id); }},
+        {MsgType::CHAT_COMMAND, [](ServerProtocol& p, uint16_t id) { return p.receive_chat_command(id); }},
+        {MsgType::NPC_INTERACT, [](ServerProtocol& p, uint16_t id) { return p.receive_npc_interact(id); }},
+        {MsgType::CAST_SPELL,   [](ServerProtocol& p, uint16_t id) { return p.receive_cast_spell(id); }},
+        {MsgType::CHEAT,        [](ServerProtocol& p, uint16_t id) { return p.receive_cheat(id); }},
+    };
+    return table;
+}
+
 std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_id) {
     uint8_t code;
     int n = _socket.recvall(&code, 1);
     if (n == 0) return nullptr;
 
-    switch (static_cast<MsgType>(code)) {
-        case MsgType::MOVE:         return receive_move_command(client_id);
-        case MsgType::ATTACK:       return receive_attack(client_id);
-        case MsgType::EQUIP_ITEM:   return receive_equip(client_id);
-        case MsgType::UNEQUIP_ITEM: return receive_unequip(client_id);
-        case MsgType::DROP_ITEM:    return receive_drop(client_id);
-        case MsgType::MOVE_ITEM:    return receive_move_item(client_id);
-        case MsgType::PICK_ITEM:    return receive_pick(client_id);
-        case MsgType::USE_ITEM:     return receive_use(client_id);
-        case MsgType::MEDITATE:     return receive_meditate(client_id);
-        case MsgType::RESURRECT:    return receive_resurrect(client_id);
-        case MsgType::LOGOUT:       return receive_logout(client_id);
-        case MsgType::CHAT_COMMAND: return receive_chat_command(client_id);
-        case MsgType::NPC_INTERACT: return receive_npc_interact(client_id);
-        case MsgType::CAST_SPELL:   return receive_cast_spell(client_id);
-        case MsgType::CHEAT:        return receive_cheat(client_id);
-
-        default: return nullptr;
-    }
+    const auto& table = dispatch_table();
+    auto it = table.find(static_cast<MsgType>(code));
+    if (it == table.end()) return nullptr;
+    return it->second(*this, client_id);
 }
 
 std::shared_ptr<MoveCommand> ServerProtocol::receive_move_command(uint16_t client_id) {

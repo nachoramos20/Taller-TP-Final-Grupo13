@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "../../common/protocol/Protocol.h"
 #include "../../common/protocol/MapaDTO.h"
@@ -45,4 +47,10 @@ private:
     std::shared_ptr<NpcInteractCommand> receive_npc_interact(uint16_t client_id);
     std::shared_ptr<CastSpellCommand>   receive_cast_spell(uint16_t client_id);
     std::shared_ptr<CheatCommand>       receive_cheat(uint16_t client_id);
+
+    // Factory + tabla de dispatch por MsgType (en vez del switch de 14
+    // casos que llamaba a cada receive_*): cada entrada envuelve un
+    // receive_* en una firma uniforme que devuelve el ServerCommand base.
+    using CommandFactory = std::function<std::shared_ptr<ServerCommand>(ServerProtocol&, uint16_t)>;
+    static const std::unordered_map<MsgType, CommandFactory>& dispatch_table();
 };

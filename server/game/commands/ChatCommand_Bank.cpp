@@ -1,6 +1,7 @@
 #include "Commands.h"
 #include "../Items.h"
 #include <sstream>
+#include <unordered_map>
 
 // ─── helper interno ────────────────────────────────────────────────────────
 static bool check_banker(World& world, uint16_t client_id) {
@@ -73,36 +74,28 @@ void ChatCommand::handle_listar(World& world) {
         "Debes estar cerca del Banquero o Comerciante para usar este comando.");
 }
 
-// Devuelve el catálogo del comerciante según su zona.
-// zone_id 0 = Ciudad, 1 = Pueblo, 255 (o desconocida) = catálogo básico.
-static std::vector<ItemId> merchant_catalog_for_zone(uint8_t zone_id) {
-    switch (zone_id) {
-        case 0:  // Ciudad
-            return {
-                ItemId::SWORD,
-                ItemId::COMPOUND_BOW,
-                ItemId::GEMMED_STAFF,
-                ItemId::PLATE_ARMOR,
-                ItemId::IRON_HELMET,
-                ItemId::IRON_SHIELD,
-                ItemId::HEALTH_POTION,
-                ItemId::MANA_POTION,
-            };
-        case 1:  // Pueblo
-            return {
-                ItemId::SWORD,
-                ItemId::SIMPLE_BOW,
-                ItemId::ELVEN_FLUTE,
-                ItemId::LEATHER_ARMOR,
-                ItemId::HEALTH_POTION,
-            };
-        default: // Catálogo básico (zona desconocida)
-            return {
-                ItemId::SWORD,
-                ItemId::LEATHER_ARMOR,
-                ItemId::HEALTH_POTION,
-            };
-    }
+// Catálogo del comerciante por zona (Factory/tabla en vez de switch):
+// zone_id 0 = Ciudad, 1 = Pueblo; cualquier otro valor cae al catálogo
+// básico. Declarada en Commands.h porque también la usa
+// ChatCommand::handle_comprar en ChatCommands.cpp.
+std::vector<ItemId> merchant_catalog_for_zone(uint8_t zone_id) {
+    static const std::unordered_map<uint8_t, std::vector<ItemId>> catalogs = {
+        {0, { // Ciudad
+            ItemId::SWORD, ItemId::COMPOUND_BOW, ItemId::GEMMED_STAFF,
+            ItemId::PLATE_ARMOR, ItemId::IRON_HELMET, ItemId::IRON_SHIELD,
+            ItemId::HEALTH_POTION, ItemId::MANA_POTION,
+        }},
+        {1, { // Pueblo
+            ItemId::SWORD, ItemId::SIMPLE_BOW, ItemId::ELVEN_FLUTE,
+            ItemId::LEATHER_ARMOR, ItemId::HEALTH_POTION,
+        }},
+    };
+    static const std::vector<ItemId> basic_catalog = {
+        ItemId::SWORD, ItemId::LEATHER_ARMOR, ItemId::HEALTH_POTION,
+    };
+
+    auto it = catalogs.find(zone_id);
+    return it != catalogs.end() ? it->second : basic_catalog;
 }
 
 void ChatCommand::handle_listar_comerciante(World& world) {

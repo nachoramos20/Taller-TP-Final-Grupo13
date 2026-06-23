@@ -1,110 +1,116 @@
+// Patrón aplicado: Factory + tabla de lookup (en vez de 2 switches de 26
+// casos + una cadena de 8 if/else por rango) para la metadata de items que
+// hoy no expone Items::get() al cliente (nombre largo, abreviatura de 3
+// letras, categoría). Agregar un item nuevo es agregar una fila a cada
+// tabla, no un case más en cada switch.
 #include "InventoryPanel.h"
 #include <stdexcept>
 #include <algorithm>
 #include <cstring>
 #include <cmath>
+#include <unordered_map>
+#include <vector>
 #include "../audio/GameAudioService.h"
 
-const char* InventoryPanel::item_name(uint8_t id) {
-    switch (id) {
-        case static_cast<uint8_t>(ItemId::SWORD):              return "Espada";
-        case static_cast<uint8_t>(ItemId::AXE):                return "Hacha";
-        case static_cast<uint8_t>(ItemId::HAMMER):             return "Martillo";
-        case static_cast<uint8_t>(ItemId::SIMPLE_BOW):         return "Arco Simple";
-        case static_cast<uint8_t>(ItemId::COMPOUND_BOW):       return "Arco Compuesto";
-        case static_cast<uint8_t>(ItemId::ELVEN_FLUTE):        return "Flauta Élfica";
-        case static_cast<uint8_t>(ItemId::ASH_STICK):          return "Vara de Fresno";
-        case static_cast<uint8_t>(ItemId::NUDOSO_STAFF):       return "Báculo Nudoso";
-        case static_cast<uint8_t>(ItemId::GEMMED_STAFF):       return "Báculo Engarzado";
-        case static_cast<uint8_t>(ItemId::LEATHER_ARMOR):      return "Túnica de Clérigo";
-        case static_cast<uint8_t>(ItemId::CLERIC_BLACK_ARMOR): return "Túnica Negra";
-        case static_cast<uint8_t>(ItemId::MAGE_COMMON_ARMOR):  return "Ropa de Mago";
-        case static_cast<uint8_t>(ItemId::MAGE_ROYAL_ARMOR):   return "Mago Real";
-        case static_cast<uint8_t>(ItemId::PLATE_ARMOR):        return "Guerrero Ejecutor";
-        case static_cast<uint8_t>(ItemId::WARRIOR_EPIC_ARMOR): return "Guerrero Épico";
-        case static_cast<uint8_t>(ItemId::PALADIN_MAGIC_ARMOR): return "Paladín Mágico";
-        case static_cast<uint8_t>(ItemId::PALADIN_ROYAL_ARMOR): return "Paladín Real";
-        case static_cast<uint8_t>(ItemId::HOOD):               return "Capucha";
-        case static_cast<uint8_t>(ItemId::IRON_HELMET):        return "Casco de Hierro";
-        case static_cast<uint8_t>(ItemId::MAGIC_HAT):          return "Sombrero Mágico";
-        case static_cast<uint8_t>(ItemId::TURTLE_SHIELD):      return "Escudo Tortuga";
-        case static_cast<uint8_t>(ItemId::IRON_SHIELD):        return "Escudo de Hierro";
-        case static_cast<uint8_t>(ItemId::BOCA_SHIELD):        return "Escudo Boca";
-        case static_cast<uint8_t>(ItemId::HEALTH_POTION):      return "Poción de Vida";
-        case static_cast<uint8_t>(ItemId::MANA_POTION):        return "Poción de Maná";
-        case static_cast<uint8_t>(ItemId::GOLD_PILE):          return "Monedas de Oro";
-        default: return nullptr;
+namespace {
+    const std::unordered_map<uint8_t, const char*>& item_name_table() {
+        using I = ItemId;
+        static const std::unordered_map<uint8_t, const char*> table = {
+            {static_cast<uint8_t>(I::SWORD),               "Espada"},
+            {static_cast<uint8_t>(I::AXE),                 "Hacha"},
+            {static_cast<uint8_t>(I::HAMMER),              "Martillo"},
+            {static_cast<uint8_t>(I::SIMPLE_BOW),          "Arco Simple"},
+            {static_cast<uint8_t>(I::COMPOUND_BOW),        "Arco Compuesto"},
+            {static_cast<uint8_t>(I::ELVEN_FLUTE),         "Flauta Élfica"},
+            {static_cast<uint8_t>(I::ASH_STICK),           "Vara de Fresno"},
+            {static_cast<uint8_t>(I::NUDOSO_STAFF),        "Báculo Nudoso"},
+            {static_cast<uint8_t>(I::GEMMED_STAFF),        "Báculo Engarzado"},
+            {static_cast<uint8_t>(I::LEATHER_ARMOR),       "Túnica de Clérigo"},
+            {static_cast<uint8_t>(I::CLERIC_BLACK_ARMOR),  "Túnica Negra"},
+            {static_cast<uint8_t>(I::MAGE_COMMON_ARMOR),   "Ropa de Mago"},
+            {static_cast<uint8_t>(I::MAGE_ROYAL_ARMOR),    "Mago Real"},
+            {static_cast<uint8_t>(I::PLATE_ARMOR),         "Guerrero Ejecutor"},
+            {static_cast<uint8_t>(I::WARRIOR_EPIC_ARMOR),  "Guerrero Épico"},
+            {static_cast<uint8_t>(I::PALADIN_MAGIC_ARMOR), "Paladín Mágico"},
+            {static_cast<uint8_t>(I::PALADIN_ROYAL_ARMOR), "Paladín Real"},
+            {static_cast<uint8_t>(I::HOOD),                "Capucha"},
+            {static_cast<uint8_t>(I::IRON_HELMET),         "Casco de Hierro"},
+            {static_cast<uint8_t>(I::MAGIC_HAT),           "Sombrero Mágico"},
+            {static_cast<uint8_t>(I::TURTLE_SHIELD),       "Escudo Tortuga"},
+            {static_cast<uint8_t>(I::IRON_SHIELD),         "Escudo de Hierro"},
+            {static_cast<uint8_t>(I::BOCA_SHIELD),         "Escudo Boca"},
+            {static_cast<uint8_t>(I::HEALTH_POTION),       "Poción de Vida"},
+            {static_cast<uint8_t>(I::MANA_POTION),         "Poción de Maná"},
+            {static_cast<uint8_t>(I::GOLD_PILE),           "Monedas de Oro"},
+        };
+        return table;
+    }
+
+    const std::unordered_map<uint8_t, const char*>& item_abbr_table() {
+        using I = ItemId;
+        static const std::unordered_map<uint8_t, const char*> table = {
+            {static_cast<uint8_t>(I::SWORD),               "ESP"},
+            {static_cast<uint8_t>(I::AXE),                 "HAC"},
+            {static_cast<uint8_t>(I::HAMMER),              "MAR"},
+            {static_cast<uint8_t>(I::SIMPLE_BOW),          "ARS"},
+            {static_cast<uint8_t>(I::COMPOUND_BOW),        "ARC"},
+            {static_cast<uint8_t>(I::ELVEN_FLUTE),         "FLA"},
+            {static_cast<uint8_t>(I::ASH_STICK),           "VFR"},
+            {static_cast<uint8_t>(I::NUDOSO_STAFF),        "BNU"},
+            {static_cast<uint8_t>(I::GEMMED_STAFF),        "BAE"},
+            {static_cast<uint8_t>(I::LEATHER_ARMOR),       "TCL"},
+            {static_cast<uint8_t>(I::CLERIC_BLACK_ARMOR),  "TNE"},
+            {static_cast<uint8_t>(I::MAGE_COMMON_ARMOR),   "RMA"},
+            {static_cast<uint8_t>(I::MAGE_ROYAL_ARMOR),    "RMR"},
+            {static_cast<uint8_t>(I::PLATE_ARMOR),         "GEJ"},
+            {static_cast<uint8_t>(I::WARRIOR_EPIC_ARMOR),  "GEP"},
+            {static_cast<uint8_t>(I::PALADIN_MAGIC_ARMOR), "PMA"},
+            {static_cast<uint8_t>(I::PALADIN_ROYAL_ARMOR), "PRE"},
+            {static_cast<uint8_t>(I::HOOD),                "CAP"},
+            {static_cast<uint8_t>(I::IRON_HELMET),         "CHI"},
+            {static_cast<uint8_t>(I::MAGIC_HAT),           "SOM"},
+            {static_cast<uint8_t>(I::TURTLE_SHIELD),       "EST"},
+            {static_cast<uint8_t>(I::IRON_SHIELD),         "ESI"},
+            {static_cast<uint8_t>(I::BOCA_SHIELD),         "ESB"},
+            {static_cast<uint8_t>(I::HEALTH_POTION),       "PVI"},
+            {static_cast<uint8_t>(I::MANA_POTION),         "PMA"},
+            {static_cast<uint8_t>(I::GOLD_PILE),           "ORO"},
+        };
+        return table;
+    }
+
+    struct ItemKindRange { uint8_t lo, hi; const char* label; };
+
+    const std::vector<ItemKindRange>& item_kind_ranges() {
+        using I = ItemId;
+        static const std::vector<ItemKindRange> ranges = {
+            {static_cast<uint8_t>(I::SWORD),          static_cast<uint8_t>(I::HAMMER),             "Arma Melee"},
+            {static_cast<uint8_t>(I::SIMPLE_BOW),     static_cast<uint8_t>(I::COMPOUND_BOW),       "Arma Ranged"},
+            {static_cast<uint8_t>(I::ELVEN_FLUTE),    static_cast<uint8_t>(I::NUDOSO_STAFF),       "Arma Mágica"},
+            {static_cast<uint8_t>(I::LEATHER_ARMOR),  static_cast<uint8_t>(I::PALADIN_ROYAL_ARMOR),"Armadura"},
+            {static_cast<uint8_t>(I::HOOD),           static_cast<uint8_t>(I::MAGIC_HAT),          "Casco"},
+            {static_cast<uint8_t>(I::TURTLE_SHIELD),  static_cast<uint8_t>(I::BOCA_SHIELD),        "Escudo"},
+            {static_cast<uint8_t>(I::HEALTH_POTION),  static_cast<uint8_t>(I::MANA_POTION),        "Poción"},
+            {static_cast<uint8_t>(I::GOLD_PILE),      static_cast<uint8_t>(I::GOLD_PILE),          "Oro"},
+        };
+        return ranges;
     }
 }
 
+const char* InventoryPanel::item_name(uint8_t id) {
+    auto it = item_name_table().find(id);
+    return it != item_name_table().end() ? it->second : nullptr;
+}
+
 const char* InventoryPanel::item_abbr(uint8_t id) {
-    switch (id) {
-        case static_cast<uint8_t>(ItemId::SWORD):              return "ESP";
-        case static_cast<uint8_t>(ItemId::AXE):                return "HAC";
-        case static_cast<uint8_t>(ItemId::HAMMER):             return "MAR";
-        case static_cast<uint8_t>(ItemId::SIMPLE_BOW):         return "ARS";
-        case static_cast<uint8_t>(ItemId::COMPOUND_BOW):       return "ARC";
-        case static_cast<uint8_t>(ItemId::ELVEN_FLUTE):        return "FLA";
-        case static_cast<uint8_t>(ItemId::ASH_STICK):          return "VFR";
-        case static_cast<uint8_t>(ItemId::NUDOSO_STAFF):       return "BNU";
-        case static_cast<uint8_t>(ItemId::GEMMED_STAFF):       return "BAE";
-        case static_cast<uint8_t>(ItemId::LEATHER_ARMOR):      return "TCL";
-        case static_cast<uint8_t>(ItemId::CLERIC_BLACK_ARMOR): return "TNE";
-        case static_cast<uint8_t>(ItemId::MAGE_COMMON_ARMOR):  return "RMA";
-        case static_cast<uint8_t>(ItemId::MAGE_ROYAL_ARMOR):   return "RMR";
-        case static_cast<uint8_t>(ItemId::PLATE_ARMOR):        return "GEJ";
-        case static_cast<uint8_t>(ItemId::WARRIOR_EPIC_ARMOR): return "GEP";
-        case static_cast<uint8_t>(ItemId::PALADIN_MAGIC_ARMOR): return "PMA";
-        case static_cast<uint8_t>(ItemId::PALADIN_ROYAL_ARMOR): return "PRE";
-        case static_cast<uint8_t>(ItemId::HOOD):               return "CAP";
-        case static_cast<uint8_t>(ItemId::IRON_HELMET):        return "CHI";
-        case static_cast<uint8_t>(ItemId::MAGIC_HAT):          return "SOM";
-        case static_cast<uint8_t>(ItemId::TURTLE_SHIELD):      return "EST";
-        case static_cast<uint8_t>(ItemId::IRON_SHIELD):        return "ESI";
-        case static_cast<uint8_t>(ItemId::BOCA_SHIELD):        return "ESB";
-        case static_cast<uint8_t>(ItemId::HEALTH_POTION):      return "PVI";
-        case static_cast<uint8_t>(ItemId::MANA_POTION):        return "PMA";
-        case static_cast<uint8_t>(ItemId::GOLD_PILE):          return "ORO";
-        default: return "???";
-    }
+    auto it = item_abbr_table().find(id);
+    return it != item_abbr_table().end() ? it->second : "???";
 }
 
 const char* InventoryPanel::item_kind(uint8_t id) {
     if (id == 0) return nullptr;
-    
-    uint8_t item_enum = id;
-    
-    if (item_enum >= static_cast<uint8_t>(ItemId::SWORD) &&
-        item_enum <= static_cast<uint8_t>(ItemId::HAMMER))
-        return "Arma Melee";
-
-    if (item_enum >= static_cast<uint8_t>(ItemId::SIMPLE_BOW) &&
-        item_enum <= static_cast<uint8_t>(ItemId::COMPOUND_BOW))
-        return "Arma Ranged";
-
-    if (item_enum >= static_cast<uint8_t>(ItemId::ELVEN_FLUTE) &&
-        item_enum <= static_cast<uint8_t>(ItemId::NUDOSO_STAFF))
-        return "Arma Mágica";
-
-    if (item_enum >= static_cast<uint8_t>(ItemId::LEATHER_ARMOR) && 
-        item_enum <= static_cast<uint8_t>(ItemId::PALADIN_ROYAL_ARMOR))
-        return "Armadura";
-
-    if (item_enum >= static_cast<uint8_t>(ItemId::HOOD) && 
-        item_enum <= static_cast<uint8_t>(ItemId::MAGIC_HAT))
-        return "Casco";
-
-    if (item_enum >= static_cast<uint8_t>(ItemId::TURTLE_SHIELD) && 
-        item_enum <= static_cast<uint8_t>(ItemId::BOCA_SHIELD))
-        return "Escudo";
-
-    if (item_enum >= static_cast<uint8_t>(ItemId::HEALTH_POTION) && 
-        item_enum <= static_cast<uint8_t>(ItemId::MANA_POTION))
-        return "Poción";
-
-    if (item_enum == static_cast<uint8_t>(ItemId::GOLD_PILE))
-        return "Oro";
-    
+    for (const ItemKindRange& range : item_kind_ranges())
+        if (id >= range.lo && id <= range.hi) return range.label;
     return nullptr;
 }
 

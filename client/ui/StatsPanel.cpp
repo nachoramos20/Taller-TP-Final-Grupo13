@@ -6,6 +6,7 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
+#include <unordered_map>
 
 StatsPanel::StatsPanel(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size,
                        GameAudioService* audio)
@@ -45,27 +46,33 @@ void StatsPanel::update(uint16_t hp, uint16_t max_hp, uint16_t mp, uint16_t max_
     }
 }
 
+// Patrón aplicado: tabla de configuración (en vez de switch por Class) —
+// agregar un hechizo o una clase nueva es agregar/editar una fila, no un
+// case más. Tabla local a la función (no de instancia) porque SpellInfo
+// es un tipo privado de StatsPanel; al ser static solo se construye una vez.
 std::vector<StatsPanel::SpellInfo> StatsPanel::spells_for_class(uint8_t cls) const {
     // BUG FIX anim: rangos espejados del config/spells.toml del servidor.
     // Formato: { spell_id, label, mana_cost, range_tiles }
-    switch (static_cast<Class>(cls)) {
-        case Class::MAGE: return {
+    static const std::unordered_map<Class, std::vector<SpellInfo>> table = {
+        {Class::MAGE, {
             { (uint8_t)SpellId::BURST,                     "Explosión",                     9,  8 },
             { (uint8_t)SpellId::POISON_AREA,               "Area de veneno",               18,  6 },
             { (uint8_t)SpellId::SKULL_EXPLOSION,           "Explosión calavérica",         32,  6 },
-        };
-        case Class::CLERIC: return {
+        }},
+        {Class::CLERIC, {
             { (uint8_t)SpellId::ICE_ORB,                   "Orbe de hielo",                 8,  5 },
             { (uint8_t)SpellId::GRAVITATIONAL_TORNAD,      "Tornado gravitatorio",         22,  5 },
             { (uint8_t)SpellId::THUNDERSTORM,              "Tormenta eléctrica",           38,  6 },
-        };
-        case Class::PALADIN: return {
+        }},
+        {Class::PALADIN, {
             { (uint8_t)SpellId::ORB_OF_EMPTINESS,          "Orbe de vacío",                10,  4 },
             { (uint8_t)SpellId::VACUUM_GAP,                "Brecha de vacío",              22,  4 },
             { (uint8_t)SpellId::TORNADO_OF_DARKNESS,       "Tornado de oscuridad",         40,  2 },
-        };
-        default: return {};
-    }
+        }},
+    };
+
+    auto it = table.find(static_cast<Class>(cls));
+    return it != table.end() ? it->second : std::vector<SpellInfo>{};
 }
 
 uint16_t StatsPanel::selected_spell_mana_cost() const {

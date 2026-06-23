@@ -2,9 +2,21 @@
 #include "../Items.h"
 #include "../config/GameConfig.h"
 #include <algorithm>
+#include <functional>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
+// Patrón aplicado: Command + tabla de dispatch (en vez de la cadena de 31
+// if/else if que despachaba por texto de comando). Cada entrada de la
+// tabla envuelve un handle_* existente (sin tocar su lógica) detrás de la
+// misma firma uniforme, así agregar un comando nuevo es agregar una fila
+// a la tabla, no una rama más a una cadena que ya no entraba en una
+// pantalla. La tabla vive en una función-miembro privada (dispatch_table())
+// para poder llamar a los handle_* privados; es `static const` local, así
+// que se construye una sola vez en todo el proceso aunque ChatCommand se
+// instancie una vez por cada mensaje de chat recibido.
+//
 // Puerta del cementerio: ocupa dos tiles de ancho en X (60 y 61) a la
 // altura y=62. Es el único punto de entrada a la mazmorra (ver
 // handle_entrar_mazmorra) y lo que describe handle_info_mazmorra.
@@ -17,6 +29,43 @@ namespace {
 
 ChatCommand::ChatCommand(uint16_t c, std::string cmd)
     : client_id(c), cmd(std::move(cmd)) {}
+
+const ChatCommand::DispatchTable& ChatCommand::dispatch_table() {
+    static const DispatchTable table = {
+        {"/meditar",            [](ChatCommand& s, World& w, const std::string&)    { s.handle_meditar(w); }},
+        {"/resucitar",          [](ChatCommand& s, World& w, const std::string&)    { s.handle_resucitar(w); }},
+        {"/curar",              [](ChatCommand& s, World& w, const std::string&)    { s.handle_curar(w); }},
+        {"/depositar",          [](ChatCommand& s, World& w, const std::string& a)  { s.handle_depositar(w, a); }},
+        {"/retirar",            [](ChatCommand& s, World& w, const std::string& a)  { s.handle_retirar(w, a); }},
+        {"/listar",             [](ChatCommand& s, World& w, const std::string&)    { s.handle_listar(w); }},
+        {"/comprar",            [](ChatCommand& s, World& w, const std::string& a)  { s.handle_comprar(w, a); }},
+        {"/vender",             [](ChatCommand& s, World& w, const std::string& a)  { s.handle_vender(w, a); }},
+        {"/tomar",              [](ChatCommand& s, World& w, const std::string&)    { s.handle_tomar(w); }},
+        {"/tirar",              [](ChatCommand& s, World& w, const std::string& a)  { s.handle_tirar(w, a); }},
+        {"/fundar-clan",        [](ChatCommand& s, World& w, const std::string& a)  { s.handle_fundar_clan(w, a); }},
+        {"/unirse",             [](ChatCommand& s, World& w, const std::string& a)  { s.handle_unirse(w, a); }},
+        {"/revisar-clan",       [](ChatCommand& s, World& w, const std::string&)    { s.handle_revisar_clan(w); }},
+        {"/clan-aceptar",       [](ChatCommand& s, World& w, const std::string& a)  { s.handle_clan_aceptar(w, a); }},
+        {"/clan-rechazar",      [](ChatCommand& s, World& w, const std::string& a)  { s.handle_clan_rechazar(w, a); }},
+        {"/clan-ban",           [](ChatCommand& s, World& w, const std::string& a)  { s.handle_clan_ban(w, a); }},
+        {"/clan-kick",          [](ChatCommand& s, World& w, const std::string& a)  { s.handle_clan_kick(w, a); }},
+        {"/dejar-clan",         [](ChatCommand& s, World& w, const std::string&)    { s.handle_dejar_clan(w); }},
+        {"/entrar-mazmorra",    [](ChatCommand& s, World& w, const std::string&)    { s.handle_entrar_mazmorra(w); }},
+        {"/salir-mazmorra",     [](ChatCommand& s, World& w, const std::string&)    { s.handle_salir_mazmorra(w); }},
+        {"/info-mazmorra",      [](ChatCommand& s, World& w, const std::string&)    { s.handle_info_mazmorra(w); }},
+        {"/set-nivel",          [](ChatCommand& s, World& w, const std::string& a)  { s.handle_set_nivel(w, a); }},
+        {"/set-vida",           [](ChatCommand& s, World& w, const std::string& a)  { s.handle_set_vida(w, a); }},
+        {"/set-fuerza",         [](ChatCommand& s, World& w, const std::string& a)  { s.handle_set_fuerza(w, a); }},
+        {"/set-agilidad",       [](ChatCommand& s, World& w, const std::string& a)  { s.handle_set_agilidad(w, a); }},
+        {"/set-inteligencia",   [](ChatCommand& s, World& w, const std::string& a)  { s.handle_set_inteligencia(w, a); }},
+        {"/set-constitucion",   [](ChatCommand& s, World& w, const std::string& a)  { s.handle_set_constitucion(w, a); }},
+        {"/morir-instantaneo",  [](ChatCommand& s, World& w, const std::string&)    { s.handle_morir_instantaneo(w); }},
+        {"/revivir-instantaneo",[](ChatCommand& s, World& w, const std::string&)    { s.handle_revivir_instantaneo(w); }},
+        {"/obtener-objeto",     [](ChatCommand& s, World& w, const std::string& a)  { s.handle_obtener_objeto(w, a); }},
+        {"/set-oro",            [](ChatCommand& s, World& w, const std::string& a)  { s.handle_set_oro(w, a); }},
+    };
+    return table;
+}
 
 void ChatCommand::execute(World& world) {
     std::istringstream ss(cmd);
@@ -32,40 +81,13 @@ void ChatCommand::execute(World& world) {
     std::getline(ss, rest);
     if (!rest.empty() && rest[0] == ' ') rest = rest.substr(1);
 
-    if (token == "/meditar")        { handle_meditar(world); }
-    else if (token == "/resucitar") { handle_resucitar(world); }
-    else if (token == "/curar")     { handle_curar(world); }
-    else if (token == "/depositar") { handle_depositar(world, rest); }
-    else if (token == "/retirar")   { handle_retirar(world, rest); }
-    else if (token == "/listar")    { handle_listar(world); }
-    else if (token == "/comprar")   { handle_comprar(world, rest); }
-    else if (token == "/vender")    { handle_vender(world, rest); }
-    else if (token == "/tomar")     { handle_tomar(world); }
-    else if (token == "/tirar")     { handle_tirar(world, rest); }
-    else if (token == "/fundar-clan")   { handle_fundar_clan(world, rest); }
-    else if (token == "/unirse")        { handle_unirse(world, rest); }
-    else if (token == "/revisar-clan")  { handle_revisar_clan(world); }
-    else if (token == "/clan-aceptar")  { handle_clan_aceptar(world, rest); }
-    else if (token == "/clan-rechazar") { handle_clan_rechazar(world, rest); }
-    else if (token == "/clan-ban")      { handle_clan_ban(world, rest); }
-    else if (token == "/clan-kick")     { handle_clan_kick(world, rest); }
-    else if (token == "/dejar-clan")    { handle_dejar_clan(world); }
-    else if (token == "/entrar-mazmorra") { handle_entrar_mazmorra(world); }
-    else if (token == "/salir-mazmorra")  { handle_salir_mazmorra(world); }
-    else if (token == "/info-mazmorra")   { handle_info_mazmorra(world); }
-    else if (token == "/set-nivel")          { handle_set_nivel(world, rest); }
-    else if (token == "/set-vida")           { handle_set_vida(world, rest); }
-    else if (token == "/set-fuerza")         { handle_set_fuerza(world, rest); }
-    else if (token == "/set-agilidad")       { handle_set_agilidad(world, rest); }
-    else if (token == "/set-inteligencia")   { handle_set_inteligencia(world, rest); }
-    else if (token == "/set-constitucion")   { handle_set_constitucion(world, rest); }
-    else if (token == "/morir-instantaneo")  { handle_morir_instantaneo(world); }
-    else if (token == "/revivir-instantaneo"){ handle_revivir_instantaneo(world); }
-    else if (token == "/obtener-objeto")     { handle_obtener_objeto(world, rest); }
-    else if (token == "/set-oro")            { handle_set_oro(world, rest); }
-    else {
+    const auto& table = dispatch_table();
+    auto it = table.find(token);
+    if (it == table.end()) {
         world.push_message(client_id, 0, "Comando desconocido: " + token);
+        return;
     }
+    it->second(*this, world, rest);
 }
 
 void ChatCommand::handle_meditar(World& world) {
@@ -107,27 +129,10 @@ void ChatCommand::handle_comprar(World& world, const std::string& item_name) {
         return;
     }
 
-    // Catálogo según la zona del comerciante más cercano
+    // Catálogo según la zona del comerciante más cercano (tabla compartida
+    // con handle_listar_comerciante, ver merchant_catalog_for_zone).
     uint8_t zone = world.get_nearby_merchant_zone(client_id);
-    std::vector<ItemId> shop_items;
-    switch (zone) {
-        case 0:  // Ciudad
-            shop_items = {
-                ItemId::SWORD, ItemId::COMPOUND_BOW, ItemId::GEMMED_STAFF,
-                ItemId::PLATE_ARMOR, ItemId::IRON_HELMET, ItemId::IRON_SHIELD,
-                ItemId::HEALTH_POTION, ItemId::MANA_POTION,
-            };
-            break;
-        case 1:  // Pueblo
-            shop_items = {
-                ItemId::SWORD, ItemId::SIMPLE_BOW, ItemId::ELVEN_FLUTE,
-                ItemId::LEATHER_ARMOR, ItemId::HEALTH_POTION,
-            };
-            break;
-        default:
-            shop_items = { ItemId::SWORD, ItemId::LEATHER_ARMOR, ItemId::HEALTH_POTION };
-            break;
-    }
+    std::vector<ItemId> shop_items = merchant_catalog_for_zone(zone);
 
     int free_slot = -1;
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i)
