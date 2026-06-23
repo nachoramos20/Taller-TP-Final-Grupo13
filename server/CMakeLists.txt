@@ -29,12 +29,13 @@ target_sources(argentum_grupo13_server
     game/world/WorldSpawner.cpp
     game/world/WorldSnapshot.cpp
     game/world/Mazmorra.cpp
+    game/world/WorldBuilder.cpp
     game/QueueMonitor.cpp
-    game/MapaBuilder.cpp
+    game/world/MapaBuilder.cpp
     game/Items.cpp
     game/Npc.cpp
     game/Equations.cpp
-    game/GameConfig.cpp
+    game/config/GameConfig.cpp
     game/PersistenceThread.cpp
 )
 

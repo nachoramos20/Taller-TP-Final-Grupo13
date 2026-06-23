@@ -9,16 +9,13 @@ Mazmorra::Mazmorra(WorldNpcs& npcs, WorldItems& items,
     : npcs_(npcs), items_(items),
       x1_(x1), y1_(y1), x2_(x2), y2_(y2) {}
 
-void Mazmorra::add_spawn(uint16_t x, uint16_t y) {
-    static const NpcId dungeon_types[] = {
-        NpcId::GOBLIN, NpcId::SKELETON, NpcId::ZOMBIE,
-        NpcId::SPIDER, NpcId::ORC, NpcId::GOLEM
-    };
-    NpcId type = dungeon_types[Equations::rand_range(0, 5)];
-    spawns_.push_back({type, x, y});
+void Mazmorra::add_spawn(uint16_t x, uint16_t y, const std::vector<NpcId>& allowed_types) {
+    if (allowed_types.empty()) return;
+    int index = Equations::rand_range(0, static_cast<int>(allowed_types.size()) - 1);
+    spawns_.push_back({allowed_types[static_cast<size_t>(index)], x, y});
 }
 
-bool Mazmorra::in_mazmorra(uint16_t x, uint16_t y) {
+bool Mazmorra::in_mazmorra(uint16_t x, uint16_t y) const {
     return x >= x1_ && x <= x2_ && y >= y1_ && y <= y2_;
 }
 

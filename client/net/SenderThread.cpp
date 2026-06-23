@@ -1,7 +1,7 @@
 #include "SenderThread.h"
 
-SenderThread::SenderThread(Socket& socket, Queue<Command>& queue)
-    : _serializer(socket), _queue(queue) {}
+SenderThread::SenderThread(ClientProtocol& protocol, Queue<Command>& queue)
+    : _protocol(protocol), _queue(queue) {}
 
 void SenderThread::run() {
     try {
@@ -19,57 +19,57 @@ void SenderThread::stop() {
 void SenderThread::send_command(const Command& cmd) {
     switch (cmd.type) {
         case MsgType::LOGIN:
-            _serializer.send_login(cmd.text);
+            _protocol.send_login(cmd.text);
             break;
         case MsgType::REGISTER:
-            _serializer.send_register(cmd.text,
+            _protocol.send_register(cmd.text,
                 static_cast<Race>(cmd.race),
                 static_cast<Class>(cmd.cls));
             break;
         case MsgType::MOVE:
-            _serializer.send_move(cmd.pos_x, cmd.pos_y);
+            _protocol.send_move(cmd.pos_x, cmd.pos_y);
             break;
         case MsgType::ATTACK:
-            _serializer.send_attack(cmd.target_id);
+            _protocol.send_attack(cmd.target_id);
             break;
         case MsgType::CHAT_COMMAND:
-            _serializer.send_chat_command(cmd.text);
+            _protocol.send_chat_command(cmd.text);
             break;
         case MsgType::EQUIP_ITEM:
-            _serializer.send_equip_item(cmd.slot);
+            _protocol.send_equip_item(cmd.slot);
             break;
         case MsgType::MOVE_ITEM:
-            _serializer.send_move_item(cmd.slot, cmd.to_slot);
+            _protocol.send_move_item(cmd.slot, cmd.to_slot);
             break;
         case MsgType::UNEQUIP_ITEM:
-            _serializer.send_unequip_item(static_cast<EquipSlot>(cmd.equip_slot));
+            _protocol.send_unequip_item(static_cast<EquipSlot>(cmd.equip_slot));
             break;
         case MsgType::DROP_ITEM:
-            _serializer.send_drop_item(cmd.slot);
+            _protocol.send_drop_item(cmd.slot);
             break;
         case MsgType::PICK_ITEM:
-            _serializer.send_pick_item();
+            _protocol.send_pick_item();
             break;
         case MsgType::USE_ITEM:
-            _serializer.send_use_item(cmd.slot);
+            _protocol.send_use_item(cmd.slot);
             break;
         case MsgType::MEDITATE:
-            _serializer.send_meditate();
+            _protocol.send_meditate();
             break;
         case MsgType::RESURRECT:
-            _serializer.send_resurrect();
+            _protocol.send_resurrect();
             break;
         case MsgType::NPC_INTERACT:
-            _serializer.send_npc_interact(cmd.target_id);
+            _protocol.send_npc_interact(cmd.target_id);
             break;
         case MsgType::LOGOUT:
-            _serializer.send_logout();
+            _protocol.send_logout();
             break;
         case MsgType::CAST_SPELL:
-            _serializer.send_cast_spell(cmd.target_id, cmd.spell_id);
+            _protocol.send_cast_spell(cmd.target_id, cmd.spell_id);
             break;
         case MsgType::CHEAT:
-            _serializer.send_cheat(cmd.cheat_id);
+            _protocol.send_cheat(cmd.cheat_id);
             break;
         default:
             break;

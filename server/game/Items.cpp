@@ -1,5 +1,5 @@
 #include "Items.h"
-#include "GameConfig.h"
+#include "config/GameConfig.h"
 #include <algorithm>
 #include <cctype>
 #include <stdexcept>

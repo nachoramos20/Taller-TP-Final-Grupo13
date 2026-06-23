@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include "../../common/protocol/protocol.h"
-#include "GameConfig.h"
+#include "config/GameConfig.h"
 
 // Mantiene compatibilidad con los structs usados en código viejo
 using RaceFactors  = RaceConfig;

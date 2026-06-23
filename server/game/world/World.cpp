@@ -1,4 +1,8 @@
 #include "World.h"
+#include "../Equations.h"
+#include "../Stats.h"
+#include "../config/GameConfig.h"
+#include <algorithm>
 
 World::World(uint16_t width, uint16_t height, std::vector<uint8_t> collision_map, Queue<PlayerData>& save_queue)
     : id_alloc(10000),
@@ -26,6 +30,37 @@ void World::remove_player(uint16_t id) {
     players_.remove(id);
 }
 void World::move_player(uint16_t id, uint16_t x, uint16_t y) { players_.move(id, x, y); }
+void World::check_level_up(PlayerData& p) {
+    uint8_t orig_level = p.level;
+    while (true) {
+        uint32_t limit = Equations::exp_required_for_level(p.level);
+        if (p.exp < limit) break;
+        p.level++;
+
+        // BUG FIX #5: escalado ADITIVO en vez de multiplicativo.
+        // Antes: max_hp = initial_max_hp * level  → escala muy rápido.
+        // Ahora: max_hp = initial_max_hp + (level - 1) * incremento_por_nivel
+        // Incremento: 10% de la HP/MP inicial por nivel.
+        uint16_t base_hp = Stats::initial_max_hp(p.race, p.cls);
+        uint16_t base_mp = Stats::initial_max_mp(p.race, p.cls);
+        uint16_t hp_per_level = static_cast<uint16_t>(base_hp * 0.10f);
+        uint16_t mp_per_level = static_cast<uint16_t>(base_mp * 0.10f);
+
+        p.max_hp = base_hp + static_cast<uint16_t>((p.level - 1)) * hp_per_level;
+
+        if (!GameConfig::get().cls(p.cls).can_meditate) {
+            p.max_mp = 0;
+            p.mp     = 0;
+        } else {
+            p.max_mp = base_mp + static_cast<uint16_t>((p.level - 1)) * mp_per_level;
+        }
+        p.hp = std::min(p.hp, p.max_hp);
+        p.mp = std::min(p.mp, p.max_mp);
+        if (p.level != orig_level)
+            push_message(p.entity_id, 0, "¡Subiste al nivel " + std::to_string(p.level) + "!");
+    }
+}
+
 void World::tp_player(uint16_t id, uint16_t x, uint16_t y) { players_.tp(id, x, y); }
 
 const std::unordered_map<uint16_t, PlayerData>& World::get_players() const { return players_.all(); }
@@ -98,7 +133,7 @@ bool World::clan_kick(uint16_t f, const std::string& n) { return clans_.kick(f, 
 bool World::clan_leave(uint16_t p) { return clans_.leave(p); }
 bool World::same_clan(uint16_t a, uint16_t b) const { return clans_.same_clan(a, b); }
 void World::restore_clan_membership(const PlayerData& p) {
-    if (p.clan_name[0] != '\0') {
+    if (p.has_clan()) {
         clans_.restore_membership(p.entity_id, std::string(p.clan_name), p.is_clan_founder);
     }
 }

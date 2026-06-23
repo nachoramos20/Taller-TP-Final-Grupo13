@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include "AssetManager.h"
 #include "SpriteLayout.h"
-#include "../game/PlayerState.h"
+#include "../PlayerState.h"
 
 struct Animation {
     std::vector<SDL2pp::Rect> frames;

@@ -5,7 +5,7 @@
 #include "../../common/queue.h"
 #include "../game/QueueMonitor.h"
 #include "../game/PersistenceMonitor.h"
-#include "../../common/MapaDTO.h"
+#include "../../common/protocol/MapaDTO.h"
 #include "ClientHandler.h"
 
 #include <list>
@@ -19,7 +19,7 @@ public:
              Queue<std::shared_ptr<ServerCommand>>& command_queue,
              QueueMonitor& queue_monitor,
              PersistenceMonitor& persistence_monitor,
-             MapaDTO& mapa);
+             MapaDTO& initial_map);
 
     void run() override;
     void stop() override;
@@ -27,12 +27,12 @@ public:
 private:
     void reap_dead_clients();
 
-    Socket                    socket;
-    Queue<std::shared_ptr<ServerCommand>>&     command_queue;
-    QueueMonitor&             queue_monitor;
-    PersistenceMonitor&       persistence_monitor;
-    std::list<std::unique_ptr<ClientHandler>> client_handlers;
-    std::atomic<bool>         running;
-    uint16_t                  next_id;
-    MapaDTO&                  mapa;
+    Socket _listener_socket;
+    Queue<std::shared_ptr<ServerCommand>>& _command_queue;
+    QueueMonitor& _queue_monitor;
+    PersistenceMonitor& _persistence_monitor;
+    std::list<std::unique_ptr<ClientHandler>> _client_handlers;
+    std::atomic<bool> _running;
+    uint16_t _next_client_id;
+    MapaDTO& _initial_map;
 };

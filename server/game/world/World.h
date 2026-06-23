@@ -9,10 +9,10 @@
 #include <vector>
 
 #include "../../../common/protocol/dtos.h"
-#include "../PlayerData.h"
-#include "../FloorItem.h"
+#include "../entities/PlayerData.h"
+#include "../entities/FloorItem.h"
 #include "../Npc.h"
-#include "../Clan.h"
+#include "../entities/Clan.h"
 
 #include "IdAllocator.h"
 #include "WorldCollision.h"
@@ -55,6 +55,12 @@ public:
     void remove_player(uint16_t client_id);
     void move_player(uint16_t client_id, uint16_t new_x, uint16_t new_y);
     void tp_player(uint16_t client_id, uint16_t new_x, uint16_t new_y);
+
+    // Sube de nivel a p tantas veces como la exp acumulada lo permita
+    // (recalcula max_hp/max_mp y notifica por chat). Se llama tanto desde
+    // ataques cuerpo a cuerpo/distancia como desde hechizos, para no perder
+    // niveles según el medio de ataque usado para matar.
+    void check_level_up(PlayerData& p);
 
     const std::unordered_map<uint16_t, PlayerData>& get_players() const;
     const PlayerData* find_player(uint16_t client_id) const;

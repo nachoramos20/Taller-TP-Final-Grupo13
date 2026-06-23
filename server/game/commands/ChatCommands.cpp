@@ -1,8 +1,19 @@
 #include "Commands.h"
 #include "../Items.h"
 #include "../Stats.h"
+#include <algorithm>
 #include <sstream>
 #include <vector>
+
+// Puerta del cementerio: ocupa dos tiles de ancho en X (60 y 61) a la
+// altura y=62. Es el único punto de entrada a la mazmorra (ver
+// handle_entrar_mazmorra) y lo que describe handle_info_mazmorra.
+namespace {
+    constexpr uint16_t CEMENTERIO_PUERTA_X1 = 60;
+    constexpr uint16_t CEMENTERIO_PUERTA_X2 = 61;
+    constexpr uint16_t CEMENTERIO_PUERTA_Y  = 62;
+    constexpr uint16_t CEMENTERIO_PUERTA_RADIO = 2;
+}
 
 ChatCommand::ChatCommand(uint16_t c, std::string cmd)
     : client_id(c), cmd(std::move(cmd)) {}
@@ -41,6 +52,7 @@ void ChatCommand::execute(World& world) {
     else if (token == "/dejar-clan")    { handle_dejar_clan(world); }
     else if (token == "/entrar-mazmorra") { handle_entrar_mazmorra(world); }
     else if (token == "/salir-mazmorra")  { handle_salir_mazmorra(world); }
+    else if (token == "/info-mazmorra")   { handle_info_mazmorra(world); }
     else if (token == "/set-nivel")          { handle_set_nivel(world, rest); }
     else if (token == "/set-vida")           { handle_set_vida(world, rest); }
     else if (token == "/set-fuerza")         { handle_set_fuerza(world, rest); }
@@ -239,6 +251,16 @@ void ChatCommand::handle_entrar_mazmorra(World& world) {
         return;
     }
 
+    int player_x = static_cast<int>(player->pos_x);
+    int player_y = static_cast<int>(player->pos_y);
+    int dx = std::min(std::abs(player_x - static_cast<int>(CEMENTERIO_PUERTA_X1)),
+                      std::abs(player_x - static_cast<int>(CEMENTERIO_PUERTA_X2)));
+    int dy = std::abs(player_y - static_cast<int>(CEMENTERIO_PUERTA_Y));
+    if (dx > CEMENTERIO_PUERTA_RADIO || dy > CEMENTERIO_PUERTA_RADIO) {
+        world.push_message(client_id, 0, "Debes estar en la puerta del cementerio para entrar a la mazmorra.");
+        return;
+    }
+
     uint16_t spawn_mazmorra_x = 114;
     uint16_t spawn_mazmorra_y = 79;
     
@@ -275,6 +297,11 @@ void ChatCommand::handle_salir_mazmorra(World& world) {
     world.tp_player(client_id, portal_spawn_x, portal_spawn_y);
 
     world.push_message(client_id, 0, "Has salido de la mazmorra.");
+}
+
+void ChatCommand::handle_info_mazmorra(World& world) {
+    world.push_message(client_id, 0,
+        "La entrada a la mazmorra esta en la puerta de la casa del cementerio. Parate ahi y usa /entrar-mazmorra.");
 }
 
 // ---- Cheats ----

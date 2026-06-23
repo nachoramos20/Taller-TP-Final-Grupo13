@@ -1,7 +1,7 @@
 #include "PersistenceMonitor.h"
 #include "Stats.h"
 #include "Items.h"
-#include "GameConfig.h"
+#include "config/GameConfig.h"
 
 #include <fstream>
 

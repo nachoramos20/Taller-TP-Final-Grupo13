@@ -1,8 +1,8 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
-#include "../World.h"
-#include "../PlayerData.h"
+#include "../world/World.h"
+#include "../entities/PlayerData.h"
 #include "../../../common/protocol/protocol.h"
 #include <string>
 
@@ -11,12 +11,6 @@ public:
     virtual void execute(World& world) = 0;
     virtual ~ServerCommand() = default;
 };
-
-// Sube de nivel a p tantas veces como la exp acumulada lo permita (recalcula
-// max_hp/max_mp y notifica por chat). Implementado en CombatCommands.cpp;
-// se llama también desde MagicCommands.cpp para no perder niveles cuando se
-// mata con hechizos.
-void check_level_up(PlayerData& p, World& world);
 
 class MoveCommand : public ServerCommand {
 public:
@@ -171,6 +165,7 @@ private:
     void handle_listar_comerciante(World& world);
     void handle_entrar_mazmorra(World& world);
     void handle_salir_mazmorra(World& world);
+    void handle_info_mazmorra(World& world);
 
     // -- Cheats --
     void handle_set_nivel(World& world, const std::string& args);

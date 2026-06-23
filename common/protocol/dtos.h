@@ -5,6 +5,11 @@
 #include <string>
 #include <memory>
 
+// DTOs del SNAPSHOT periódico (ver ServerProtocol::send_snapshot /
+// ClientProtocol::recv_snapshot), el mensaje que el server difunde a cada
+// cliente en cada tick con su propio estado y el de las entidades visibles.
+
+// Una entidad visible para el jugador (otro player, NPC o item en el piso).
 struct EntityDTO {
     uint16_t entity_id;
     uint8_t  entity_type;
@@ -24,11 +29,14 @@ struct EntityDTO {
     uint8_t  equipped_shield = 0;
 };
 
+// Un mensaje de chat/sistema para mostrar en el ChatWidget del cliente.
 struct ChatMessageDTO {
     uint8_t     msg_type;
     std::string text;
 };
 
+// Estado completo del jugador propio (stats, inventario, equipo) más las
+// entidades visibles a su alrededor y los mensajes de chat pendientes.
 struct SnapshotDTO {
     uint32_t tick;
     uint16_t self_entity_id;
@@ -38,17 +46,17 @@ struct SnapshotDTO {
     uint16_t max_mp;
     uint32_t exp;
     uint8_t  level;
-    uint8_t  cls;
+    uint8_t  character_class;
     uint32_t gold;
     uint8_t  is_ghost;
     uint8_t  meditating;
 
     static constexpr int INVENTORY_SIZE = 20;
     uint8_t inventory[INVENTORY_SIZE];
-    uint8_t equipped_wpn;
-    uint8_t equipped_arm;
-    uint8_t equipped_helm;
-    uint8_t equipped_shld;
+    uint8_t equipped_weapon;
+    uint8_t equipped_armor;
+    uint8_t equipped_helmet;
+    uint8_t equipped_shield;
 
     std::shared_ptr<std::vector<EntityDTO>>      entities;
     std::shared_ptr<std::vector<ChatMessageDTO>> messages;

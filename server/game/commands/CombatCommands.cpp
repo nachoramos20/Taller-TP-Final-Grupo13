@@ -2,7 +2,7 @@
 #include "../Equations.h"
 #include "../Items.h"
 #include "../Stats.h"
-#include "../GameConfig.h"
+#include "../config/GameConfig.h"
 #include <algorithm>
 
 struct WeaponInfo {
@@ -48,37 +48,6 @@ static uint16_t calc_defense(const PlayerData& defender) {
     return static_cast<uint16_t>(def);
 }
 
-void check_level_up(PlayerData& p, World& world) {
-    uint8_t orig_level = p.level;
-    while (true) {
-        uint32_t limit = Equations::exp_required_for_level(p.level);
-        if (p.exp < limit) break;
-        p.level++;
-
-        // BUG FIX #5: escalado ADITIVO en vez de multiplicativo.
-        // Antes: max_hp = initial_max_hp * level  → escala muy rápido.
-        // Ahora: max_hp = initial_max_hp + (level - 1) * incremento_por_nivel
-        // Incremento: 10% de la HP/MP inicial por nivel.
-        uint16_t base_hp = Stats::initial_max_hp(p.race, p.cls);
-        uint16_t base_mp = Stats::initial_max_mp(p.race, p.cls);
-        uint16_t hp_per_level = static_cast<uint16_t>(base_hp * 0.10f);
-        uint16_t mp_per_level = static_cast<uint16_t>(base_mp * 0.10f);
-
-        p.max_hp = base_hp + static_cast<uint16_t>((p.level - 1)) * hp_per_level;
-
-        if (!GameConfig::get().cls(p.cls).can_meditate) {
-            p.max_mp = 0;
-            p.mp     = 0;
-        } else {
-            p.max_mp = base_mp + static_cast<uint16_t>((p.level - 1)) * mp_per_level;
-        }
-        p.hp = std::min(p.hp, p.max_hp);
-        p.mp = std::min(p.mp, p.max_mp);
-        if (p.level != orig_level)
-            world.push_message(p.entity_id, 0, "¡Subiste al nivel " + std::to_string(p.level) + "!");
-    }
-}
-
 static void npc_drop(const NpcData& npc, const NpcTemplate& tpl, World& world) {
     const auto& f = GameConfig::get().formulas();
     double r = Equations::rand_double(0.0, 1.0);
@@ -121,7 +90,7 @@ void AttackCommand::execute(World& world) {
     }
 
     if (attacker->is_ghost || target->is_ghost) return;
-    if (attacker->attack_cooldown > 0) return;
+    if (attacker->is_in_combat()) return;
 
     if (world.in_safe_zone(attacker->pos_x, attacker->pos_y) || world.in_safe_zone(target->pos_x, target->pos_y)) {
         world.push_message(client_id, 0, "No se puede atacar en/desde zona segura.");
@@ -193,7 +162,7 @@ void AttackCommand::execute(World& world) {
     }
 
     attacker->exp += Equations::exp_per_damage(damage, attacker->level, target->level);
-    check_level_up(*attacker, world);
+    world.check_level_up(*attacker);
 
     std::string crit_str = crit ? " [CRITICO]" : "";
     world.push_message(client_id, 1, "Hiciste " + std::to_string(damage) + " de daño" + crit_str + ".");
@@ -211,7 +180,7 @@ void AttackCommand::execute(World& world) {
         world.drop_player_loot(*target);
 
         attacker->exp += Equations::exp_on_kill(target->max_hp, attacker->level, target->level);
-        check_level_up(*attacker, world);
+        world.check_level_up(*attacker);
 
         world.push_message(target_id, 1, "¡Moriste! Eres un fantasma.");
         world.push_message(client_id, 1, "¡Mataste a " + std::string(target->username) + "!");
@@ -231,7 +200,7 @@ void AttackNpcCommand::execute(World& world) {
     NpcData* npc      = world.find_npc(npc_id);
 
     if (!attacker || !npc) return;
-    if (attacker->is_ghost || attacker->attack_cooldown > 0) return;
+    if (attacker->is_ghost || attacker->is_in_combat()) return;
 
     if (world.in_safe_zone(attacker->pos_x, attacker->pos_y)) {
         world.push_message(client_id, 0, "No puedes atacar desde una zona segura.");
@@ -273,14 +242,14 @@ void AttackNpcCommand::execute(World& world) {
     }
 
     attacker->exp += Equations::exp_per_damage(damage, attacker->level, 1);
-    check_level_up(*attacker, world);
+    world.check_level_up(*attacker);
 
     std::string crit_str = crit ? " [CRITICO]" : "";
     world.push_message(client_id, 1, "Hiciste " + std::to_string(damage) + " de daño al " + tpl.name + crit_str + ".");
 
     if (npc->hp <= damage) {
         attacker->exp += Equations::exp_on_kill(npc->max_hp, attacker->level, 1) + tpl.exp_reward;
-        check_level_up(*attacker, world);
+        world.check_level_up(*attacker);
 
         uint32_t gold = Equations::gold_drop_npc(npc->max_hp);
         attacker->gold += gold;

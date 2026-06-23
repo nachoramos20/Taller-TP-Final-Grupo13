@@ -2,13 +2,12 @@
 
 #include "../../common/thread.h"
 #include "../../common/queue.h"
-#include "../../common/socket.h"
-#include "../../common/protocol/Serializer.h"
+#include "ClientProtocol.h"
 #include "Command.h"
 
 class SenderThread : public Thread {
 public:
-    SenderThread(Socket& socket, Queue<Command>& queue);
+    SenderThread(ClientProtocol& protocol, Queue<Command>& queue);
 
     void run() override;
     void stop() override;
@@ -16,6 +15,6 @@ public:
 private:
     void send_command(const Command& cmd);
 
-    Serializer      _serializer;
+    ClientProtocol& _protocol;
     Queue<Command>& _queue;
 };

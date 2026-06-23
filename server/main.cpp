@@ -5,10 +5,10 @@
 #include "game/ServerGameLoop.h"
 #include "game/QueueMonitor.h"
 #include "game/PersistenceMonitor.h"
-#include "game/GameConfig.h"
+#include "game/config/GameConfig.h"
 #include "../common/queue.h"
 #include "game/PersistenceThread.h"
-#include "game/MapaBuilder.h"
+#include "game/world/MapaBuilder.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {

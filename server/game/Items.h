@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include "../../common/protocol/protocol.h"
-#include "GameConfig.h"
+#include "config/GameConfig.h"
 
 // ItemDef — estructura usada en el resto del código del servidor.
 // Los valores se cargan desde items.toml via GameConfig.

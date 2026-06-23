@@ -1,5 +1,5 @@
 #include "Npc.h"
-#include "GameConfig.h"
+#include "config/GameConfig.h"
 #include <stdexcept>
 
 namespace Npcs {

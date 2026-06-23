@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "../FloorItem.h"
-#include "../PlayerData.h"
+#include "../entities/FloorItem.h"
+#include "../entities/PlayerData.h"
 #include "IdAllocator.h"
 
 class WorldItems {

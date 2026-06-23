@@ -5,22 +5,10 @@
 #include <random>
 #include <vector>
 #include "../Npc.h"
+#include "ZoneTypes.h"
 
 class WorldCollision;
 class WorldNpcs;
-
-struct SpawnZone {
-    uint16_t x1, y1, x2, y2;            // rect inclusivo
-    std::vector<NpcId> allowed_types;
-    uint16_t max_alive   = 5;           // tope por zona
-    uint16_t spawn_every_ticks = 30 * 8;// 8 seg @ 30Hz
-    uint16_t cooldown    = 0;           // se decrementa cada tick
-    uint16_t alive_count = 0;           // se actualiza desde WorldNpcs
-};
-
-struct SafeZone {
-    uint16_t x1, y1, x2, y2;            // rect inclusivo
-};
 
 class WorldSpawner {
 public:
