@@ -187,7 +187,7 @@ private:
     // getters de arriba nunca tengan que devolver una referencia colgante.
     RaceConfig _fallback_race;
     ClassConfig _fallback_class;
-    ItemConfig _fallback_item;
-    NpcConfig _fallback_npc;
-    SpellConfig _fallback_spell;
+    ItemConfig _fallback_item{};
+    NpcConfig _fallback_npc{};
+    SpellConfig _fallback_spell{};
 };

@@ -12,17 +12,17 @@
 class AudioConfig {
 public:
     struct Mixer {
-        int frequency;
-        int channels;
-        int chunksize;
-        int default_music_volume;
+        int frequency = 0;
+        int channels = 0;
+        int chunksize = 0;
+        int default_music_volume = 0;
     };
 
     struct EffectVolumes {
-        int max_audible_tiles;
-        int min_effect_volume;
-        int max_effect_volume;
-        uint32_t effect_cooldown_ms;
+        int max_audible_tiles = 0;
+        int min_effect_volume = 0;
+        int max_effect_volume = 0;
+        uint32_t effect_cooldown_ms = 0;
     };
 
     Mixer mixer;
@@ -42,9 +42,9 @@ public:
     std::unordered_map<std::string, std::vector<std::string>> movement_sounds;
 
     struct Interaction {
-        float shop_range_tiles;
-        float bank_range_tiles;
-        float priest_range_tiles;
+        float shop_range_tiles = 0;
+        float bank_range_tiles = 0;
+        float priest_range_tiles = 0;
     };
     Interaction interaction;
 

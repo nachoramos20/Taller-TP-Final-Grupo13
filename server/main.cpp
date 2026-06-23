@@ -11,7 +11,7 @@
 #include "game/world/MapaBuilder.h"
 #include "net/Acceptor.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* const* argv) {
     if (argc != 2) {
         std::cerr << "Uso: " << argv[0] << " <puerto>\n";
         return 1;

@@ -15,7 +15,7 @@
 // thread-safe (mtx) porque distintos ClientHandler corren en paralelo.
 class PersistenceMonitor {
 public:
-    PersistenceMonitor(Queue<PlayerData>& save_queue);
+    explicit PersistenceMonitor(Queue<PlayerData>& save_queue);
 
     bool login(const std::string& target_username, PlayerData& player_data, uint16_t entity_id);
     bool register_user(const std::string& new_username, uint8_t race, uint8_t cls,

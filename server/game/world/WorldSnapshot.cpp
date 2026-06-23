@@ -1,5 +1,7 @@
 #include "WorldSnapshot.h"
 
+#include <utility>
+
 #include "../Npc.h"
 
 #include "WorldChat.h"

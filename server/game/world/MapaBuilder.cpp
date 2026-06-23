@@ -1,5 +1,7 @@
 #include "MapaBuilder.h"
 
+#include <utility>
+
 #include "../config/MapConstants.h"
 
 // floor_ids según tiles.toml

@@ -6,6 +6,7 @@
 // más de lo que simplifica.
 #include "InputController.h"
 
+#include <algorithm>
 #include <vector>
 
 #include "../config/ClientConfig.h"
@@ -219,10 +220,8 @@ void InputController::handle_movement() {
     const auto& kb = ClientConfig::instance().keybindings;
 
     auto any_pressed = [&](const std::vector<SDL_Scancode>& scancodes) {
-        for (SDL_Scancode sc: scancodes)
-            if (keys[sc])
-                return true;
-        return false;
+        return std::any_of(scancodes.begin(), scancodes.end(),
+                           [&](SDL_Scancode sc) { return keys[sc]; });
     };
 
     int dx = 0, dy = 0;
