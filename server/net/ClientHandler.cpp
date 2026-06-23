@@ -1,5 +1,7 @@
 #include "ClientHandler.h"
 
+#include <utility>
+
 #include <sys/socket.h>
 
 ClientHandler::ClientHandler(uint16_t client_id, Socket&& socket,

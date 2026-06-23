@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cstdint>
 #include <list>
+#include <memory>
 #include <string>
 
 #include "../../common/protocol/MapaDTO.h"
