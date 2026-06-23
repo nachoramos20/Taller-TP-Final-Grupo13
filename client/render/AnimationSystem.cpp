@@ -33,6 +33,23 @@ int AnimationSystem::direction_to_index(Direction dir) const {
     }
 }
 
+static constexpr int WPN_ROW_H = 48;
+
+static bool weapon_on_left(int dir_idx) {
+    return dir_idx == AnimationSystem::DIR_WEST || dir_idx == AnimationSystem::DIR_SOUTH;
+}
+
+static bool needs_north_south_swap(const std::string& weapon_path) {
+    return weapon_path.find("/bow/") != std::string::npos;
+}
+
+static int weapon_row(int dir_idx, const std::string& weapon_path) {
+    if (!needs_north_south_swap(weapon_path)) return dir_idx;
+    if (dir_idx == AnimationSystem::DIR_SOUTH) return AnimationSystem::DIR_NORTH;
+    if (dir_idx == AnimationSystem::DIR_NORTH) return AnimationSystem::DIR_SOUTH;
+    return dir_idx;
+}
+
 void AnimationSystem::render_weapon(SDL2pp::Renderer& renderer,
                                     AssetManager& assets,
                                     const std::string& weapon_path,
@@ -41,21 +58,18 @@ void AnimationSystem::render_weapon(SDL2pp::Renderer& renderer,
                                     float scale) {
     if (weapon_path.empty()) return;
 
-    static constexpr int WPN_ROW_H = 48;
-    SDL2pp::Rect wpn_src(frame * BodyLayout::FRAME_W, dir_idx * WPN_ROW_H,
+    SDL2pp::Rect wpn_src(frame * BodyLayout::FRAME_W, weapon_row(dir_idx, weapon_path) * WPN_ROW_H,
                          BodyLayout::FRAME_W, WPN_ROW_H);
 
     int wpn_size = static_cast<int>(24 * scale);
+    int overlap  = static_cast<int>(15 * scale);  // se mete en el cuerpo, así parece que la tiene en la mano
     int wx, wy;
-    switch (dir_idx) {
-        case DIR_WEST:
-            wx = body_dst.x - wpn_size;
-            wy = body_dst.y + body_dst.h - wpn_size;
-            break;
-        default:
-            wx = body_dst.x + body_dst.w;
-            wy = body_dst.y + body_dst.h - wpn_size;
-            break;
+    if (weapon_on_left(dir_idx)) {
+        wx = body_dst.x - wpn_size + overlap;
+        wy = body_dst.y + body_dst.h - wpn_size;
+    } else {
+        wx = body_dst.x + body_dst.w - overlap;
+        wy = body_dst.y + body_dst.h - wpn_size;
     }
     SDL2pp::Rect wpn_dst(wx, wy, wpn_size, wpn_size);
     renderer.Copy(assets.get(weapon_path), wpn_src, wpn_dst);
@@ -124,6 +138,35 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
         head_h
     );
 
+    auto draw_shield = [&]() {
+        if (!equip || equip->shield_path.empty()) return;
+        SDL2pp::Rect shield_src(0, dir_idx * WPN_ROW_H, BodyLayout::FRAME_W, WPN_ROW_H);
+
+        int shield_w    = static_cast<int>(24 * scale);
+        int shield_h     = static_cast<int>(34 * scale);
+        int overlap     = static_cast<int>(15 * scale);
+
+        // Va siempre del lado contrario al arma.
+        int sx = weapon_on_left(dir_idx)
+            ? body_dst.x + body_dst.w - overlap
+            : body_dst.x - shield_w + overlap;
+        int sy = body_dst.y + body_dst.h - shield_h;
+
+        SDL2pp::Rect shield_dst(sx, sy, shield_w, shield_h);
+        renderer.Copy(get_tex(equip->shield_path), shield_src, shield_dst);
+    };
+    auto draw_weapon = [&]() {
+        if (!equip) return;
+        if (is_ghost && !equip->weapon_path.empty()) get_tex(equip->weapon_path);
+        render_weapon(renderer, assets, equip->weapon_path, dir_idx, frame, body_dst, scale);
+    };
+
+    bool weapon_behind = (dir_idx == DIR_WEST || dir_idx == DIR_NORTH);
+    bool shield_behind = (dir_idx == DIR_EAST || dir_idx == DIR_NORTH);
+
+    if (weapon_behind) draw_weapon();
+    if (shield_behind) draw_shield();
+
     // Pasada 1: body base
     renderer.Copy(get_tex(body_path), body_src, body_dst);
 
@@ -157,26 +200,9 @@ SpriteBounds AnimationSystem::render(SDL2pp::Renderer& renderer,
         renderer.Copy(get_tex(equip->helmet_path), helm_src, helm_dst);
     }
 
-    // Pasada 5: escudo en lado izquierdo
-    if (equip && !equip->shield_path.empty()) {
-        static constexpr int SHIELD_W = 24;
-        static constexpr int SHIELD_H = 32;
-        int shield_w = static_cast<int>(SHIELD_W * scale);
-        int shield_h = static_cast<int>(SHIELD_H * scale);
-
-        int sx = body_dst.x - shield_w - static_cast<int>(2 * scale);
-        int sy = body_dst.y + body_dst.h - shield_h;
-
-        SDL2pp::Rect shield_src(0, 0, SHIELD_W, SHIELD_H);
-        SDL2pp::Rect shield_dst(sx, sy, shield_w, shield_h);
-        renderer.Copy(get_tex(equip->shield_path), shield_src, shield_dst);
-    }
-
-    // Pasada 6: arma en mano
-    if (equip) {
-        if (is_ghost && !equip->weapon_path.empty()) get_tex(equip->weapon_path);
-        render_weapon(renderer, assets, equip->weapon_path, dir_idx, frame, body_dst, scale);
-    }
+    // Pasada 5/6: escudo y arma del lado de la cámara 
+    if (!shield_behind) draw_shield();
+    if (!weapon_behind) draw_weapon();
 
     for (SDL2pp::Texture* tex : ghost_textures)
         tex->SetAlphaMod(255);

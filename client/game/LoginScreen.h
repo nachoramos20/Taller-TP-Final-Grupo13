@@ -36,10 +36,11 @@ public:
 
 private:
     // Estados de la pantalla
-    enum class Screen { MAIN, LOGIN_FORM, REGISTER_RACE, REGISTER_CLASS, REGISTER_FORM };
+    enum class Screen { SPLASH, MAIN, LOGIN_FORM, REGISTER_RACE, REGISTER_CLASS, REGISTER_FORM };
 
     // Render
     void render();
+    void render_splash();
     void render_main();
     void render_login_form();
     void render_register_race();
@@ -78,7 +79,7 @@ private:
     TTF_Font* _font_md = nullptr;   // 14px
     TTF_Font* _font_sm = nullptr;   // 11px
 
-    Screen      _screen  = Screen::MAIN;
+    Screen      _screen  = Screen::SPLASH;
     bool        _running = true;
     bool        _cancelled = false;
 
@@ -96,10 +97,13 @@ private:
     // Hover tracking
     int _hover_x = 0, _hover_y = 0;
 
-    // Texturas de sprites de raza (spritesheets cargados bajo demanda)
+    // Texturas de sprites de raza 
     SDL_Texture* _race_tex[4] {};
+    // Logo grande de la pantalla de splash 
+    SDL_Texture* _logo_tex = nullptr;
 
     // Rects de botones calculados en render, usados en handle_mouse_click
+    SDL_Rect _btn_comenzar {};
     SDL_Rect _btn_login    {};
     SDL_Rect _btn_register {};
     SDL_Rect _btn_back     {};
