@@ -7,6 +7,7 @@
 #include "InputController.h"
 
 #include <algorithm>
+#include <vector>
 
 #include "../config/ClientConfig.h"
 #include "../ui/ChatWidget.h"

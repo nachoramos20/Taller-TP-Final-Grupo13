@@ -1,6 +1,7 @@
 #include "ClientProtocol.h"
 
 #include <utility>
+#include <vector>
 
 ClientProtocol::ClientProtocol(Socket&& socket): Protocol(std::move(socket)) {}
 

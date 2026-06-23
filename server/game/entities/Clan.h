@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <algorithm>
 
 // Un clan y su membresía. Vive en WorldClans, indexado por nombre.
 struct Clan {

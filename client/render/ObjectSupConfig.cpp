@@ -1,5 +1,7 @@
 #include "ObjectSupConfig.h"
 
+#include <utility>
+
 #include <toml++/toml.hpp>
 
 ObjectSupConfig::ObjectSupConfig(const std::string& toml_path) {
