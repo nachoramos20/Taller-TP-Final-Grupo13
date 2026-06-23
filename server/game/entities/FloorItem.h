@@ -5,6 +5,7 @@
 
 static constexpr uint32_t BLOOD_STAIN_DURATION_TICKS = 300; // 5s a 60 ticks/s
 
+// Un item (o pila de oro) tirado en el piso, recogible con /tomar.
 struct FloorItem {
     uint16_t entity_id;
     uint8_t  item_id;

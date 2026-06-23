@@ -147,8 +147,6 @@ MapaBuilder::MapaBuilder() {
     collision_map.resize(MAP_W * MAP_H, 0);
 }
 
-// HELPERS
-
 TileDTO& MapaBuilder::get_tile(MapaDTO& mapa, uint16_t x, uint16_t y) {
     return mapa.tiles[y * mapa.width + x];
 }
@@ -190,8 +188,6 @@ uint16_t MapaBuilder::arbol_bosque_random() {
 uint16_t MapaBuilder::flores_random() {
     return O_FLORES_BASE + (rand() % 7);
 }
-
-// ZONAS
 
 void MapaBuilder::build_acantilados(MapaDTO& mapa) {
     // esquinas oeste
@@ -574,10 +570,8 @@ std::vector<uint8_t> MapaBuilder::take_collision() {
     return std::move(collision_map);
 }
 
-// ENTRY POINT
-
 MapaDTO MapaBuilder::build_mapa_inicial() {
-    srand(42);
+    srand(42);  // semilla fija: el mapa generado es el mismo en cada arranque
 
     MapaDTO mapa{};
     mapa.width  = MAP_W;

@@ -8,9 +8,11 @@
 #include <unordered_map>
 #include <vector>
 
+// Configuración del cliente cargada desde client_config.toml: rutas de
+// assets, fuentes, ventana, atajos de teclado y los parámetros de
+// rendering (tile_size, zonas seguras espejadas del server para VFX, etc.).
 class ClientConfig {
 public:
-    // Estructura para rutas de assets
     struct AssetsPaths {
         std::string fonts_dir;
         std::string sounds_dir;
@@ -20,7 +22,6 @@ public:
         std::string creatures_dir;
     };
 
-    // Estructura para fuentes
     struct Fonts {
         std::string default_path;
         int default_size;
@@ -31,13 +32,11 @@ public:
         int small_font_size;
     };
 
-    // Estructura para música
     struct Music {
         std::string main_theme_path;
         float main_theme_volume;
     };
 
-    // Estructura para rendering
     struct Rendering {
         int tile_size;
         int map_size;
@@ -75,8 +74,8 @@ public:
         int safe_zone2_x_min, safe_zone2_x_max, safe_zone2_y_min, safe_zone2_y_max;
     };
 
-    // Estructura para atajos de teclado (se cargan por nombre desde el TOML,
-    // p. ej. "I", "Up", "Escape", y se resuelven una sola vez a códigos SDL).
+    // Se cargan por nombre desde el TOML (p. ej. "I", "Up", "Escape") y se
+    // resuelven una sola vez a códigos SDL.
     struct Keybindings {
         SDL_Keycode toggle_position_label = SDLK_UNKNOWN;
         SDL_Keycode toggle_inventory       = SDLK_UNKNOWN;
@@ -93,7 +92,6 @@ public:
         std::vector<SDL_Scancode> move_right;
     };
 
-    // Estructura para UI
     struct UI {
         std::string window_title;
         int window_width;
@@ -102,27 +100,23 @@ public:
         int window_min_height;
     };
 
-    // Estructura para death effects
     struct DeathEffects {
         int death_frames;
         uint32_t death_frame_ms;
         uint32_t death_linger_ms;
         uint32_t death_duration_ms;
-        std::string sprite_base_path; 
+        std::string sprite_base_path;
     };
 
-    // Estructura para camera
     struct Camera {
         int initial_x;
         int initial_y;
     };
 
-    // Estructura para projectiles
     struct Projectiles {
         uint32_t duration_ticks;
     };
 
-    // Datos públicos
     AssetsPaths assets;
     Fonts fonts;
     Music music;
@@ -133,10 +127,8 @@ public:
     Projectiles projectiles;
     Keybindings keybindings;
 
-    // Singleton
     static ClientConfig& instance();
 
-    // Cargar configuración desde TOML
     bool load(const std::string& config_path);
 
     // Antes una función global suelta en PlayerState.h; es un simple
@@ -147,7 +139,6 @@ private:
     ClientConfig() = default;
     ~ClientConfig() = default;
 
-    // Prevenir copia
     ClientConfig(const ClientConfig&) = delete;
     ClientConfig& operator=(const ClientConfig&) = delete;
 };

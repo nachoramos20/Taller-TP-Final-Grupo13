@@ -11,14 +11,8 @@
 #include "../../common/protocol/protocol.h"
 #include "../game/commands/Commands.h"
 
-// Pasa apenas el umbral de 200 líneas de implementación con 3 grupos de
-// métodos (handshake, parsing de comandos, envío de mapa/snapshot), pero
-// no se separan en clases auxiliares: los tres necesitan los primitivos
-// send_uint8/recv_uint16/etc. de Protocol, que son `protected` (solo
-// accesibles por subclases). Una clase auxiliar tendría que heredar de
-// Protocol igual que ServerProtocol, duplicando la relación de herencia
-// sin ganar nada — o forzar esos primitivos a `public`, debilitando el
-// encapsulamiento del framing del protocolo para todo el proyecto.
+// Lado del servidor del protocolo: deserializa comandos entrantes a
+// ServerCommand y serializa los mensajes salientes (login, mapa, snapshot).
 class ServerProtocol : public Protocol {
 public:
     explicit ServerProtocol(Socket&& socket);
@@ -56,8 +50,7 @@ private:
     std::shared_ptr<CastSpellCommand>   receive_cast_spell(uint16_t client_id);
     std::shared_ptr<CheatCommand>       receive_cheat(uint16_t client_id);
 
-    // Factory + tabla de dispatch por MsgType (en vez del switch de 14
-    // casos que llamaba a cada receive_*): cada entrada envuelve un
+    // Factory + tabla de dispatch por MsgType: cada entrada envuelve un
     // receive_* en una firma uniforme que devuelve el ServerCommand base.
     using CommandFactory = std::function<std::shared_ptr<ServerCommand>(ServerProtocol&, uint16_t)>;
     static const std::unordered_map<MsgType, CommandFactory>& dispatch_table();

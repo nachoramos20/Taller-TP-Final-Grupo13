@@ -43,10 +43,10 @@ void GameAudioService::speak_random(const std::vector<std::string>& lines, float
 
 void GameAudioService::attack(uint8_t weapon_item, float dist_tiles) {
     if (!_audio) return;
-    const auto& cfg = AudioConfig::instance();
+    const AudioConfig& cfg = AudioConfig::instance();
 
     if (weapon_item != 0) {
-        const auto& item = ItemVisualConfig::instance().get(weapon_item);
+        const ItemVisualEntry& item = ItemVisualConfig::instance().get(weapon_item);
         if (item.attack_sound_category == "melee") {
             play_random(cfg.get_combat_melee_sound(item.attack_sound_key), dist_tiles);
             return;
@@ -80,12 +80,13 @@ void GameAudioService::npc_death(uint8_t npc_sprite_id, uint16_t entity_id, uint
                                   float dist_tiles, uint8_t own_weapon_item) {
     if (!_audio) return;
 
-    const auto& variant = NpcVisualConfig::instance().select_variant(npc_sprite_id, entity_id, pos_y);
+    const NpcSheetVariant& variant =
+        NpcVisualConfig::instance().select_variant(npc_sprite_id, entity_id, pos_y);
     if (!variant.death_sound_key.empty())
         play_random(AudioConfig::instance().get_creature_sound(variant.death_sound_key), dist_tiles);
 
     // Golpe final con sangre: sólo si el observador tiene esa arma equipada.
-    const auto& weapon = ItemVisualConfig::instance().get(own_weapon_item);
+    const ItemVisualEntry& weapon = ItemVisualConfig::instance().get(own_weapon_item);
     if (!weapon.melee_finisher_sound_key.empty())
         play_random(AudioConfig::instance().get_combat_melee_sound(weapon.melee_finisher_sound_key), dist_tiles);
 }
@@ -100,7 +101,7 @@ void GameAudioService::level_up() {
 
 void GameAudioService::update_meditation_loop(bool meditating) {
     if (!_audio) return;
-    const auto& sound = AudioConfig::instance().get_ambient_sound("meditation");
+    const std::vector<std::string>& sound = AudioConfig::instance().get_ambient_sound("meditation");
     if (sound.empty()) return;
     _audio->set_meditation_loop(sound.front(), meditating);
 }
@@ -135,14 +136,14 @@ void GameAudioService::private_message_received() {
 
 void GameAudioService::update_ocean_ambient(float dist_tiles) {
     if (!_audio) return;
-    const auto& ocean = AudioConfig::instance().get_ambient_sound("ocean");
+    const std::vector<std::string>& ocean = AudioConfig::instance().get_ambient_sound("ocean");
     if (ocean.empty()) return;
     _audio->set_ambient_loop(ocean.front(), dist_tiles);
 }
 
 void GameAudioService::update_cemetery_ambient(float dist_tiles) {
     if (!_audio) return;
-    const auto& wind = AudioConfig::instance().get_ambient_sound("cemetery_wind");
+    const std::vector<std::string>& wind = AudioConfig::instance().get_ambient_sound("cemetery_wind");
     if (wind.empty()) return;
     _audio->set_secondary_ambient_loop(wind.front(), dist_tiles, CEMETERY_WIND_MAX_AUDIBLE_TILES);
 }
@@ -166,7 +167,8 @@ void GameAudioService::footstep_grass() {
 
 void GameAudioService::update_city_stone_footsteps(bool walking_on_city_stone) {
     if (!_audio) return;
-    const auto& paths = AudioConfig::instance().get_movement_sound("pasos_en_grava");
+    const std::vector<std::string>& paths =
+        AudioConfig::instance().get_movement_sound("pasos_en_grava");
     if (paths.empty()) return;
     _audio->set_looping_while(paths.front(), walking_on_city_stone, FOOTSTEP_CITY_STONE_VOLUME_SCALE);
 }

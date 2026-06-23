@@ -3,14 +3,10 @@
 #include <stdexcept>
 #include <algorithm>
 
-//  Singleton
-
 GameConfig& GameConfig::get() {
     static GameConfig instance;
     return instance;
 }
-
-//  Carga principal
 
 void GameConfig::load(const std::string& config_dir) {
     if (_loaded) return;
@@ -23,18 +19,14 @@ void GameConfig::load(const std::string& config_dir) {
     _loaded = true;
 }
 
-//  game_config.toml
-
 void GameConfig::load_game_config(const std::string& path) {
     auto tbl = toml::parse_file(path);
 
-    // Base stats
     if (auto* bs = tbl["base_stats"].as_table()) {
         _formulas.base_hp = (*bs)["base_hp"].value_or<int>(100);
         _formulas.base_mp = (*bs)["base_mp"].value_or<int>(100);
     }
 
-    // Razas
     if (auto* races = tbl["race"].as_table()) {
         for (auto& [key, val] : *races) {
             uint8_t id = static_cast<uint8_t>(std::stoi(std::string(key)) - 1);
@@ -54,7 +46,6 @@ void GameConfig::load_game_config(const std::string& path) {
         }
     }
 
-    // Clases
     if (auto* classes = tbl["class"].as_table()) {
         for (auto& [key, val] : *classes) {
             uint8_t id = static_cast<uint8_t>(std::stoi(std::string(key)) - 1);
@@ -107,8 +98,6 @@ void GameConfig::load_game_config(const std::string& path) {
     }
 }
 
-//  items.toml
-
 ItemKind GameConfig::parse_item_kind(const std::string& s) {
     if (s == "weapon_melee")  return ItemKind::WEAPON_MELEE;
     if (s == "weapon_ranged") return ItemKind::WEAPON_RANGED;
@@ -149,8 +138,6 @@ void GameConfig::load_items(const std::string& path) {
     }
 }
 
-//  npcs.toml
-
 void GameConfig::load_npcs(const std::string& path) {
     auto tbl = toml::parse_file(path);
     auto* npcs = tbl["npc"].as_table();
@@ -180,7 +167,6 @@ void GameConfig::load_npcs(const std::string& path) {
         nc.sprite_w        = (*nt)["sprite_w"].value_or<int>(64);
         nc.sprite_h        = (*nt)["sprite_h"].value_or<int>(64);
 
-        // drop_items es un array de ints
         if (auto* arr = (*nt)["drop_items"].as_array()) {
             for (auto& elem : *arr) {
                 if (auto v = elem.value<int64_t>()) {
@@ -193,8 +179,6 @@ void GameConfig::load_npcs(const std::string& path) {
         _all_npc_ids.push_back(static_cast<NpcId>(raw_id));
     }
 }
-
-//  spells.toml
 
 void GameConfig::load_spells(const std::string& path) {
     auto tbl = toml::parse_file(path);
@@ -222,8 +206,6 @@ void GameConfig::load_spells(const std::string& path) {
         _spells[raw_id] = sc;
     }
 }
-
-//  Accessors
 
 const RaceConfig& GameConfig::race(uint8_t race_id) const {
     auto it = _races.find(race_id);
@@ -281,8 +263,6 @@ const SpellConfig& GameConfig::spell(uint8_t spell_id) const {
 const CombatFormulas& GameConfig::formulas() const {
     return _formulas;
 }
-
-//  Helpers de stats (equivalentes a Stats::initial_max_hp/mp)
 
 uint16_t GameConfig::initial_max_hp(uint8_t race_id, uint8_t class_id) const {
     const auto& r = race(race_id);

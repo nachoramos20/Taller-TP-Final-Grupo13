@@ -2,6 +2,8 @@
 
 #include "../PlayerState.h"
 
+// Traduce coordenadas de mundo/tile a coordenadas de pantalla, siguiendo
+// al jugador y dejando espacio para el panel lateral de stats.
 class Camera {
 public:
     Camera(int screen_w, int screen_h, int panel_w = 0);

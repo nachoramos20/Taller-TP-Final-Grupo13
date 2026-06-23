@@ -7,8 +7,6 @@
 #include "../config/ClientConfig.h"
 #include "../config/UiConstants.h"
 
-//  Razas/clases
-
 const RacesClassesConfig::Race& LoginScreen::race_info(uint8_t idx) {
     return RacesClassesConfig::instance().get_race(idx + 1);
 }
@@ -16,8 +14,6 @@ const RacesClassesConfig::Race& LoginScreen::race_info(uint8_t idx) {
 const RacesClassesConfig::Class& LoginScreen::class_info(uint8_t idx) {
     return RacesClassesConfig::instance().get_class(idx + 1);
 }
-
-//  Constructor / destructor
 
 LoginScreen::LoginScreen(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
                          const std::string& font_path, AudioManager* audio)
@@ -28,7 +24,6 @@ LoginScreen::LoginScreen(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
     _font_md = TTF_OpenFont(font_path.c_str(), fonts.medium_font_size);
     _font_sm = TTF_OpenFont(font_path.c_str(), fonts.small_font_size);
 
-    // SDL text input
     SDL_StartTextInput();
     std::memset(_race_tex, 0, sizeof(_race_tex));
 }
@@ -43,8 +38,6 @@ LoginScreen::~LoginScreen() {
 }
 
 void LoginScreen::set_error(const std::string& msg) { _error_msg = msg; }
-
-//  run
 
 LoginResult LoginScreen::run() {
     _running   = true;
@@ -67,8 +60,6 @@ LoginResult LoginScreen::run() {
     res.cls          = _sel_class;
     return res;
 }
-
-//  handle_events
 
 void LoginScreen::handle_events() {
     SDL_Event e;
@@ -201,8 +192,6 @@ void LoginScreen::handle_key(const SDL_KeyboardEvent& k) {
     }
 }
 
-//  Helpers de carga
-
 SDL_Texture* LoginScreen::load_texture(const std::string& path) {
     SDL_Surface* s = IMG_Load(path.c_str());
     if (!s) return nullptr;
@@ -210,8 +199,6 @@ SDL_Texture* LoginScreen::load_texture(const std::string& path) {
     SDL_FreeSurface(s);
     return t;
 }
-
-//  Helpers de dibujo
 
 void LoginScreen::draw_bg() {
     int w = _window.GetWidth(), h = _window.GetHeight();
@@ -336,7 +323,6 @@ void LoginScreen::draw_input(const SDL_Rect& r, const std::string& text,
     }
 }
 
-// Race card
 void LoginScreen::draw_race_card(int idx, int x, int y, int w, int h) {
     _race_cards[idx] = {x, y, w, h};
     bool selected = (_race_chosen && _sel_race == idx);
@@ -409,7 +395,6 @@ void LoginScreen::draw_race_card(int idx, int x, int y, int w, int h) {
     }
 }
 
-// Class card
 void LoginScreen::draw_class_card(int idx, int x, int y, int w, int h) {
     _class_cards[idx] = {x, y, w, h};
     bool selected = (_class_chosen && _sel_class == idx);
@@ -470,8 +455,6 @@ void LoginScreen::draw_class_card(int idx, int x, int y, int w, int h) {
     }
 }
 
-//  render
-
 void LoginScreen::render() {
     _renderer.Clear();
     draw_bg();
@@ -496,7 +479,6 @@ void LoginScreen::render() {
     _renderer.Present();
 }
 
-// Pantalla de splash
 void LoginScreen::render_splash() {
     int sw = _window.GetWidth(), sh = _window.GetHeight();
 
@@ -521,7 +503,6 @@ void LoginScreen::render_splash() {
                        UI_LOGIN_PLACEHOLDER_COLOR, _font_sm);
 }
 
-// Pantalla principal
 void LoginScreen::render_main() {
     int sw = _window.GetWidth(), sh = _window.GetHeight();
 
@@ -546,7 +527,6 @@ void LoginScreen::render_main() {
                        UI_LOGIN_PLACEHOLDER_COLOR, _font_sm);
 }
 
-// Login form
 void LoginScreen::render_login_form() {
     int sw = _window.GetWidth(), sh = _window.GetHeight();
     const int PW = 360, PH = 160;
@@ -568,7 +548,6 @@ void LoginScreen::render_login_form() {
     draw_button(_btn_confirm, "Entrar",    in_rect(_hover_x,_hover_y,_btn_confirm));
 }
 
-// Register race
 void LoginScreen::render_register_race() {
     int sw = _window.GetWidth(), sh = _window.GetHeight();
 
@@ -603,7 +582,6 @@ void LoginScreen::render_register_race() {
                 !_race_chosen);
 }
 
-// Register class
 void LoginScreen::render_register_class() {
     int sw = _window.GetWidth(), sh = _window.GetHeight();
 
@@ -632,7 +610,6 @@ void LoginScreen::render_register_class() {
                 !_class_chosen);
 }
 
-// Register form
 void LoginScreen::render_register_form() {
     int sw = _window.GetWidth(), sh = _window.GetHeight();
     const int PW = 400, PH = 195;

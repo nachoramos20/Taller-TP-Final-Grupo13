@@ -22,6 +22,9 @@ struct LoginResult {
     uint8_t  cls  = 0;
 };
 
+// Pantallas previas a entrar al juego: splash, menú, login y registro
+// (con selección de raza/clase). Corre su propio loop de eventos/render
+// hasta que el usuario confirma o cierra la ventana (ver run()).
 class LoginScreen {
 public:
     LoginScreen(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
@@ -35,10 +38,8 @@ public:
     LoginResult run();
 
 private:
-    // Estados de la pantalla
     enum class Screen { SPLASH, MAIN, LOGIN_FORM, REGISTER_RACE, REGISTER_CLASS, REGISTER_FORM };
 
-    // Render
     void render();
     void render_splash();
     void render_main();
@@ -47,16 +48,13 @@ private:
     void render_register_class();
     void render_register_form();
 
-    // Eventos
     void handle_events();
     void handle_key(const SDL_KeyboardEvent& k);
     void handle_mouse_click(int mx, int my);
 
-    // Chequea si (mx,my) cae dentro de r; si es así, reproduce el sonido de
-    // click. 
+    // Chequea si (mx,my) cae dentro de r; si es así, reproduce el sonido de click.
     bool clicked(int mx, int my, const SDL_Rect& r);
 
-    // Helpers de dibujo
     void draw_bg();
     void draw_logo();
     void draw_text(const std::string& t, int x, int y, SDL_Color c,
@@ -83,7 +81,6 @@ private:
     bool        _running = true;
     bool        _cancelled = false;
 
-    // Formulario
     std::string _username_input;
     bool        _username_active = false;
     uint8_t     _sel_race = 0;
@@ -91,15 +88,13 @@ private:
     bool        _race_chosen  = false;
     bool        _class_chosen = false;
 
-    // Error del servidor
+    // Mensaje de error a mostrar (p. ej. login rechazado por el server);
+    // lo setea set_error() para el próximo run().
     std::string _error_msg;
 
-    // Hover tracking
     int _hover_x = 0, _hover_y = 0;
 
-    // Texturas de sprites de raza 
     SDL_Texture* _race_tex[4] {};
-    // Logo grande de la pantalla de splash 
     SDL_Texture* _logo_tex = nullptr;
 
     // Rects de botones calculados en render, usados en handle_mouse_click
@@ -111,7 +106,6 @@ private:
     SDL_Rect _race_cards[4]{};
     SDL_Rect _class_cards[4]{};
 
-    // Datos de razas/clases
     static const RacesClassesConfig::Race&  race_info(uint8_t idx);
     static const RacesClassesConfig::Class& class_info(uint8_t idx);
 };

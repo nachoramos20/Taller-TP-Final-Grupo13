@@ -16,8 +16,6 @@ World::World(uint16_t width, uint16_t height, std::vector<uint8_t> collision_map
       spawner_(collision_, rng),
       snapshot_(players_, npcs_, items_, chat_) {}
 
-
-// ---- Players ----
 void World::add_player(const PlayerData& p) {
     players_.kick_by_username(p.username); 
     players_.add(p);
@@ -36,10 +34,8 @@ void World::check_level_up(PlayerData& p) {
         if (p.exp < limit) break;
         p.level++;
 
-        // BUG FIX #5: escalado ADITIVO en vez de multiplicativo.
-        // Antes: max_hp = initial_max_hp * level  → escala muy rápido.
-        // Ahora: max_hp = initial_max_hp + (level - 1) * incremento_por_nivel
-        // Incremento: 10% de la HP/MP inicial por nivel.
+        // Escalado aditivo: cada nivel suma un 10% del
+        // HP/MP inicial, en vez de multiplicar el máximo por el nivel.
         uint16_t base_hp = GameConfig::get().initial_max_hp(p.race, p.cls);
         uint16_t base_mp = GameConfig::get().initial_max_mp(p.race, p.cls);
         uint16_t hp_per_level = static_cast<uint16_t>(base_hp * 0.10f);
@@ -67,7 +63,6 @@ std::unordered_map<uint16_t, PlayerData>& World::get_players_mutable() { return 
 const PlayerData* World::find_player(uint16_t id) const { return players_.find(id); }
 PlayerData* World::get_player_mutable(uint16_t id) { return players_.find_mutable(id); }
 
-// ---- Snapshot ----
 SnapshotDTO World::build_snapshot(uint16_t client_id, uint32_t tick,
                                   const std::shared_ptr<std::vector<EntityDTO>>& entities,
                                   const std::shared_ptr<std::vector<SpellEventDTO>>& spell_events) const {
@@ -75,12 +70,10 @@ SnapshotDTO World::build_snapshot(uint16_t client_id, uint32_t tick,
 }
 std::shared_ptr<std::vector<EntityDTO>> World::get_entities() const { return snapshot_.get_entities(); }
 
-// ---- Colisiones ----
 void World::update_occupied(const std::pair<uint16_t, uint16_t>& pos, bool occupied) {
     collision_.update_occupied(pos, occupied);
 }
 
-// ---- Items ----
 void World::add_floor_item(uint8_t item_id, uint16_t x, uint16_t y,
                            uint32_t gold, uint32_t spawn_tick) {
     items_.add(item_id, x, y, gold, spawn_tick);
@@ -98,12 +91,10 @@ void World::drop_player_loot(PlayerData& dead, uint32_t spawn_tick) {
                dead.pos_x, dead.pos_y, 0, spawn_tick);
 }
 
-// ---- NPCs ----
 void World::spawn_npc(NpcId type, uint16_t x, uint16_t y) { npcs_.spawn(type, x, y); }
 void World::tick_npcs(uint32_t current_tick) { npcs_.tick(current_tick); }
 NpcData* World::find_npc(uint16_t id) { return npcs_.find(id); }
 
-// ---- Chat ----
 void World::push_message(uint16_t to_id, uint8_t type, const std::string& text) {
     chat_.push_message(to_id, type, text);
 }
@@ -125,14 +116,12 @@ std::shared_ptr<std::vector<SpellEventDTO>> World::get_spell_events() const {
 }
 void World::clear_spell_events() { chat_.clear_spell_events(); }
 
-// ---- Banco ----
 bool World::bank_deposit_item(uint16_t id, uint8_t slot) { return bank_.deposit_item(id, slot); }
 bool World::bank_withdraw_item(uint16_t id, const std::string& n) { return bank_.withdraw_item(id, n); }
 bool World::bank_deposit_gold(uint16_t id, uint32_t amt) { return bank_.deposit_gold(id, amt); }
 bool World::bank_withdraw_gold(uint16_t id, uint32_t amt) { return bank_.withdraw_gold(id, amt); }
 std::string World::bank_list(uint16_t id) const { return bank_.list(id); }
 
-// ---- Clanes ----
 bool World::clan_found(uint16_t f, const std::string& n) { return clans_.found(f, n); }
 bool World::clan_join_request(uint16_t p, const std::string& n) { return clans_.join_request(p, n); }
 std::string World::clan_review(uint16_t f) const { return clans_.review(f); }
@@ -150,17 +139,14 @@ void World::restore_clan_membership(const PlayerData& p) {
 void World::clan_notify_login(uint16_t p, bool online) { clans_.notify_login(p, online); }
 void World::clan_notify_attack(uint16_t a) { clans_.notify_attack(a); }
 
-// ---- NPCs ----
 const std::vector<NpcData>& World::get_npcs() const {
     return npcs_.all();
 }
 
-// ---- Spawner / Safe Zones ----
 WorldSpawner& World::spawner() {
     return spawner_;
 }
 
-// ---- Mazmorras ----
 Mazmorra& World::add_dungeon(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
     mazmorras_.emplace_back(npcs_, items_, x1, y1, x2, y2);
     return mazmorras_.back();
@@ -178,7 +164,6 @@ bool World::in_safe_zone(uint16_t x, uint16_t y) const {
     return spawner_.in_safe_zone(x, y);
 }
 
-// ---- Helpers ----
 uint16_t World::find_player_by_name(const std::string& name) const {
     return players_.find_by_name(name);
 }

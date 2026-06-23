@@ -4,16 +4,17 @@
 
 static void load_sound_table(toml::node_view<toml::node> table_view,
                               std::unordered_map<std::string, std::vector<std::string>>& target) {
-    auto table = table_view.as_table();
+    toml::table* table = table_view.as_table();
     if (!table) return;
-    for (auto& [key, val] : *table) {
-        auto arr = val.as_array();
+    for (toml::table::iterator entry = table->begin(); entry != table->end(); ++entry) {
+        toml::node& val = entry->second;
+        toml::array* arr = val.as_array();
         if (!arr) continue;
         std::vector<std::string> sounds;
-        for (auto& elem : *arr) {
-            if (auto s = elem.as_string()) sounds.push_back(s->get());
+        for (toml::node& elem : *arr) {
+            if (toml::value<std::string>* s = elem.as_string()) sounds.push_back(s->get());
         }
-        target[std::string(key)] = std::move(sounds);
+        target[std::string(entry->first)] = std::move(sounds);
     }
 }
 
@@ -24,56 +25,36 @@ AudioConfig& AudioConfig::instance() {
 
 bool AudioConfig::load(const std::string& config_path) {
     try {
-        auto config = toml::parse_file(config_path);
+        toml::table config = toml::parse_file(config_path);
 
-        // Cargar mixer
-        if (auto mixer_table = config["mixer"]) {
+        if (toml::node_view<toml::node> mixer_table = config["mixer"]) {
             mixer.frequency = mixer_table["frequency"].value_or(22050);
             mixer.channels = mixer_table["channels"].value_or(2);
             mixer.chunksize = mixer_table["chunksize"].value_or(4096);
             mixer.default_music_volume = mixer_table["default_music_volume"].value_or(80);
         }
 
-        // Cargar effect_volumes
-        if (auto effects_table = config["effect_volumes"]) {
+        if (toml::node_view<toml::node> effects_table = config["effect_volumes"]) {
             effect_volumes.max_audible_tiles = effects_table["max_audible_tiles"].value_or(15);
             effect_volumes.min_effect_volume = effects_table["min_effect_volume"].value_or(20);
             effect_volumes.max_effect_volume = effects_table["max_effect_volume"].value_or(128);
             effect_volumes.effect_cooldown_ms = effects_table["effect_cooldown_ms"].value_or(200);
         }
 
-        // Cargar combat_sounds.melee
         load_sound_table(config["combat_sounds"]["melee"], combat_melee_sounds);
-
-        // Cargar combat_sounds.ranged
         load_sound_table(config["combat_sounds"]["ranged"], combat_ranged_sounds);
-
-        // Cargar magic_sounds.spells
         load_sound_table(config["magic_sounds"]["spells"], magic_sounds);
-
-        // Cargar death_sounds
         load_sound_table(config["death_sounds"], death_sounds);
-
-        // Cargar creature_sounds
         load_sound_table(config["creature_sounds"], creature_sounds);
-
-        // Cargar npc_sounds.merchant/banker/priest
         load_sound_table(config["npc_sounds"]["merchant"], npc_merchant_sounds);
         load_sound_table(config["npc_sounds"]["banker"], npc_banker_sounds);
         load_sound_table(config["npc_sounds"]["priest"], npc_priest_sounds);
-
-        // Cargar economy_sounds y ui_sounds
         load_sound_table(config["economy_sounds"], economy_sounds);
         load_sound_table(config["ui_sounds"], ui_sounds);
-
-        // Cargar ambient_sounds
         load_sound_table(config["ambient_sounds"], ambient_sounds);
-
-        // Cargar movement_sounds
         load_sound_table(config["movement_sounds"], movement_sounds);
 
-        // Cargar interaction
-        if (auto interaction_table = config["npc_interaction"]) {
+        if (toml::node_view<toml::node> interaction_table = config["npc_interaction"]) {
             interaction.shop_range_tiles = interaction_table["shop_range_tiles"].value_or(3.0f);
             interaction.bank_range_tiles = interaction_table["bank_range_tiles"].value_or(3.0f);
             interaction.priest_range_tiles = interaction_table["priest_range_tiles"].value_or(3.0f);
@@ -90,24 +71,24 @@ const std::vector<std::string>& AudioConfig::lookup(
         const std::unordered_map<std::string, std::vector<std::string>>& sounds,
         const std::string& key) {
     static const std::vector<std::string> EMPTY;
-    auto it = sounds.find(key);
+    std::unordered_map<std::string, std::vector<std::string>>::const_iterator it = sounds.find(key);
     return it != sounds.end() ? it->second : EMPTY;
 }
 
 const std::vector<std::string>& AudioConfig::get_combat_melee_sound(const std::string& weapon) const {
-    auto it = combat_melee_sounds.find(weapon);
+    std::unordered_map<std::string, std::vector<std::string>>::const_iterator it = combat_melee_sounds.find(weapon);
     if (it != combat_melee_sounds.end()) return it->second;
     return lookup(combat_melee_sounds, "generico");
 }
 
 const std::vector<std::string>& AudioConfig::get_combat_ranged_sound(const std::string& weapon) const {
-    auto it = combat_ranged_sounds.find(weapon);
+    std::unordered_map<std::string, std::vector<std::string>>::const_iterator it = combat_ranged_sounds.find(weapon);
     if (it != combat_ranged_sounds.end()) return it->second;
     return lookup(combat_ranged_sounds, "flecha");
 }
 
 const std::vector<std::string>& AudioConfig::get_magic_sound(const std::string& spell_name) const {
-    auto it = magic_sounds.find(spell_name);
+    std::unordered_map<std::string, std::vector<std::string>>::const_iterator it = magic_sounds.find(spell_name);
     if (it != magic_sounds.end()) return it->second;
     return lookup(magic_sounds, "hechizo_generico");
 }

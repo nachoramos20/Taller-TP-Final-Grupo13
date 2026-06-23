@@ -19,6 +19,7 @@ struct ItemDef {
     uint16_t    range_tiles;  // solo ranged/magic
 };
 
+// API de solo lectura sobre los items definidos en items.toml (vía GameConfig).
 namespace Items {
     const ItemDef& get(ItemId id);
     bool           exists(ItemId id);

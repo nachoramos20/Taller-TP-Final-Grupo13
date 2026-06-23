@@ -51,12 +51,10 @@ void WorldBuilder::configure_safe_zones(World& world) {
 }
 
 void WorldBuilder::configure_service_npcs(World& world) {
-    // ── NPCs de servicio en la ciudad ──
     world.spawn_npc_in_zone(NpcId::MERCHANT, 30, 18, 0);  // zona 0 = Ciudad
     world.spawn_npc(NpcId::BANKER,   50, 16);
     world.spawn_npc(NpcId::PRIEST,   41, 14);
 
-    // ── NPCs de servicio en el pueblo sur ──
     world.spawn_npc(NpcId::PRIEST,   41, 68);
     world.spawn_npc_in_zone(NpcId::MERCHANT, 47, 70, 1);  // zona 1 = Pueblo
     world.spawn_npc(NpcId::BANKER,   33, 70);

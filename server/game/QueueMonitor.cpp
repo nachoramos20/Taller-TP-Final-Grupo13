@@ -22,7 +22,10 @@ void QueueMonitor::broadcast(const SnapshotDTO& snapshot) {
     for (auto& entry : _queues) {
         try {
             entry.queue->push(snapshot);
-        } catch (const ClosedQueue&) {}
+        } catch (const ClosedQueue&) {
+            // El cliente se desconectó pero remove() todavía no corrió para
+            // este entry; el próximo snapshot ya no lo va a encontrar.
+        }
     }
 }
 

@@ -9,16 +9,14 @@
 #include "../../common/protocol/protocol.h"
 #include "../../common/protocol/dtos.h"
 
-// Simétrico a ServerProtocol: agrupa todo lo que el cliente manda al server
+// Agrupa todo lo que el cliente manda al server
 // (login/registro, movimiento, comandos de inventario y chat, hechizos,
 // cheats) y lo que recibe de él (resultado de login, mapa, snapshots).
-// SenderThread y ReceiverThread usan una misma instancia compartida en vez
-// de serializar/deserializar cada uno por su cuenta.
+// SenderThread y ReceiverThread usan una misma instancia compartida.
 class ClientProtocol : public Protocol {
 public:
     explicit ClientProtocol(Socket&& socket);
 
-    // ---- Envío (cliente -> servidor) ----
     void send_login(const std::string& username);
     void send_register(const std::string& username, Race race, Class cls);
     void send_move(uint16_t pos_x, uint16_t pos_y);
@@ -37,7 +35,6 @@ public:
     void send_cast_spell(uint16_t target_id, uint8_t spell_id);
     void send_cheat(uint8_t cheat_id);
 
-    // ---- Recepción (servidor -> cliente) ----
     MsgType recv_opcode();
     uint16_t recv_login_ok();
     std::string recv_login_error();

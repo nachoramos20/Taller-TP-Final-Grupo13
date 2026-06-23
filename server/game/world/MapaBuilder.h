@@ -6,6 +6,9 @@
 #include <cstdlib>
 #include <vector>
 
+// Genera proceduralmente (con semilla fija) el mapa inicial del juego y
+// su mapa de colisiones asociado: ciudad, pueblo, bosque, cementerio,
+// costa y mazmorra.
 class MapaBuilder {
 private:
     std::vector<uint8_t> collision_map;

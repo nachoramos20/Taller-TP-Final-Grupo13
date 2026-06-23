@@ -2,7 +2,6 @@
 #include <stdexcept>
 #include <sstream>
 
-// Ancho del chat en pixels
 static constexpr int CHAT_W     = 620;
 static constexpr int CHAT_PAD   = 8;
 static constexpr int TEXT_MAX_W = CHAT_W - CHAT_PAD * 2;
@@ -146,7 +145,6 @@ void ChatWidget::render(int screen_w, int screen_h) {
     }
 }
 
-// Word-wrap
 // Divide 'text' en líneas que entren en TEXT_MAX_W pixels.
 // Respeta '\n' como salto de línea forzado.
 std::vector<std::string> ChatWidget::wrap_text(const std::string& text) const {

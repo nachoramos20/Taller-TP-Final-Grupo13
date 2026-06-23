@@ -6,9 +6,11 @@
 #include <unordered_map>
 #include <vector>
 
+// Configuración de audio cargada desde audio_config.toml: parámetros del
+// mixer y, para cada categoría de sonido, las rutas posibles por clave
+// (ver los getters get_*_sound, que elige el caller al azar entre ellas).
 class AudioConfig {
 public:
-    // Estructura para configuración del mixer
     struct Mixer {
         int frequency;
         int channels;
@@ -16,7 +18,6 @@ public:
         int default_music_volume;
     };
 
-    // Estructura para volúmenes de efectos
     struct EffectVolumes {
         int max_audible_tiles;
         int min_effect_volume;
@@ -24,11 +25,9 @@ public:
         uint32_t effect_cooldown_ms;
     };
 
-    // Datos públicos
     Mixer mixer;
     EffectVolumes effect_volumes;
 
-    // Datos de sonidos (mapas de clave -> lista de rutas posibles)
     std::unordered_map<std::string, std::vector<std::string>> combat_melee_sounds;
     std::unordered_map<std::string, std::vector<std::string>> combat_ranged_sounds;
     std::unordered_map<std::string, std::vector<std::string>> magic_sounds;
@@ -42,7 +41,6 @@ public:
     std::unordered_map<std::string, std::vector<std::string>> ambient_sounds;
     std::unordered_map<std::string, std::vector<std::string>> movement_sounds;
 
-    // Datos de interacción
     struct Interaction {
         float shop_range_tiles;
         float bank_range_tiles;
@@ -50,13 +48,10 @@ public:
     };
     Interaction interaction;
 
-    // Singleton
     static AudioConfig& instance();
 
-    // Cargar configuración desde TOML
     bool load(const std::string& config_path);
 
-    // Getters auxiliares (devuelven la lista de variantes posibles para elegir al azar)
     const std::vector<std::string>& get_combat_melee_sound(const std::string& weapon) const;
     const std::vector<std::string>& get_combat_ranged_sound(const std::string& weapon) const;
     const std::vector<std::string>& get_magic_sound(const std::string& spell_name) const;
@@ -78,7 +73,6 @@ private:
     AudioConfig() = default;
     ~AudioConfig() = default;
 
-    // Prevenir copia
     AudioConfig(const AudioConfig&) = delete;
     AudioConfig& operator=(const AudioConfig&) = delete;
 };

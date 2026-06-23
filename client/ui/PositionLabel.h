@@ -5,6 +5,8 @@
 #include <SDL2/SDL_ttf.h>
 #include <string>
 
+// Muestra la posición (tile_x, tile_y) del jugador en pantalla; se puede
+// ocultar/mostrar con un atajo de teclado.
 class PositionLabel {
 public:
     PositionLabel(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size = 14);

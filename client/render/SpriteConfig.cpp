@@ -1,8 +1,6 @@
 #include "SpriteConfig.h"
 #include <toml++/toml.hpp>
 
-// TileConfig ---------------------------------------------------------------------
-
 TileConfig::TileConfig(const std::string& toml_path, const std::string& section) {
     auto tbl = toml::parse_file(toml_path);
     auto* sec = tbl[section].as_table();
@@ -31,8 +29,6 @@ const TileEntry& TileConfig::get(uint16_t id) const {
     if (it == _entries.end()) return _fallback;
     return it->second;
 }
-
-// SpriteConfig ----------------------------------------------------------------------
 
 SpriteConfig::SpriteConfig(const std::string& toml_path) {
     _fallback.body_path = "assets/sprites/skins/humano.png";

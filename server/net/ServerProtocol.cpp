@@ -1,8 +1,4 @@
-// Patrón aplicado: Factory + tabla de dispatch (en vez del switch de 14
-// casos por MsgType). Cada entrada envuelve un receive_* existente; el
-// tipo concreto que devuelve (shared_ptr<MoveCommand>, etc.) convierte
-// implícitamente a shared_ptr<ServerCommand> al volver de la lambda, así
-// que no hace falta tocar la firma de ningún receive_*.
+
 #include "ServerProtocol.h"
 
 #include <utility>
@@ -36,8 +32,9 @@ std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_i
     int n = _socket.recvall(&code, 1);
     if (n == 0) return nullptr;
 
-    const auto& table = dispatch_table();
-    auto it = table.find(static_cast<MsgType>(code));
+    const std::unordered_map<MsgType, CommandFactory>& table = dispatch_table();
+    std::unordered_map<MsgType, CommandFactory>::const_iterator it =
+        table.find(static_cast<MsgType>(code));
     if (it == table.end()) return nullptr;
     return it->second(*this, client_id);
 }

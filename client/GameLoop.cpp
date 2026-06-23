@@ -3,8 +3,6 @@
 #include "config/RacesClassesConfig.h"
 #include "../common/protocol/protocol.h"
 
-// Constructores
-
 GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer)
     : GameLoop(window, renderer, nullptr, nullptr, nullptr, nullptr, nullptr,
                RacesClassesConfig::instance().get_login_messages().welcome, "") {}
@@ -62,8 +60,6 @@ GameLoop::GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
     _world_renderer.load_item_textures(*_hud.inventory());
 }
 
-// run / stop
-
 void GameLoop::run() {
     _running = true;
     Uint32 prev_ticks = SDL_GetTicks();
@@ -81,8 +77,6 @@ void GameLoop::run() {
 }
 
 void GameLoop::stop() { _running = false; }
-
-// update
 
 void GameLoop::update(float dt) {
     if (_connected && !(*_connected)) {
@@ -121,8 +115,6 @@ void GameLoop::update(float dt) {
         _audio_service.update_cemetery_ambient(distance_to_cemetery_zone(_player.tile_x, _player.tile_y));
     }
 }
-
-// render
 
 void GameLoop::render() {
     _renderer.SetDrawColor(0, 0, 0, 255);

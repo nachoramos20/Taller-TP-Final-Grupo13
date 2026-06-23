@@ -10,6 +10,7 @@
 class WorldPlayers;
 class WorldChat;
 
+// Clanes, su membresía y los pedidos de ingreso pendientes.
 class WorldClans {
 private:
     std::unordered_map<std::string, Clan>     clans_by_name;

@@ -4,6 +4,9 @@
 #include <string>
 #include "../../common/protocol/protocol.h"
 
+// Una acción del jugador pendiente de enviar al servidor (encolada en
+// SenderThread). Los factory methods de abajo son la única forma de
+// construirlo: cada uno llena solo los campos que ese MsgType necesita.
 struct Command {
     MsgType type;
 

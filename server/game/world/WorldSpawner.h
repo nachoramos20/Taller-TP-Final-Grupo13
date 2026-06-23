@@ -10,6 +10,8 @@
 class WorldCollision;
 class WorldNpcs;
 
+// Zonas de spawn de NPCs (con cooldown y cap por zona y global) y zonas
+// seguras donde no se puede atacar ni los NPCs persiguen.
 class WorldSpawner {
 public:
     WorldSpawner(WorldCollision& c, std::mt19937& rng)

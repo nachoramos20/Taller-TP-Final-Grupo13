@@ -15,6 +15,9 @@
 #include <memory>
 #include "ServerProtocol.h"
 
+// Hilo dedicado a leer del socket de un cliente: hace el handshake
+// (login/registro) y después encola cada comando recibido para que
+// ServerGameLoop lo procese.
 class ServerReceiverThread : public Thread {
 public:
     ServerReceiverThread(uint16_t client_id,

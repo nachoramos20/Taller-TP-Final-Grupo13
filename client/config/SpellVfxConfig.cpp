@@ -2,7 +2,6 @@
 #include <toml++/toml.h>
 #include <iostream>
 
-// Valores por defecto
 const SpellVfxConfig::SpellEffect SpellVfxConfig::DEFAULT_SPELL_EFFECT = {
     "", 0, 0, 0, {}, ""
 };
@@ -23,33 +22,30 @@ SpellVfxConfig& SpellVfxConfig::instance() {
 
 bool SpellVfxConfig::load(const std::string& config_path) {
     try {
-        auto config = toml::parse_file(config_path);
+        toml::table config = toml::parse_file(config_path);
 
-        // Cargar cada spell de spell_effect.X
+        // Recorre spell_effect.
         for (int i = 1; i <= 9; i++) {
             std::string idx_str = std::to_string(i);
 
-            if (auto effect_table = config["spell_effect"][idx_str]; effect_table) {
+            if (toml::node_view<toml::node> effect_table = config["spell_effect"][idx_str]; effect_table) {
                 SpellVFX vfx;
 
-                // Cargar effect
                 vfx.effect.path = effect_table["path"].value_or(std::string(""));
                 vfx.effect.sheet_cols = effect_table["sheet_cols"].value_or(4);
                 vfx.effect.frame_w = effect_table["frame_w"].value_or(32);
                 vfx.effect.frame_h = effect_table["frame_h"].value_or(32);
                 vfx.effect.sound_path = effect_table["sound"].value_or(std::string(""));
 
-                // Cargar frame_indices (array de TOML)
-                if (auto indices_array = effect_table["frame_indices"].as_array()) {
-                    for (auto& elem : *indices_array) {
-                        if (auto idx = elem.as_integer()) {
+                if (toml::array* indices_array = effect_table["frame_indices"].as_array()) {
+                    for (toml::node& elem : *indices_array) {
+                        if (toml::value<int64_t>* idx = elem.as_integer()) {
                             vfx.effect.frame_indices.push_back(static_cast<int>(idx->get()));
                         }
                     }
                 }
 
-                // Cargar render
-                if (auto render_table = config["spell_render"][idx_str]; render_table) {
+                if (toml::node_view<toml::node> render_table = config["spell_render"][idx_str]; render_table) {
                     vfx.render.display_w = render_table["display_w"].value_or(64);
                     vfx.render.display_h = render_table["display_h"].value_or(64);
                     vfx.render.offset_x = render_table["offset_x"].value_or(0);
@@ -69,7 +65,7 @@ bool SpellVfxConfig::load(const std::string& config_path) {
 }
 
 const SpellVfxConfig::SpellVFX& SpellVfxConfig::get_spell_vfx(uint8_t spell_id) const {
-    auto it = spells.find(spell_id);
+    std::unordered_map<uint8_t, SpellVFX>::const_iterator it = spells.find(spell_id);
     if (it != spells.end()) {
         return it->second;
     }
@@ -77,7 +73,7 @@ const SpellVfxConfig::SpellVFX& SpellVfxConfig::get_spell_vfx(uint8_t spell_id) 
 }
 
 const SpellVfxConfig::SpellEffect& SpellVfxConfig::get_effect_info(uint8_t spell_id) const {
-    auto it = spells.find(spell_id);
+    std::unordered_map<uint8_t, SpellVFX>::const_iterator it = spells.find(spell_id);
     if (it != spells.end()) {
         return it->second.effect;
     }
@@ -85,7 +81,7 @@ const SpellVfxConfig::SpellEffect& SpellVfxConfig::get_effect_info(uint8_t spell
 }
 
 const SpellVfxConfig::SpellRender& SpellVfxConfig::get_render_info(uint8_t spell_id) const {
-    auto it = spells.find(spell_id);
+    std::unordered_map<uint8_t, SpellVFX>::const_iterator it = spells.find(spell_id);
     if (it != spells.end()) {
         return it->second.render;
     }

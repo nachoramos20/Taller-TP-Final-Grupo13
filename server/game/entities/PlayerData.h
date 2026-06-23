@@ -10,6 +10,8 @@
 #include <string_view>
 #include "../../../common/constants.h"
 
+// Estado completo de un jugador: lo que se persiste a disco y lo que el
+// server mantiene en memoria mientras está conectado son la misma struct.
 struct PlayerData {
     static constexpr std::size_t USERNAME_MAX_LENGTH = 32;
 

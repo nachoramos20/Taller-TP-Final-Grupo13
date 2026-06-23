@@ -6,12 +6,13 @@
 #include <vector>
 #include <unordered_set>
 
+// Un clan y su membresía. Vive en WorldClans, indexado por nombre.
 struct Clan {
     std::string name;
     uint16_t    founder_id = 0;
     std::vector<uint16_t>       members;    // incluye al fundador
-    std::vector<uint16_t>       pending;    // pedidos pendientes
-    std::unordered_set<uint16_t> banned;    // baneados
+    std::vector<uint16_t>       pending;    // pedidos de ingreso sin resolver
+    std::unordered_set<uint16_t> banned;
 
     static constexpr int MAX_MEMBERS = 16;
 

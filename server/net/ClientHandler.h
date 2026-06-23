@@ -11,6 +11,8 @@
 #include <atomic>
 #include <cstdint>
 
+// Dueño de la conexión con un cliente: su ServerProtocol y los hilos de
+// envío/recepción dedicados (ver ServerSenderThread/ServerReceiverThread).
 class ClientHandler {
 public:
     ClientHandler(uint16_t client_id,

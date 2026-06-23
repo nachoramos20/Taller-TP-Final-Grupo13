@@ -12,6 +12,8 @@ struct ChatLine {
     Uint32      born_ms;
 };
 
+// Caja de chat: muestra mensajes recientes con fade-out por tiempo y un
+// input de texto para escribir comandos/mensajes nuevos.
 class ChatWidget {
 public:
     ChatWidget(SDL2pp::Renderer& renderer, const std::string& font_path, int font_size = 14);

@@ -13,6 +13,8 @@
 #include <atomic>
 #include <cstdint>
 
+// Escucha conexiones entrantes y crea un ClientHandler por cada una, en
+// su propio hilo. También da de baja a los handlers cuyo hilo ya terminó.
 class Acceptor : public Thread {
 public:
     Acceptor(const std::string& port,

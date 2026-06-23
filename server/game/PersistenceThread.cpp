@@ -1,6 +1,5 @@
 #include "PersistenceThread.h"
 
-
 PersistenceThread::PersistenceThread(Queue<PlayerData> &save_queue, PersistenceMonitor &persistence_monitor)
 : save_queue (save_queue), persistence_monitor(persistence_monitor), vive(true){}
 

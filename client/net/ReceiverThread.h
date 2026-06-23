@@ -11,6 +11,8 @@
 
 enum class HandshakeResult { PENDING, OK, ERROR };
 
+// Hilo dedicado a leer del socket del servidor: primero el handshake de
+// login/registro, después snapshots y mapas en loop.
 class ReceiverThread : public Thread {
 public:
     ReceiverThread(ClientProtocol& protocol,
