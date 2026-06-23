@@ -4,6 +4,10 @@
 [floor.1]
 path = "assets/tiles/floor/piso_rocoso.png"
 
+[floor.101]
+path = "assets/tiles/floor/piedra.png"
+tile_size = 1
+
 [floor.9]
 path = "assets/tiles/floor/pasto_1.png"
 

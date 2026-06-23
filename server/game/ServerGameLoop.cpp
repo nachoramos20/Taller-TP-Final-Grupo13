@@ -68,9 +68,20 @@ void ServerGameLoop::run() {
     world.spawn_npc(NpcId::BANKER,   33, 70);
 
     // mazmorra
-    Mazmorra& mazmorra = world.add_dungeon(92,4, 99,99);
-    //inicio 95,98
-    mazmorra.add_spawn(NpcId::ORC, 95, 95);
+    Mazmorra& mazmorra = world.add_dungeon(109,30,119,80);
+    for (uint16_t base_y = 34; base_y + 2 <= 75; base_y += 8) {
+        for (uint16_t dx = 0; dx < 3; ++dx) {
+            mazmorra.add_spawn(110 + dx, base_y);
+        }
+    }
+    for (uint16_t base_y = 34; base_y + 2 <= 75; base_y += 8) {
+        for (uint16_t dx = 0; dx < 3; ++dx) {
+            mazmorra.add_spawn(116 + dx, base_y);
+        }
+    }
+    mazmorra.add_gold(114,31,2500);
+    mazmorra.add_gold(115,31,2500);
+
 
     while (should_keep_running()) {
         process_commands();

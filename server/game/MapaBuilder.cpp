@@ -3,6 +3,7 @@
 // floor_ids según tiles.toml
 static constexpr uint16_t F_NEGRO        = 0;
 static constexpr uint16_t F_PIEDRA       = 1;
+static constexpr uint16_t F_PIEDRA_SIN_MUSGO = 101;
 static constexpr uint16_t F_PASTO_BASE   = 2;
 static constexpr uint16_t F_PASTO_1X1    = 9;
 static constexpr uint16_t F_TIERRA_BASE  = 10;
@@ -98,6 +99,13 @@ static constexpr uint16_t O_TUMBA_3         = 48;
 static constexpr uint16_t O_TUMBA_4         = 49;
 static constexpr uint16_t O_TUMBA_5         = 50;
 
+// mazmorra
+
+static constexpr uint16_t O_MAZMORRA_PARED_INFERIOR = 101;
+static constexpr uint16_t O_MAZMORRA_PARED_IZQ = 102;
+static constexpr uint16_t O_MAZMORRA_PARED_DER = 103;
+static constexpr uint16_t O_MAZMORRA_PARED_SUPERIOR = 104;
+
 // límites del mapa
 static constexpr int MAP_W = 120;
 static constexpr int MAP_H = 100;
@@ -132,7 +140,7 @@ static constexpr int CAM_V2_X1 = 59;
 static constexpr int FRANJA_X1 = 82;
 static constexpr int ARENA_X1  = 84, ARENA_X2  = 85;
 static constexpr int OLAS_X1   = 86, OLAS_X2   = 87;
-static constexpr int AGUA_X1   = 88, AGUA_X2   = 99;
+static constexpr int AGUA_X1   = 88, AGUA_X2   = 96;
 
 MapaBuilder::MapaBuilder() {
     collision_map.resize(MAP_W * MAP_H, 0);
@@ -466,7 +474,7 @@ void MapaBuilder::build_cementerio(MapaDTO& mapa) {
 }
 
 void MapaBuilder::build_costa(MapaDTO& mapa) {
-    //mark_collision_rect(OLAS_X1, 0, MAP_W - 1, MAP_H - 1); // a partir de las olas no se puede caminar mas
+    //mark_collision_rect(OLAS_X1, 0, 99, 99); 
     // franja pasto->arena
     for (int y = 1; y <= 99; y += 2)
         get_tile(mapa, FRANJA_X1, y).floor_id = F_ARENA_FRANJA;
@@ -493,13 +501,6 @@ void MapaBuilder::build_costa(MapaDTO& mapa) {
         for (int x = AGUA_X1; x <= AGUA_X2; x++)
             get_tile(mapa, x, y).floor_id = F_AGUA;
     }
-
-    for (int y = 30; y <= 80; y++) {
-        for (int x = 110; x <= 119; x++) {
-            TileDTO& tile = get_tile(mapa, x, y);
-            tile.floor_id = F_PIEDRA;
-        }
-    }
 }
 
 void MapaBuilder::build_objetos(MapaDTO& mapa) {
@@ -514,6 +515,44 @@ void MapaBuilder::build_objetos(MapaDTO& mapa) {
     place_object_sup(mapa, 94, 80, O_ESQUELETO_2);
     place_object_sup(mapa, 97, 45, O_ESQUELETO_3);
     place_object_sup(mapa, 96, 75, O_ESQUELETO_1);
+}
+
+void MapaBuilder::build_mazmorra(MapaDTO& mapa) {
+    for (int y = 30; y <= 80; y++) {
+        for (int x = 110; x <= 119; x++) {
+            TileDTO& tile = get_tile(mapa, x, y);
+            tile.floor_id = F_TIERRA_BASE;
+        }
+    }
+    for (int y = 31; y <= 79; y++) {
+        for (int x = 114; x <= 115; x++) {
+            TileDTO& tile = get_tile(mapa, x, y);
+            tile.floor_id = F_PIEDRA_SIN_MUSGO;
+        }
+    }
+    place_object_sup(mapa, 112, 80, O_MAZMORRA_PARED_INFERIOR);
+    place_object_sup(mapa, 117, 80, O_MAZMORRA_PARED_INFERIOR);
+
+    place_object_sup(mapa, 112, 30, O_MAZMORRA_PARED_SUPERIOR);
+    place_object_sup(mapa, 117, 30, O_MAZMORRA_PARED_SUPERIOR);
+
+
+    place_object_sup(mapa, 110, 34, O_MAZMORRA_PARED_IZQ);
+    for (int y = 36; y <= 80; y+= 4) {
+        place_object_sup(mapa, 110, y, O_MAZMORRA_PARED_IZQ);
+    }
+    place_object_sup(mapa, 110, 81, O_MAZMORRA_PARED_IZQ);
+
+    place_object_sup(mapa, 119, 34, O_MAZMORRA_PARED_DER);
+    for (int y = 36; y <= 80; y+= 4) {
+        place_object_sup(mapa, 119, y, O_MAZMORRA_PARED_DER);
+    }
+    place_object_sup(mapa, 119, 81, O_MAZMORRA_PARED_DER);
+
+    mark_collision_rect(109, 30, 119, 30); // pared superior
+    mark_collision_rect(109, 80, 119, 80); // pared inferior
+    mark_collision_rect(109, 30, 109, 80); // pared izquierda la pared derecha ya queda bloqueada x limites del mapa despues hay q revisar si este es el comportamiento q esperamos o movemos la mazmorra 1 tile a la izq
+
 }
 
 size_t MapaBuilder::get_index(uint16_t x, uint16_t y) const {
@@ -556,6 +595,7 @@ MapaDTO MapaBuilder::build_mapa_inicial() {
     build_pueblo(mapa);
     build_cementerio(mapa);
     build_objetos(mapa);
+    build_mazmorra(mapa);
 
     return mapa;
 }
