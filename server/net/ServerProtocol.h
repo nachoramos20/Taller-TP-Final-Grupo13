@@ -11,6 +11,14 @@
 #include "../../common/protocol/protocol.h"
 #include "../game/commands/Commands.h"
 
+// Pasa apenas el umbral de 200 líneas de implementación con 3 grupos de
+// métodos (handshake, parsing de comandos, envío de mapa/snapshot), pero
+// no se separan en clases auxiliares: los tres necesitan los primitivos
+// send_uint8/recv_uint16/etc. de Protocol, que son `protected` (solo
+// accesibles por subclases). Una clase auxiliar tendría que heredar de
+// Protocol igual que ServerProtocol, duplicando la relación de herencia
+// sin ganar nada — o forzar esos primitivos a `public`, debilitando el
+// encapsulamiento del framing del protocolo para todo el proyecto.
 class ServerProtocol : public Protocol {
 public:
     explicit ServerProtocol(Socket&& socket);

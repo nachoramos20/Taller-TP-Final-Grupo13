@@ -1,3 +1,10 @@
+// El archivo supera las 200 líneas, pero ninguna de las dos clases que
+// contiene (AttackCommand::execute ~130, AttackNpcCommand::execute ~85)
+// lo hace individualmente — comparten archivo por ser ambas "resolver un
+// ataque", igual que MeditateCommand/ResurrectCommand/CastSpellCommand
+// en MagicCommands.cpp. Las fórmulas de daño/crítico/dodge/exp ya están
+// extraídas a Equations (server/game/Equations.h/.cpp), así que no hay
+// un "CombatCalculator" más para sacar de acá.
 #include "Commands.h"
 #include "../Equations.h"
 #include "../Items.h"
