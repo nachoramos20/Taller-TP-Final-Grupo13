@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../Npc.h"
+
 #include "IdAllocator.h"
 #include "WorldSpawner.h"
 
@@ -15,18 +16,21 @@ class WorldItems;
 class WorldChat;
 class WorldClans;
 
+// NPCs vivos en el mundo: spawn, IA por tick (movimiento/ataque), muerte
+// y limpieza. Depende de varios subsistemas porque atacar/morir un NPC
+// toca colisiones, items dropeados, clanes (notificar ataque) y chat.
 class WorldNpcs {
 private:
     std::vector<NpcData> npcs;
 
     WorldCollision& collision;
-    WorldPlayers&   players;
-    WorldItems&     items;
-    WorldChat&      chat;
-    WorldClans&     clans;
-    IdAllocator&    id_alloc;
-    std::mt19937&   rng;
-    WorldSpawner&   spawner;
+    WorldPlayers& players;
+    WorldItems& items;
+    WorldChat& chat;
+    WorldClans& clans;
+    IdAllocator& id_alloc;
+    std::mt19937& rng;
+    WorldSpawner& spawner;
 
     int rand_range(int lo, int hi);
     void spawn_internal(NpcId type, uint16_t x, uint16_t y, uint8_t zone_id);
@@ -34,14 +38,19 @@ private:
     uint32_t current_tick = 0;
 
 public:
-    WorldNpcs(WorldCollision& c, WorldPlayers& p, WorldItems& i,
-              WorldChat& ch, WorldClans& cl, IdAllocator& a,
-              std::mt19937& r, WorldSpawner& sp)
-        : collision(c), players(p), items(i), chat(ch), clans(cl),
-          id_alloc(a), rng(r), spawner(sp) {}
+    WorldNpcs(WorldCollision& c, WorldPlayers& p, WorldItems& i, WorldChat& ch, WorldClans& cl,
+              IdAllocator& a, std::mt19937& r, WorldSpawner& sp):
+            collision(c),
+            players(p),
+            items(i),
+            chat(ch),
+            clans(cl),
+            id_alloc(a),
+            rng(r),
+            spawner(sp) {}
 
     const std::vector<NpcData>& all() const { return npcs; }
-    std::vector<NpcData>&       all_mutable() { return npcs; }
+    std::vector<NpcData>& all_mutable() { return npcs; }
 
     void spawn(NpcId type, uint16_t x, uint16_t y);  // legacy/manual
     void kill_all_in_zone(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);

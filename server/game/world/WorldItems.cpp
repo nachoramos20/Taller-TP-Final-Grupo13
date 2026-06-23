@@ -1,26 +1,27 @@
 #include "WorldItems.h"
-#include "../Items.h"
+
 #include <algorithm>
 #include <cmath>
+
+#include "../Items.h"
 
 // Cantidad de variantes visuales por item_id
 static uint8_t sprite_variant_count(uint8_t item_id) {
     switch (item_id) {
-        default: return 1;
+        default:
+            return 1;
     }
 }
 
-void WorldItems::add(uint8_t item_id, uint16_t x, uint16_t y,
-                     uint32_t gold, uint32_t spawn_tick) {
+void WorldItems::add(uint8_t item_id, uint16_t x, uint16_t y, uint32_t gold, uint32_t spawn_tick) {
     FloorItem fi{};
-    fi.entity_id      = id_alloc.allocate();
-    fi.item_id        = item_id;
-    fi.sprite_variant = static_cast<uint8_t>(
-        rand() % sprite_variant_count(item_id));
-    fi.pos_x          = x;
-    fi.pos_y          = y;
-    fi.gold_amount    = gold;
-    fi.spawn_tick     = spawn_tick;
+    fi.entity_id = id_alloc.allocate();
+    fi.item_id = item_id;
+    fi.sprite_variant = static_cast<uint8_t>(rand() % sprite_variant_count(item_id));
+    fi.pos_x = x;
+    fi.pos_y = y;
+    fi.gold_amount = gold;
+    fi.spawn_tick = spawn_tick;
     items.push_back(fi);
 }
 
@@ -32,7 +33,7 @@ uint8_t WorldItems::pick(uint16_t x, uint16_t y, uint32_t& gold_out) {
             if (it->item_id == static_cast<uint8_t>(ItemId::BLOOD_STAIN))
                 continue;
             uint8_t id = it->item_id;
-            gold_out   = it->gold_amount;
+            gold_out = it->gold_amount;
             items.erase(it);
             return id;
         }
@@ -41,19 +42,19 @@ uint8_t WorldItems::pick(uint16_t x, uint16_t y, uint32_t& gold_out) {
 }
 
 void WorldItems::cleanup_expired(uint32_t current_tick) {
-    items.erase(
-        std::remove_if(items.begin(), items.end(),
-            [&](const FloorItem& fi) {
-                return fi.item_id == static_cast<uint8_t>(ItemId::BLOOD_STAIN)
-                    && current_tick - fi.spawn_tick >= BLOOD_STAIN_DURATION_TICKS;
-            }),
-        items.end());
+    items.erase(std::remove_if(items.begin(), items.end(),
+                               [&](const FloorItem& fi) {
+                                   return fi.item_id == static_cast<uint8_t>(ItemId::BLOOD_STAIN) &&
+                                          current_tick - fi.spawn_tick >=
+                                                  BLOOD_STAIN_DURATION_TICKS;
+                               }),
+                items.end());
 }
 
 void WorldItems::remove_in_zone(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
     std::erase_if(items, [&](const FloorItem& floor_item) {
-        return floor_item.pos_x >= x1 && floor_item.pos_x <= x2 &&
-               floor_item.pos_y >= y1 && floor_item.pos_y <= y2;
+        return floor_item.pos_x >= x1 && floor_item.pos_x <= x2 && floor_item.pos_y >= y1 &&
+               floor_item.pos_y <= y2;
     });
 }
 
@@ -72,7 +73,7 @@ void WorldItems::drop_player_loot(PlayerData& dead) {
         }
     }
     dead.equipped_weapon = 0xFF;
-    dead.equipped_armor  = 0xFF;
+    dead.equipped_armor = 0xFF;
     dead.equipped_helmet = 0xFF;
     dead.equipped_shield = 0xFF;
 }

@@ -1,94 +1,45 @@
-#include <SDL2pp/SDL2pp.hh>
+#include <atomic>
+#include <iostream>
+#include <memory>
+#include <string>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <iostream>
-#include <string>
-#include <atomic>
-#include <memory>
+#include <SDL2pp/SDL2pp.hh>
 
-#include "game/GameLoop.h"
-#include "game/LoginScreen.h"
-#include "game/StatsPanel.h"
-#include "audio/AudioManager.h"
 #include "../common/socket.h"
-#include "../common/queue.h"
-#include "../common/protocol/dtos.h"
-#include "../common/protocol/protocol.h"
-#include "../common/MapaDTO.h"
-#include "net/Command.h"
-#include "net/SenderThread.h"
-#include "net/ReceiverThread.h"
+#include "audio/AudioManager.h"
 #include "config/ClientConfig.h"
-#include "config/AudioConfig.h"
-#include "config/SpellVfxConfig.h"
+#include "config/ConfigLoader.h"
 #include "config/RacesClassesConfig.h"
-#include "render/ItemVisualConfig.h"
-#include "render/NpcVisualConfig.h"
+#include "net/NetSession.h"
+#include "ui/LoginScreen.h"
+#include "ui/StatsPanel.h"
 
-// Detiene y joinea todos los threads de red de forma segura.
-static void shutdown_net(std::atomic<bool>& connected,
-                         Queue<Command>& cq,
-                         Queue<SnapshotDTO>& sq,
-                         Queue<MapaDTO>& mq,
-                         SenderThread& sender,
-                         ReceiverThread& receiver) {
-    connected = false;
-    try { cq.close(); } catch (...) {}
-    try { sq.close(); } catch (...) {}
-    try { mq.close(); } catch (...) {}
-    sender.stop();
-    receiver.stop();
-    sender.join();
-    receiver.join();
-}
+#include "GameLoop.h"
 
 int main(int argc, char* argv[]) try {
     if (argc != 3) {
         std::cerr << "Uso: " << argv[0] << " <host> <puerto>\n";
         return 1;
     }
-    const std::string host = argv[1];
-    const std::string port = argv[2];
+    std::string host = argv[1];
+    std::string port = argv[2];
 
-    // Si el servidor no está disponible, ni levantamos la ventana
     try {
         Socket test_sock(host.c_str(), port.c_str());
     } catch (const std::exception& e) {
-        std::cerr << "No se pudo conectar al servidor en " << host << ":" << port
-                   << " (" << e.what() << ")\n";
+        std::cerr << "No se pudo conectar al servidor en " << host << ":" << port << " ("
+                  << e.what() << ")\n";
         return 1;
     }
 
-    // Cargar todas las configuraciones desde TOML
     ClientConfig& client_config = ClientConfig::instance();
-    AudioConfig& audio_config = AudioConfig::instance();
-    SpellVfxConfig& spell_vfx_config = SpellVfxConfig::instance();
     RacesClassesConfig& races_classes_config = RacesClassesConfig::instance();
-    ItemVisualConfig& item_visual_config = ItemVisualConfig::instance();
-    NpcVisualConfig& npc_visual_config = NpcVisualConfig::instance();
 
-    if (!client_config.load("config/client_config.toml")) {
-        std::cerr << "Error: no se pudo cargar config/client_config.toml\n";
-        return 1;
-    }
-    if (!audio_config.load("config/audio_config.toml")) {
-        std::cerr << "Error: no se pudo cargar config/audio_config.toml\n";
-        return 1;
-    }
-    if (!spell_vfx_config.load("config/spells_vfx.toml")) {
-        std::cerr << "Error: no se pudo cargar config/spells_vfx.toml\n";
-        return 1;
-    }
-    if (!races_classes_config.load("config/races_classes.toml")) {
-        std::cerr << "Error: no se pudo cargar config/races_classes.toml\n";
-        return 1;
-    }
-    if (!item_visual_config.load("config/item_visuals.toml")) {
-        std::cerr << "Error: no se pudo cargar config/item_visuals.toml\n";
-        return 1;
-    }
-    if (!npc_visual_config.load("config/npc_visuals.toml")) {
-        std::cerr << "Error: no se pudo cargar config/npc_visuals.toml\n";
+    std::string config_error;
+    if (!ConfigLoader::load_all(config_error)) {
+        std::cerr << config_error << "\n";
         return 1;
     }
 
@@ -102,25 +53,16 @@ int main(int argc, char* argv[]) try {
     AudioManager audio;
     audio.play_music_loop(client_config.music.main_theme_path);
 
-    SDL2pp::Window window(
-        client_config.ui.window_title,
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        client_config.ui.window_width, client_config.ui.window_height,
-        SDL_WINDOW_RESIZABLE
-    );
-    // Que no se pueda achicar la ventana por debajo de lo que necesita el
-    // StatsPanel para no cortar contenido
+    SDL2pp::Window window(client_config.ui.window_title, SDL_WINDOWPOS_CENTERED,
+                          SDL_WINDOWPOS_CENTERED, client_config.ui.window_width,
+                          client_config.ui.window_height, SDL_WINDOW_RESIZABLE);
     SDL_SetWindowMinimumSize(window.Get(), StatsPanel::PANEL_W * 2,
                              client_config.ui.window_min_height);
-    SDL2pp::Renderer renderer(
-        window, -1,
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
-    );
+    SDL2pp::Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-    std::string pending_error;  // error del servidor para mostrar en el próximo login
+    std::string pending_error;
 
     while (true) {
-        // Mostrar pantalla de login/registro
         LoginScreen login_screen(window, renderer, client_config.fonts.chat_font_path, &audio);
         if (!pending_error.empty()) {
             login_screen.set_error(pending_error);
@@ -128,59 +70,45 @@ int main(int argc, char* argv[]) try {
         }
         LoginResult result = login_screen.run();
 
-        if (result.cancelled) break;  // salida limpia
+        if (result.cancelled)
+            break;
 
-        // Validación local
-        if (result.username.empty()) { pending_error = "Ingresa un nombre."; continue; }
-        if (result.username.size() > 20) { pending_error = "Nombre demasiado largo (max 20)."; continue; }
-        for (char c : result.username) {
-            if (c == ' ') { pending_error = "El nombre no puede tener espacios."; break; }
+        if (result.username.empty()) {
+            pending_error = "Ingresa un nombre.";
+            continue;
         }
-        if (!pending_error.empty()) continue;
+        if (result.username.size() > 20) {
+            pending_error = "Nombre demasiado largo (max 20).";
+            continue;
+        }
+        for (char c: result.username) {
+            if (c == ' ') {
+                pending_error = "El nombre no puede tener espacios.";
+                break;
+            }
+        }
+        if (!pending_error.empty())
+            continue;
 
-        // Conectar socket
-        std::unique_ptr<Socket> sock;
-        try {
-            sock = std::make_unique<Socket>(host.c_str(), port.c_str());
-        } catch (const std::exception& e) {
-            pending_error = std::string("No se pudo conectar: ") + e.what();
+        NetSession net_session;
+        std::string connection_error;
+        if (!net_session.connect(host, port, connection_error)) {
+            pending_error = connection_error;
             continue;
         }
 
-        // Threads de red
-        Queue<Command>     command_queue;
-        Queue<SnapshotDTO> snapshot_queue;
-        Queue<MapaDTO>     map_queue;
-        std::atomic<bool>  connected(true);
-
-        SenderThread   sender(*sock, command_queue);
-        ReceiverThread receiver(*sock, snapshot_queue, map_queue, connected);
-        sender.start();
-        receiver.start();
-
-        // Enviar handshake
-        if (result.do_register)
-            command_queue.push(Command::register_player(result.username, result.race, result.cls));
-        else
-            command_queue.push(Command::login(result.username));
-
-        // Esperar respuesta del servidor
-        std::string error_msg;
-        HandshakeResult hs = receiver.wait_handshake(error_msg);
-
-        if (hs != HandshakeResult::OK) {
-            shutdown_net(connected, command_queue, snapshot_queue, map_queue, sender, receiver);
-            pending_error = error_msg.empty()
-                ? races_classes_config.get_login_messages().invalid_user
-                : error_msg;
+        std::string handshake_error;
+        if (!net_session.authenticate(result.username, result.do_register, result.race, result.cls,
+                                      handshake_error)) {
+            pending_error = handshake_error.empty() ?
+                                    races_classes_config.get_login_messages().invalid_user :
+                                    handshake_error;
             continue;
         }
 
-        // GameLoop
         try {
-            GameLoop game_loop(window, renderer,
-                               &command_queue, &snapshot_queue,
-                               &map_queue, &connected, &audio,
+            GameLoop game_loop(window, renderer, &net_session.commands(), &net_session.snapshots(),
+                               &net_session.maps(), &net_session.connection_state(), &audio,
                                result.username);
             game_loop.run();
         } catch (const std::exception& e) {
@@ -189,9 +117,8 @@ int main(int argc, char* argv[]) try {
             std::cerr << "GameLoop: excepcion desconocida\n";
         }
 
-        // Cleanup y salir
-        shutdown_net(connected, command_queue, snapshot_queue, map_queue, sender, receiver);
-        break;  // sesión terminada: no volver al login
+        net_session.shutdown();
+        break;
     }
 
     TTF_Quit();

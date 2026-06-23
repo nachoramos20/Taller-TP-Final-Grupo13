@@ -1,12 +1,11 @@
 target_sources(argentum_grupo13_common
     PRIVATE
-    foo.cpp
     socket.cpp
     resolver.cpp
     liberror.cpp
     resolvererror.cpp
+    protocol/Protocol.cpp
     PUBLIC
-    foo.h
     socket.h
     resolver.h
     liberror.h
@@ -15,8 +14,9 @@ target_sources(argentum_grupo13_common
     queue.h
     protocol/protocol.h
     protocol/dtos.h
-    protocol/Serializer.h
-    protocol/Deserializer.h
+    protocol/MapaDTO.h
+    protocol/WeaponRules.h
+    protocol/Protocol.h
 )
 
 target_include_directories(argentum_grupo13_common

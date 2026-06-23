@@ -1,10 +1,11 @@
 #pragma once
 
-#include <SDL_mixer.h>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <SDL_mixer.h>
 
 // Maneja música de fondo y efectos de sonido (SDL_mixer, API C directa).
 // Debe vivir durante toda la ejecución del cliente: el dispositivo de audio
@@ -33,7 +34,8 @@ public:
 
     // Igual que play_effect_at pero elige un archivo al azar de la lista
     // (para variantes de un mismo sonido, p. ej. sonidos de NPC al morir).
-    void play_random_effect_at(const std::vector<std::string>& paths, float dist_tiles, float volume_scale = 1.0f);
+    void play_random_effect_at(const std::vector<std::string>& paths, float dist_tiles,
+                               float volume_scale = 1.0f);
 
     // Diálogo de NPC: corta de inmediato cualquier frase que esté sonando o
     // pendiente (saludo, despedida, etc.) y empieza esta secuencia ya mismo.
@@ -45,7 +47,8 @@ public:
 
     // Igual que speak pero elige un archivo al azar de la lista (para una
     // sola frase con variantes, p. ej. "lo pides lo tienes").
-    void speak_random(const std::vector<std::string>& paths, float dist_tiles, uint32_t gap_ms = 200);
+    void speak_random(const std::vector<std::string>& paths, float dist_tiles,
+                      uint32_t gap_ms = 200);
 
     // Sonido ambiente continuo (p. ej. olas del mar): arranca en loop si no
     // estaba sonando, ajusta el volumen según la distancia cada vez que se
@@ -59,11 +62,11 @@ public:
     // max_audible_tiles permite que este sonido tenga un rango de audibilidad
     // más corto que el resto (p. ej. algo que debe sentirse localizado).
     void set_secondary_ambient_loop(const std::string& path, float dist_tiles,
-                                     float max_audible_tiles = -1.0f);
+                                    float max_audible_tiles = -1.0f);
 
-    // Sonido en loop gateado por una condición booleana. Usa un canal reservado propio, distinto del ambiente y
-    // del de diálogo. Pensado para llamarse todos los frames con la
-    // condición actual.
+    // Sonido en loop gateado por una condición booleana. Usa un canal reservado propio, distinto
+    // del ambiente y del de diálogo. Pensado para llamarse todos los frames con la condición
+    // actual.
     void set_looping_while(const std::string& path, bool active, float volume_scale = 1.0f);
 
     // Loop de meditación con solapamiento: en vez de cortar y reiniciar en
@@ -104,11 +107,11 @@ private:
     std::vector<QueuedSpeech> _speech_queue;  // resto de la secuencia actual, pendiente
     std::string _ambient_path;            // qué está sonando en el canal ambiente (vacío = nada)
     std::string _secondary_ambient_path;  // qué está sonando en el canal ambiente secundario
-    std::string _looping_path;     // qué está sonando en el canal de loop gateado (vacío = nada)
+    std::string _looping_path;  // qué está sonando en el canal de loop gateado (vacío = nada)
 
     // Loop de meditación con solapamiento entre dos canales (ver set_meditation_loop)
     std::string _meditation_path;
-    int         _meditation_active_channel = -1;  // -1 = inactivo
-    uint32_t    _meditation_next_switch_ms = 0;
-    float       _meditation_volume_scale = 1.0f;
+    int _meditation_active_channel = -1;  // -1 = inactivo
+    uint32_t _meditation_next_switch_ms = 0;
+    float _meditation_volume_scale = 1.0f;
 };

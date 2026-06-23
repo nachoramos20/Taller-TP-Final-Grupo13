@@ -1,24 +1,25 @@
 #pragma once
 
-#include "../../common/socket.h"
-#include "../../common/queue.h"
+#include <atomic>
+#include <cstdint>
+#include <memory>
+
 #include "../../common/protocol/dtos.h"
-#include "../game/QueueMonitor.h"
+#include "../../common/queue.h"
+#include "../../common/socket.h"
 #include "../game/PersistenceMonitor.h"
+#include "../game/QueueMonitor.h"
+
 #include "ServerReceiverThread.h"
 #include "ServerSenderThread.h"
 
-#include <atomic>
-#include <cstdint>
-
+// Dueño de la conexión con un cliente: su ServerProtocol y los hilos de
+// envío/recepción dedicados (ver ServerSenderThread/ServerReceiverThread).
 class ClientHandler {
 public:
-    ClientHandler(uint16_t client_id,
-                  Socket&& socket,
-                  Queue<std::shared_ptr<ServerCommand>>& command_queue,
-                  QueueMonitor& queue_monitor,
-                  PersistenceMonitor& persistence_monitor,
-                  MapaDTO& mapa);
+    ClientHandler(uint16_t client_id, Socket&& socket,
+                  Queue<std::shared_ptr<ServerCommand>>& command_queue, QueueMonitor& queue_monitor,
+                  PersistenceMonitor& persistence_monitor, MapaDTO& initial_map);
 
     void start();
     void stop();
@@ -33,11 +34,11 @@ public:
     ClientHandler& operator=(const ClientHandler&) = delete;
 
 private:
-    uint16_t             _client_id;
-    ServerProtocol       _protocol;
-    std::atomic<bool>    _alive;
-    ServerSenderThread   _sender;
+    uint16_t _client_id;
+    ServerProtocol _protocol;
+    std::atomic<bool> _alive;
+    ServerSenderThread _sender;
     ServerReceiverThread _receiver;
-    QueueMonitor&        _queue_monitor;
-    PersistenceMonitor&  _persistence_monitor;
+    QueueMonitor& _queue_monitor;
+    PersistenceMonitor& _persistence_monitor;
 };

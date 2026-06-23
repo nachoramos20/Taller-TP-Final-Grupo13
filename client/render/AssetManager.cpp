@@ -1,9 +1,10 @@
 #include "AssetManager.h"
-#include "SDL_image.h"
+
 #include <stdexcept>
 
-AssetManager::AssetManager(SDL2pp::Renderer& renderer)
-    : _renderer(renderer) {}
+#include "SDL_image.h"
+
+AssetManager::AssetManager(SDL2pp::Renderer& renderer): _renderer(renderer) {}
 
 SDL2pp::Texture& AssetManager::get(const std::string& path) {
     auto it = _cache.find(path);
@@ -14,8 +15,7 @@ SDL2pp::Texture& AssetManager::get(const std::string& path) {
     if (!surface)
         throw std::runtime_error(std::string("No se pudo cargar: ") + path);
 
-    SDL_Texture* raw = SDL_CreateTextureFromSurface(
-        _renderer.Get(), surface);
+    SDL_Texture* raw = SDL_CreateTextureFromSurface(_renderer.Get(), surface);
     SDL_FreeSurface(surface);
 
     if (!raw)

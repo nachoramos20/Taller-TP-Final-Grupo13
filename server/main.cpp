@@ -1,14 +1,15 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "net/Acceptor.h"
-#include "game/ServerGameLoop.h"
-#include "game/QueueMonitor.h"
-#include "game/PersistenceMonitor.h"
-#include "game/GameConfig.h"
+
 #include "../common/queue.h"
+#include "game/PersistenceMonitor.h"
 #include "game/PersistenceThread.h"
-#include "game/MapaBuilder.h"
+#include "game/QueueMonitor.h"
+#include "game/ServerGameLoop.h"
+#include "game/config/GameConfig.h"
+#include "game/world/MapaBuilder.h"
+#include "net/Acceptor.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -30,13 +31,14 @@ int main(int argc, char* argv[]) {
         MapaDTO mapa = mapa_builder.build_mapa_inicial();
         std::vector<uint8_t> collision_map = mapa_builder.take_collision();
 
-        Acceptor       acceptor(port, command_queue, queue_monitor, persistence_monitor, mapa);
-        ServerGameLoop game_loop(command_queue, queue_monitor, save_queue, std::move(collision_map));
+        Acceptor acceptor(port, command_queue, queue_monitor, persistence_monitor, mapa);
+        ServerGameLoop game_loop(command_queue, queue_monitor, save_queue,
+                                 std::move(collision_map));
         PersistenceThread persistence_thread(save_queue, persistence_monitor);
 
         std::cout << "Servidor escuchando en puerto " << port << "\n";
         std::cout << "Presioná 'q' + Enter para cerrar\n";
-        
+
         persistence_thread.start();
         game_loop.start();
         acceptor.start();

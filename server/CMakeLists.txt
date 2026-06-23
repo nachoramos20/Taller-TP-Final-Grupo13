@@ -1,6 +1,8 @@
-target_sources(argentum_grupo13_server
+# librería con todo el código del servidor (sin main)
+add_library(argentum_grupo13_server_lib STATIC)
+
+target_sources(argentum_grupo13_server_lib
     PRIVATE
-    main.cpp
     net/Acceptor.cpp
     net/ClientHandler.cpp
     net/ServerReceiverThread.cpp
@@ -14,8 +16,11 @@ target_sources(argentum_grupo13_server
     game/commands/MagicCommands.cpp
     game/commands/NpcCommands.cpp
     game/commands/ChatCommands.cpp
-    game/commands/ChatCommand_Bank.cpp
-    game/commands/ChatCommand_Clan.cpp
+    game/commands/BankCommands.cpp
+    game/commands/MerchantCommands.cpp
+    game/commands/ClanCommands.cpp
+    game/commands/DungeonCommands.cpp
+    game/commands/ChatCheatCommands.cpp
     game/commands/CheatCommands.cpp
     game/PersistenceMonitor.cpp
     game/world/World.cpp
@@ -29,16 +34,35 @@ target_sources(argentum_grupo13_server
     game/world/WorldSpawner.cpp
     game/world/WorldSnapshot.cpp
     game/world/Mazmorra.cpp
+    game/world/WorldBuilder.cpp
     game/QueueMonitor.cpp
-    game/MapaBuilder.cpp
+    game/world/MapaBuilder.cpp
     game/Items.cpp
     game/Npc.cpp
     game/Equations.cpp
-    game/GameConfig.cpp
+    game/config/GameConfig.cpp
     game/PersistenceThread.cpp
 )
 
-target_include_directories(argentum_grupo13_server
+target_include_directories(argentum_grupo13_server_lib
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+target_link_libraries(argentum_grupo13_server_lib
+    PUBLIC
+    argentum_grupo13_common
+)
+
+# ejecutable del servidor
+add_executable(argentum_grupo13_server)
+
+target_sources(argentum_grupo13_server
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    main.cpp
+)
+
+target_link_libraries(argentum_grupo13_server
+    PUBLIC
+    argentum_grupo13_server_lib
 )

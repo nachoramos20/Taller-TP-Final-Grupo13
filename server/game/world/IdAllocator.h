@@ -7,8 +7,9 @@
 class IdAllocator {
 private:
     uint16_t next;
+
 public:
-    explicit IdAllocator(uint16_t start) : next(start) {}
+    explicit IdAllocator(uint16_t start): next(start) {}
     uint16_t allocate() { return next++; }
 };
 

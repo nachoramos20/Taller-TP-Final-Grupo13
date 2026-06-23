@@ -1,7 +1,10 @@
+// Patrón aplicado: Factory + tabla de dispatch (en vez del switch de 17
+// casos por MsgType). Cada entrada llama al send_* de ClientProtocol que
+// corresponde a ese comando.
 #include "SenderThread.h"
 
-SenderThread::SenderThread(Socket& socket, Queue<Command>& queue)
-    : _serializer(socket), _queue(queue) {}
+SenderThread::SenderThread(ClientProtocol& protocol, Queue<Command>& queue):
+        _protocol(protocol), _queue(queue) {}
 
 void SenderThread::run() {
     try {
@@ -12,66 +15,59 @@ void SenderThread::run() {
     } catch (const ClosedQueue&) {}
 }
 
-void SenderThread::stop() {
-    Thread::stop();
+void SenderThread::stop() { Thread::stop(); }
+
+const std::unordered_map<MsgType, SenderThread::SendAction>& SenderThread::dispatch_table() {
+    static const std::unordered_map<MsgType, SendAction> table = {
+            {MsgType::LOGIN,
+             [](SenderThread& s, const Command& c) { s._protocol.send_login(c.text); }},
+            {MsgType::REGISTER,
+             [](SenderThread& s, const Command& c) {
+                 s._protocol.send_register(c.text, static_cast<Race>(c.race),
+                                           static_cast<Class>(c.cls));
+             }},
+            {MsgType::MOVE,
+             [](SenderThread& s, const Command& c) { s._protocol.send_move(c.pos_x, c.pos_y); }},
+            {MsgType::ATTACK,
+             [](SenderThread& s, const Command& c) { s._protocol.send_attack(c.target_id); }},
+            {MsgType::CHAT_COMMAND,
+             [](SenderThread& s, const Command& c) { s._protocol.send_chat_command(c.text); }},
+            {MsgType::EQUIP_ITEM,
+             [](SenderThread& s, const Command& c) { s._protocol.send_equip_item(c.slot); }},
+            {MsgType::MOVE_ITEM,
+             [](SenderThread& s, const Command& c) {
+                 s._protocol.send_move_item(c.slot, c.to_slot);
+             }},
+            {MsgType::UNEQUIP_ITEM,
+             [](SenderThread& s, const Command& c) {
+                 s._protocol.send_unequip_item(static_cast<EquipSlot>(c.equip_slot));
+             }},
+            {MsgType::DROP_ITEM,
+             [](SenderThread& s, const Command& c) { s._protocol.send_drop_item(c.slot); }},
+            {MsgType::PICK_ITEM,
+             [](SenderThread& s, const Command&) { s._protocol.send_pick_item(); }},
+            {MsgType::USE_ITEM,
+             [](SenderThread& s, const Command& c) { s._protocol.send_use_item(c.slot); }},
+            {MsgType::MEDITATE,
+             [](SenderThread& s, const Command&) { s._protocol.send_meditate(); }},
+            {MsgType::RESURRECT,
+             [](SenderThread& s, const Command&) { s._protocol.send_resurrect(); }},
+            {MsgType::NPC_INTERACT,
+             [](SenderThread& s, const Command& c) { s._protocol.send_npc_interact(c.target_id); }},
+            {MsgType::LOGOUT, [](SenderThread& s, const Command&) { s._protocol.send_logout(); }},
+            {MsgType::CAST_SPELL,
+             [](SenderThread& s, const Command& c) {
+                 s._protocol.send_cast_spell(c.target_id, c.spell_id);
+             }},
+            {MsgType::CHEAT,
+             [](SenderThread& s, const Command& c) { s._protocol.send_cheat(c.cheat_id); }},
+    };
+    return table;
 }
 
 void SenderThread::send_command(const Command& cmd) {
-    switch (cmd.type) {
-        case MsgType::LOGIN:
-            _serializer.send_login(cmd.text);
-            break;
-        case MsgType::REGISTER:
-            _serializer.send_register(cmd.text,
-                static_cast<Race>(cmd.race),
-                static_cast<Class>(cmd.cls));
-            break;
-        case MsgType::MOVE:
-            _serializer.send_move(cmd.pos_x, cmd.pos_y);
-            break;
-        case MsgType::ATTACK:
-            _serializer.send_attack(cmd.target_id);
-            break;
-        case MsgType::CHAT_COMMAND:
-            _serializer.send_chat_command(cmd.text);
-            break;
-        case MsgType::EQUIP_ITEM:
-            _serializer.send_equip_item(cmd.slot);
-            break;
-        case MsgType::MOVE_ITEM:
-            _serializer.send_move_item(cmd.slot, cmd.to_slot);
-            break;
-        case MsgType::UNEQUIP_ITEM:
-            _serializer.send_unequip_item(static_cast<EquipSlot>(cmd.equip_slot));
-            break;
-        case MsgType::DROP_ITEM:
-            _serializer.send_drop_item(cmd.slot);
-            break;
-        case MsgType::PICK_ITEM:
-            _serializer.send_pick_item();
-            break;
-        case MsgType::USE_ITEM:
-            _serializer.send_use_item(cmd.slot);
-            break;
-        case MsgType::MEDITATE:
-            _serializer.send_meditate();
-            break;
-        case MsgType::RESURRECT:
-            _serializer.send_resurrect();
-            break;
-        case MsgType::NPC_INTERACT:
-            _serializer.send_npc_interact(cmd.target_id);
-            break;
-        case MsgType::LOGOUT:
-            _serializer.send_logout();
-            break;
-        case MsgType::CAST_SPELL:
-            _serializer.send_cast_spell(cmd.target_id, cmd.spell_id);
-            break;
-        case MsgType::CHEAT:
-            _serializer.send_cheat(cmd.cheat_id);
-            break;
-        default:
-            break;
-    }
+    const std::unordered_map<MsgType, SendAction>& table = dispatch_table();
+    std::unordered_map<MsgType, SendAction>::const_iterator it = table.find(cmd.type);
+    if (it != table.end())
+        it->second(*this, cmd);
 }

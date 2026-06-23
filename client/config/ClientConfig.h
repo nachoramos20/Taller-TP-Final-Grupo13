@@ -1,16 +1,19 @@
 #ifndef CLIENT_CONFIG_H
 #define CLIENT_CONFIG_H
 
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_scancode.h>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_scancode.h>
+
+// Configuración del cliente cargada desde client_config.toml: rutas de
+// assets, fuentes, ventana, atajos de teclado y los parámetros de
+// rendering (tile_size, zonas seguras espejadas del server para VFX, etc.).
 class ClientConfig {
 public:
-    // Estructura para rutas de assets
     struct AssetsPaths {
         std::string fonts_dir;
         std::string sounds_dir;
@@ -20,7 +23,6 @@ public:
         std::string creatures_dir;
     };
 
-    // Estructura para fuentes
     struct Fonts {
         std::string default_path;
         int default_size;
@@ -31,13 +33,11 @@ public:
         int small_font_size;
     };
 
-    // Estructura para música
     struct Music {
         std::string main_theme_path;
         float main_theme_volume;
     };
 
-    // Estructura para rendering
     struct Rendering {
         int tile_size;
         int map_size;
@@ -51,6 +51,7 @@ public:
         uint16_t grass_floor_id_max;
         uint16_t city_stone_floor_id;
         uint16_t dirt_floor_id;
+        uint16_t sand_floor_id;
 
         // Zona del bosque (dos rectángulos con el mismo rango de X, uno al
         // norte y otro al sur), para sonido ambiente de fauna.
@@ -74,17 +75,17 @@ public:
         int safe_zone2_x_min, safe_zone2_x_max, safe_zone2_y_min, safe_zone2_y_max;
     };
 
-    // Estructura para atajos de teclado (se cargan por nombre desde el TOML,
-    // p. ej. "I", "Up", "Escape", y se resuelven una sola vez a códigos SDL).
+    // Se cargan por nombre desde el TOML (p. ej. "I", "Up", "Escape") y se
+    // resuelven una sola vez a códigos SDL.
     struct Keybindings {
         SDL_Keycode toggle_position_label = SDLK_UNKNOWN;
-        SDL_Keycode toggle_inventory       = SDLK_UNKNOWN;
-        SDL_Keycode drop_item              = SDLK_UNKNOWN;
-        SDL_Keycode meditate               = SDLK_UNKNOWN;
-        SDL_Keycode resurrect              = SDLK_UNKNOWN;
-        SDL_Keycode pick_item              = SDLK_UNKNOWN;
-        SDL_Keycode quit                   = SDLK_UNKNOWN;
-        SDL_Keycode help                   = SDLK_UNKNOWN;
+        SDL_Keycode toggle_inventory = SDLK_UNKNOWN;
+        SDL_Keycode drop_item = SDLK_UNKNOWN;
+        SDL_Keycode meditate = SDLK_UNKNOWN;
+        SDL_Keycode resurrect = SDLK_UNKNOWN;
+        SDL_Keycode pick_item = SDLK_UNKNOWN;
+        SDL_Keycode quit = SDLK_UNKNOWN;
+        SDL_Keycode help = SDLK_UNKNOWN;
 
         std::vector<SDL_Scancode> move_up;
         std::vector<SDL_Scancode> move_down;
@@ -92,7 +93,6 @@ public:
         std::vector<SDL_Scancode> move_right;
     };
 
-    // Estructura para UI
     struct UI {
         std::string window_title;
         int window_width;
@@ -101,27 +101,23 @@ public:
         int window_min_height;
     };
 
-    // Estructura para death effects
     struct DeathEffects {
         int death_frames;
         uint32_t death_frame_ms;
         uint32_t death_linger_ms;
         uint32_t death_duration_ms;
-        std::string sprite_base_path; 
+        std::string sprite_base_path;
     };
 
-    // Estructura para camera
     struct Camera {
         int initial_x;
         int initial_y;
     };
 
-    // Estructura para projectiles
     struct Projectiles {
         uint32_t duration_ticks;
     };
 
-    // Datos públicos
     AssetsPaths assets;
     Fonts fonts;
     Music music;
@@ -132,19 +128,20 @@ public:
     Projectiles projectiles;
     Keybindings keybindings;
 
-    // Singleton
     static ClientConfig& instance();
 
-    // Cargar configuración desde TOML
     bool load(const std::string& config_path);
+
+    // Antes una función global suelta en PlayerState.h; es un simple
+    // forwarder a rendering.tile_size, así que pasa a ser un método.
+    int tile_size() const { return rendering.tile_size; }
 
 private:
     ClientConfig() = default;
     ~ClientConfig() = default;
 
-    // Prevenir copia
     ClientConfig(const ClientConfig&) = delete;
     ClientConfig& operator=(const ClientConfig&) = delete;
 };
 
-#endif // CLIENT_CONFIG_H
+#endif  // CLIENT_CONFIG_H

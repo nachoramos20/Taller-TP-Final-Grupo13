@@ -1,11 +1,9 @@
 #include "ServerSenderThread.h"
 
-ServerSenderThread::ServerSenderThread(ServerProtocol& protocol)
-    : server_protocol(protocol), queue() {}
+ServerSenderThread::ServerSenderThread(ServerProtocol& protocol):
+        server_protocol(protocol), queue() {}
 
-Queue<SnapshotDTO>& ServerSenderThread::get_queue() {
-    return queue;
-}
+Queue<SnapshotDTO>& ServerSenderThread::get_queue() { return queue; }
 
 void ServerSenderThread::run() {
     try {

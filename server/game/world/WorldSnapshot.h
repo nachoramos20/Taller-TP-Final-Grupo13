@@ -12,22 +12,23 @@ class WorldNpcs;
 class WorldItems;
 class WorldChat;
 
+// Construye el SnapshotDTO de cada cliente a partir de los demás
+// subsistemas (jugadores, NPCs, items, chat), sin poseer ese estado.
 class WorldSnapshot {
 private:
     const WorldPlayers& players;
-    const WorldNpcs&    npcs;
-    const WorldItems&   items;
-    WorldChat&          chat; // collect() es mutating
+    const WorldNpcs& npcs;
+    const WorldItems& items;
+    WorldChat& chat;  // collect() es mutating
 public:
-    WorldSnapshot(const WorldPlayers& p, const WorldNpcs& n,
-                  const WorldItems& i, WorldChat& c)
-        : players(p), npcs(n), items(i), chat(c) {}
+    WorldSnapshot(const WorldPlayers& p, const WorldNpcs& n, const WorldItems& i, WorldChat& c):
+            players(p), npcs(n), items(i), chat(c) {}
 
     std::shared_ptr<std::vector<EntityDTO>> get_entities() const;
 
-    SnapshotDTO build(uint16_t client_id,
-                      uint32_t tick,
-                      const std::shared_ptr<std::vector<EntityDTO>>& entities) const;
+    SnapshotDTO build(uint16_t client_id, uint32_t tick,
+                      const std::shared_ptr<std::vector<EntityDTO>>& entities,
+                      const std::shared_ptr<std::vector<SpellEventDTO>>& spell_events) const;
 };
 
 #endif

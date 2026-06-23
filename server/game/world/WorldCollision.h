@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+// Grilla de ocupación del mapa: cuántas entidades hay parada en cada
+// tile, para resolver movimiento/spawn sin pisarse entre sí.
 class WorldCollision {
 private:
     uint16_t width;

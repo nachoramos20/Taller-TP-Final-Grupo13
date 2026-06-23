@@ -1,7 +1,9 @@
 #pragma once
 
-#include "../game/PlayerState.h"
+#include "../PlayerState.h"
 
+// Traduce coordenadas de mundo/tile a coordenadas de pantalla, siguiendo
+// al jugador y dejando espacio para el panel lateral de stats.
 class Camera {
 public:
     Camera(int screen_w, int screen_h, int panel_w = 0);
@@ -19,8 +21,8 @@ public:
     int game_area_h() const { return _screen_h; }
 
 private:
-    int   _screen_w, _screen_h;
-    int   _panel_w;   // ancho reservado por el panel lateral
+    int _screen_w, _screen_h;
+    int _panel_w;  // ancho reservado por el panel lateral
     float _x, _y;
-    int   _tile_size; // tamaño del tile (dinámico desde config)
+    int _tile_size;  // tamaño del tile (dinámico desde config)
 };

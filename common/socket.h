@@ -7,15 +7,16 @@
  * en sockets IPv4 para TCP.
  * */
 class Socket {
-private:
-    int skt;
-    bool closed;
-    int stream_status;
-
+public:
     /*
      * Construye el socket pasándole directamente el file descriptor.
      * */
     explicit Socket(int skt);
+
+private:
+    int skt;
+    bool closed;
+    int stream_status;
 
     /*
      * Checkea que el file descriptor (skt) sea "valido".

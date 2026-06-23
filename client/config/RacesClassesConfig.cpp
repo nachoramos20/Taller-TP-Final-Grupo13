@@ -1,21 +1,15 @@
 #include "RacesClassesConfig.h"
-#include <toml++/toml.h>
+
 #include <iostream>
 
-// Valores por defecto
-const RacesClassesConfig::Race RacesClassesConfig::DEFAULT_RACE = {
-    0, "Unknown", "", ""
-};
+#include <toml++/toml.h>
 
-const RacesClassesConfig::Class RacesClassesConfig::DEFAULT_CLASS = {
-    0, "Unknown", "", ""
-};
+const RacesClassesConfig::Race RacesClassesConfig::DEFAULT_RACE = {0, "Unknown", "", ""};
+
+const RacesClassesConfig::Class RacesClassesConfig::DEFAULT_CLASS = {0, "Unknown", "", ""};
 
 const RacesClassesConfig::LoginMessages RacesClassesConfig::DEFAULT_LOGIN_MESSAGES = {
-    "Welcome to Argentum Online",
-    "Successfully connected!",
-    "Invalid username or password"
-};
+        "Welcome to Argentum Online", "Successfully connected!", "Invalid username or password"};
 
 RacesClassesConfig& RacesClassesConfig::instance() {
     static RacesClassesConfig instance;
@@ -26,7 +20,6 @@ bool RacesClassesConfig::load(const std::string& config_path) {
     try {
         auto config = toml::parse_file(config_path);
 
-        // Cargar razas
         for (int i = 1; i <= 4; i++) {
             if (auto race_table = config["race"][std::to_string(i)]; race_table) {
                 Race race;
@@ -38,7 +31,6 @@ bool RacesClassesConfig::load(const std::string& config_path) {
             }
         }
 
-        // Cargar clases
         for (int i = 1; i <= 4; i++) {
             if (auto class_table = config["class"][std::to_string(i)]; class_table) {
                 Class cls;
@@ -50,11 +42,13 @@ bool RacesClassesConfig::load(const std::string& config_path) {
             }
         }
 
-        // Cargar login_messages
         if (auto messages_table = config["login_messages"]) {
-            login_messages.welcome = messages_table["welcome"].value_or(std::string("Welcome to Argentum Online"));
-            login_messages.connected = messages_table["connected"].value_or(std::string("Successfully connected!"));
-            login_messages.invalid_user = messages_table["invalid_user"].value_or(std::string("Invalid username or password"));
+            login_messages.welcome =
+                    messages_table["welcome"].value_or(std::string("Welcome to Argentum Online"));
+            login_messages.connected =
+                    messages_table["connected"].value_or(std::string("Successfully connected!"));
+            login_messages.invalid_user = messages_table["invalid_user"].value_or(
+                    std::string("Invalid username or password"));
         }
 
         return true;
@@ -88,6 +82,7 @@ const std::unordered_map<uint8_t, RacesClassesConfig::Race>& RacesClassesConfig:
     return races;
 }
 
-const std::unordered_map<uint8_t, RacesClassesConfig::Class>& RacesClassesConfig::get_classes() const {
+const std::unordered_map<uint8_t, RacesClassesConfig::Class>& RacesClassesConfig::get_classes()
+        const {
     return classes;
 }
