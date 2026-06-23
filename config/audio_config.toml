@@ -1,0 +1,130 @@
+# ============================================================
+# audio_config.toml — Configuración de audio del cliente
+# Define todas las rutas de sonidos efectos y parámetros
+# ============================================================
+
+# ── Configuración del Mixer SDL ──────────────────────────────
+[mixer]
+frequency         = 22050    # MIX_DEFAULT_FREQUENCY
+channels          = 2
+chunksize         = 1024
+default_music_volume = 20    # 0-128 (MIX_MAX_VOLUME)
+
+# ── Parámetros de Sonidos de Efectos ─────────────────────────
+[effect_volumes]
+max_audible_tiles  = 18.0    # Distancia máxima en tiles para escuchar un efecto
+min_effect_volume  = 0       # Volumen mínimo
+max_effect_volume  = 110     # Volumen máximo
+effect_cooldown_ms = 80      # Milisegundos mínimos entre repeticiones del mismo sonido
+
+# ── Sonidos de Combate - Armas Cuerpo a Cuerpo ────────────────
+[combat_sounds.melee]
+espada         = ["assets/sounds/effects/combat/espadazo.wav"]
+hacha          = ["assets/sounds/effects/combat/hachazo_y_golpe_de_clavado.wav"]
+martillo       = ["assets/sounds/effects/combat/martillazo.wav"]
+generico       = ["assets/sounds/effects/combat/apunalada.wav"]
+golpe_final_espada = ["assets/sounds/effects/combat/espadazo_y_sangre_cayendo.wav"]
+
+# ── Sonidos de Combate - Armas a Distancia ────────────────────
+[combat_sounds.ranged]
+flecha         = ["assets/sounds/effects/combat/flecha.wav"]
+flecha_magica  = ["assets/sounds/effects/combat/flecha_magica.wav"]
+
+# ── Sonidos de Magia ─────────────────────────────────────────
+[magic_sounds.spells]
+curacion       = ["assets/sounds/effects/magic/flauta_elfica.wav"]
+misil          = ["assets/sounds/effects/magic/orbe_de_hielo_baculo_nudoso.wav"]
+explosion      = ["assets/sounds/effects/combat/explosion.wav"]
+
+# ── Sonidos de Muerte ────────────────────────────────────────
+[death_sounds]
+player_death   = [
+    "assets/sounds/effects/combat/sonido_de_muerte_hombre.wav",
+    "assets/sounds/effects/combat/grito_de_hombre.wav"
+]
+
+# ── Sonidos de Criaturas/NPCs ────────────────────────────────
+[creature_sounds]
+goblin          = ["assets/sounds/effects/creatures/goblin.wav"]
+orco_errante    = ["assets/sounds/effects/creatures/orco_errante.wav"]
+orco_fuego      = ["assets/sounds/effects/creatures/orco_fuego.wav"]
+zombie          = ["assets/sounds/effects/creatures/zombie.wav"]
+esqueleto_magico_oscuro = ["assets/sounds/effects/creatures/esqueleto_magico_oscuro.wav"]
+esqueleto_muerte        = ["assets/sounds/effects/creatures/esqueleto_muerte.wav"]
+golem_moribundo = ["assets/sounds/effects/creatures/golem_moribundo.wav"]
+golem_reforzado = ["assets/sounds/effects/creatures/golem_reforzado.wav"]
+golem_tierra    = ["assets/sounds/effects/creatures/golem_tierra.wav"]
+aranas          = ["assets/sounds/effects/creatures/arañas.wav"]
+
+# ── Sonidos de NPCs (Comerciantes, Banqueros, Sacerdotes) ─────
+[npc_sounds.merchant]
+lo_pides_lo_tienes = ["assets/sounds/effects/npcs/comerciante/lo_pides_lo_tienes.wav"]
+una_gran_eleccion  = ["assets/sounds/effects/npcs/comerciante/una_gran_eleccion.wav"]
+saludo             = [
+    "assets/sounds/effects/npcs/comerciante/buenos_dias.wav",
+    "assets/sounds/effects/npcs/comerciante/bienvenido_a_mi_tienda.wav",
+    "assets/sounds/effects/npcs/comerciante/como_puedo_ayudar.wav"
+]
+despedida          = ["assets/sounds/effects/npcs/comerciante/vuelve_pronto.wav"]
+
+[npc_sounds.banker]
+cuidamos_sus_cosas = ["assets/sounds/effects/npcs/banquero/cuidamos_sus_cosas_mejor_que_usted.wav"]
+puede_confiar      = ["assets/sounds/effects/npcs/banquero/puede_confiar_en_nosotros.wav"]
+saludo             = [
+    "assets/sounds/effects/npcs/banquero/bienvenido_al_banco.wav",
+    "assets/sounds/effects/npcs/banquero/que_transaccion_desea_realizar_hoy.wav"
+]
+
+[npc_sounds.priest]
+orare_por_ti       = ["assets/sounds/effects/npcs/sacerdote/orare_por_ti.wav"]
+curar              = ["assets/sounds/effects/npcs/sacerdote/curar.wav"]
+resucitar          = ["assets/sounds/effects/npcs/sacerdote/resucitar_con_sacerdote.wav"]
+saludo             = ["assets/sounds/effects/npcs/sacerdote/oigo_tus_plegarias.wav"]
+despedida          = [
+    "assets/sounds/effects/npcs/sacerdote/ten_cuidado_ahi_fuera.wav",
+    "assets/sounds/effects/npcs/sacerdote/que_la_luz_guie_tu_camino.wav"
+]
+
+# ── Sonidos de Economía ───────────────────────────────────────
+[economy_sounds]
+monedas            = ["assets/sounds/effects/economy/monedas.wav"]
+potion             = ["assets/sounds/effects/economy/burbujas.wav"]
+
+# ── Sonidos de Interfaz ───────────────────────────────────────
+[ui_sounds]
+level_up           = ["assets/sounds/effects/ui/sonido_al_subir_de_lvl.wav"]
+click              = ["assets/sounds/effects/ui/click.wav"]
+player_spawn       = ["assets/sounds/effects/ui/spawn_npc.wav"]
+clan_created       = ["assets/sounds/effects/ui/creacion_de_clan.wav"]
+clan_alert         = ["assets/sounds/effects/ui/llamada_de_clan.wav"]
+private_message    = ["assets/sounds/effects/ui/sonido_mensaje_privado.wav"]
+
+# ── Sonidos Ambiente ──────────────────────────────────────────
+[ambient_sounds]
+ocean              = ["assets/sounds/effects/ambient/mar.wav"]
+meditation         = ["assets/sounds/effects/ambient/meditacion.wav"]
+cemetery_wind      = ["assets/sounds/effects/weather/viento_cementerio.wav"]
+bosque_fauna       = [
+    "assets/sounds/effects/fauna/pajaritos.wav",
+    "assets/sounds/effects/fauna/pajaritos_2.wav",
+    "assets/sounds/effects/fauna/pajaritos_3.wav",
+    "assets/sounds/effects/fauna/pajaritos_4.wav",
+    "assets/sounds/effects/fauna/cuervo.wav",
+    "assets/sounds/effects/fauna/cuervos.wav",
+    "assets/sounds/effects/fauna/cuervos_2.wav"
+]
+
+# ── Sonidos de Movimiento ─────────────────────────────────────
+[movement_sounds]
+paso_pasto         = [
+    "assets/sounds/effects/movement/paso_pasto_1.wav",
+    "assets/sounds/effects/movement/paso_pasto_2.wav",
+    "assets/sounds/effects/movement/paso_pasto_5.wav"
+]
+pasos_en_grava     = ["assets/sounds/effects/movement/pasos_en_grava.wav"]
+
+# ── Rangos de Interacción con NPCs ───────────────────────────
+[npc_interaction]
+shop_range_tiles   = 2.0     # Rango en tiles para interactuar con tienda
+bank_range_tiles   = 2.0     # Rango en tiles para interactuar con el banco
+priest_range_tiles = 2.0     # Rango en tiles para interactuar con sacerdote

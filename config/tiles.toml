@@ -1,0 +1,240 @@
+# floor_id = 0 → negro (sin tile)
+
+#  Piedra ----------------------------------
+[floor.1]
+path = "assets/tiles/floor/piso_rocoso.png"
+
+[floor.101]
+path = "assets/tiles/floor/piedra.png"
+tile_size = 1
+
+[floor.9]
+path = "assets/tiles/floor/pasto_1.png"
+
+#  Pasto ----------------------------------
+[floor.2]
+path = "assets/tiles/floor/pasto_1.png"
+tile_size = 2
+
+[floor.3]
+path = "assets/tiles/floor/pasto_2.png"
+tile_size = 2
+
+[floor.4]
+path = "assets/tiles/floor/pasto_3.png"
+tile_size = 2
+
+[floor.5]
+path = "assets/tiles/floor/pasto_4.png"
+tile_size = 2
+
+[floor.6]
+path = "assets/tiles/floor/pasto_5.png"
+tile_size = 2
+
+[floor.7]
+path = "assets/tiles/floor/pasto_6.png"
+tile_size = 2
+
+[floor.8]
+path = "assets/tiles/floor/pasto_7.png"
+tile_size = 2
+
+#  Tierra (pueblo) -------------------------
+[floor.10]
+path = "assets/tiles/floor/tierra.png"
+
+#  Franja tierra-pasto ----------------------------------
+[floor.40]
+path = "assets/tiles/floor/arena_franja_pasto.png"
+tile_size = 2
+
+[floor.41]
+path = "assets/tiles/floor/arena_franja_pasto.png"
+tile_size = 2
+
+[floor.42]
+path = "assets/tiles/floor/arena_franja_pasto.png"
+tile_size = 2
+
+[floor.43]
+path = "assets/tiles/floor/arena_franja_pasto.png"
+tile_size = 2
+
+#  Agua ------------------------------------------------
+[floor.44]
+path = "assets/tiles/floor/agua.png"
+tile_size = 2
+
+#  Arena -----------------------------------------------
+[floor.45]
+path = "assets/tiles/floor/arena.png"
+tile_size = 2
+
+[floor.46]
+path = "assets/tiles/floor/arena_franja_pasto.png"
+tile_size = 2
+
+#  Acantilado ------------------------------------------
+[floor.50]
+path = "assets/tiles/floor/acantilado_norte_1.png"
+tile_size = 6
+offset_y = -42
+
+[floor.51]
+path = "assets/tiles/floor/acantilado_sur_1.png"
+tile_size = 6
+offset_y = 0
+
+[floor.52]
+path = "assets/tiles/floor/acantilado_oeste_1.png"
+tile_size = 6
+offset_x = -384
+offset_y = -64
+
+[floor.53]
+path = "assets/tiles/floor/acantilado_esquina_nw.png"
+tile_size = 6
+offset_x = -384
+offset_y = -108
+
+[floor.54]
+path = "assets/tiles/floor/acantilado_esquina_ne.png"
+tile_size = 6
+offset_y = -42
+
+[floor.55]
+path = "assets/tiles/floor/acantilado_esquina_sw.png"
+tile_size = 6
+offset_x = -384
+offset_y = 64
+
+[floor.56]
+path = "assets/tiles/floor/acantilado_esquina_se.png"
+tile_size = 6
+offset_x = 0
+offset_y = 0
+
+# Caminos ----------------------------------------------------
+[floor.60]
+path = "assets/tiles/floor/camino_vertical_1.png"
+tile_size = 3
+
+[floor.61]
+path = "assets/tiles/floor/camino_vertical_2.png"
+tile_size = 3
+
+[floor.62]
+path = "assets/tiles/floor/camino_vertical_3.png"
+tile_size = 3
+
+[floor.63]
+path = "assets/tiles/floor/camino_vertical_4.png"
+tile_size = 3
+
+[floor.64]
+path = "assets/tiles/floor/camino_horizontal_1.png"
+tile_size = 3
+
+[floor.65]
+path = "assets/tiles/floor/camino_horizontal_2.png"
+tile_size = 3
+
+[floor.66]
+path = "assets/tiles/floor/camino_horizontal_3.png"
+tile_size = 3
+
+[floor.67]
+path = "assets/tiles/floor/camino_horizontal_4.png"
+tile_size = 3
+
+# Terminaciones / esquineros de camino -----------------------------------
+[floor.68]
+path = "assets/tiles/floor/camino_norte.png"
+tile_size = 3
+
+[floor.69]
+path = "assets/tiles/floor/camino_sur.png"
+tile_size = 3
+
+[floor.70]
+path = "assets/tiles/floor/camino_este.png"
+tile_size = 3
+
+[floor.71]
+path = "assets/tiles/floor/camino_oeste.png"
+tile_size = 3
+
+[floor.72]
+path = "assets/tiles/floor/camino_interseccion.png"
+tile_size = 3
+
+[floor.89]
+path = "assets/tiles/floor/interseccion_vertical_horizontal.png"
+tile_size = 3
+
+# Franjas de transición pasto <--> ciudad ------------------------------------
+[floor.73]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_n.png"
+tile_size = 1
+
+[floor.74]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_s.png"
+tile_size = 1
+
+[floor.75]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_e.png"
+tile_size = 1
+
+[floor.76]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_w.png"
+tile_size = 1
+
+[floor.77]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_nw.png"
+tile_size = 1
+
+[floor.78]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_ne.png"
+tile_size = 1
+
+[floor.79]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_sw.png"
+tile_size = 1
+
+[floor.80]
+path = "assets/tiles/floor/franja_pasto_piso_rocoso_se.png"
+tile_size = 1
+
+# Franjas de transición pasto ↔ pueblo (tierra) --------------------------
+[floor.81]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_n.png"
+tile_size = 1
+
+[floor.82]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_s.png"
+tile_size = 1
+
+[floor.83]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_e.png"
+tile_size = 1
+
+[floor.84]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_w.png"
+tile_size = 1
+
+[floor.85]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_nw.png"
+tile_size = 1
+
+[floor.86]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_ne.png"
+tile_size = 1
+
+[floor.87]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_sw.png"
+tile_size = 1
+
+[floor.88]
+path = "assets/tiles/floor/franja_pasto_piso_tierra_se.png"
+tile_size = 1

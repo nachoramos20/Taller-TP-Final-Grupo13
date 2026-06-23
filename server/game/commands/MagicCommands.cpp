@@ -1,0 +1,207 @@
+#include <algorithm>
+
+#include "../../../common/protocol/WeaponRules.h"
+#include "../Equations.h"
+#include "../Items.h"
+#include "../config/GameConfig.h"
+
+#include "Commands.h"
+
+MeditateCommand::MeditateCommand(uint16_t c): client_id(c) {}
+
+void MeditateCommand::execute(World& world) {
+    PlayerData* p = world.get_player_mutable(client_id);
+    if (!p || p->is_ghost)
+        return;
+
+    const ClassConfig& cc = GameConfig::get().cls(p->cls);
+    if (!cc.can_meditate) {
+        world.push_message(client_id, 0, "Tu clase no puede meditar.");
+        return;
+    }
+
+    p->meditating = !p->meditating;
+    world.push_message(client_id, 0,
+                       p->meditating ? "Entraste en meditación." : "Saliste de la meditación.");
+}
+
+ResurrectCommand::ResurrectCommand(uint16_t c): client_id(c) {}
+
+void ResurrectCommand::execute(World& world) {
+    PlayerData* p = world.get_player_mutable(client_id);
+    if (!p || !p->is_ghost)
+        return;
+
+    // Hay un sacerdote por ciudad/pueblo: hay que resucitar junto al que el
+    // jugador tiene cerca, no siempre en el mismo punto fijo.
+    // Vale tanto para la tecla R como para /resucitar.
+    uint16_t priest_x, priest_y;
+    if (!world.find_nearby_priest_pos(client_id, priest_x, priest_y)) {
+        world.push_message(client_id, 0,
+                           "Debes estar cerca del Sacerdote para resucitar.\n"
+                           "Acércate y haz click en él primero.");
+        return;
+    }
+
+    const CombatFormulas& f = GameConfig::get().formulas();
+
+    world.update_occupied({p->pos_x, p->pos_y}, false);
+    p->pos_x = priest_x;
+    p->pos_y = static_cast<uint16_t>(priest_y + 1);
+    p->is_ghost = false;
+    p->meditating = false;
+    p->hp = static_cast<uint16_t>(p->max_hp * f.hp_fraction);
+    p->mp = 0;
+    world.update_occupied({p->pos_x, p->pos_y}, true);
+    world.push_message(client_id, 0, "Resucitaste junto al sanador.");
+}
+
+static uint16_t weapon_base_damage(const PlayerData& p) {
+    WeaponBounds bounds = {1, 3};  // sin arma equipada: golpe a mano
+    if (p.equipped_weapon != 0xFF && p.equipped_weapon < PlayerData::INVENTORY_SIZE) {
+        uint8_t item_id = p.inventory[p.equipped_weapon];
+        if (item_id != 0 && Items::exists(static_cast<ItemId>(item_id))) {
+            const ItemDef& def = Items::get(static_cast<ItemId>(item_id));
+            bounds = {def.min_value, def.max_value};
+        }
+    }
+    return Equations::calc_weapon_damage(p.strength, bounds);
+}
+
+CastSpellCommand::CastSpellCommand(uint16_t c, uint16_t t, uint8_t s):
+        client_id(c), target_id(t), spell_id(s) {}
+
+void CastSpellCommand::execute(World& world) {
+    PlayerData* caster = world.get_player_mutable(client_id);
+    if (!caster || caster->is_ghost || caster->is_in_combat())
+        return;
+
+    if (world.in_safe_zone(caster->pos_x, caster->pos_y)) {
+        world.push_message(client_id, 0, "No puedes lanzar hechizos desde una zona segura.");
+        return;
+    }
+
+    const ClassConfig& cc = GameConfig::get().cls(caster->cls);
+    if (!cc.can_meditate) {
+        world.push_message(client_id, 0, "Tu clase no puede lanzar hechizos.");
+        return;
+    }
+
+    uint8_t weapon_item = 0;
+    if (caster->equipped_weapon != 0xFF && caster->equipped_weapon < PlayerData::INVENTORY_SIZE)
+        weapon_item = caster->inventory[caster->equipped_weapon];
+
+    if (!weapon_enables_spells(weapon_item)) {
+        world.push_message(client_id, 0,
+                           "Necesitás un báculo, vara o flauta mágica para lanzar hechizos.");
+        return;
+    }
+
+    if (spell_id == 0)
+        return;
+
+    const SpellConfig& sd = GameConfig::get().spell(spell_id);
+    if (sd.spell_class != caster->cls) {
+        world.push_message(client_id, 0, "Tu clase no puede lanzar ese hechizo.");
+        return;
+    }
+
+    // El maná se verifica antes de resolver el target: si no alcanza, no
+    // tiene sentido buscar a quién le pega.
+    if (!caster->cheat_infinite_mp && caster->mp < sd.mana_cost) {
+        world.push_message(client_id, 0, "Maná insuficiente para " + sd.name + ".");
+        return;
+    }
+
+    PlayerData* target_p = world.get_player_mutable(target_id);
+    NpcData* target_n = target_p ? nullptr : world.find_npc(target_id);
+    if (!target_p && !target_n)
+        return;
+
+    uint16_t tx = target_p ? target_p->pos_x : target_n->pos_x;
+    uint16_t ty = target_p ? target_p->pos_y : target_n->pos_y;
+
+    if (world.in_safe_zone(tx, ty)) {
+        world.push_message(client_id, 0,
+                           "No puedes lanzar hechizos contra alguien que está en una zona segura.");
+        return;
+    }
+
+    if (target_p) {
+        if (target_p->is_ghost)
+            return;
+        if (world.same_clan(client_id, target_id)) {
+            world.push_message(client_id, 0, "No puedes atacar a un compañero de clan.");
+            return;
+        }
+        if (!Equations::is_pvp_allowed(caster->level, target_p->level)) {
+            world.push_message(client_id, 0, "No puedes atacar a ese jugador (fair-play).");
+            return;
+        }
+    }
+
+    // El rango se verifica antes de consumir maná/confirmar el hechizo:
+    // si está fuera de rango no debe costar nada intentarlo.
+    if (Equations::manhattan_distance(caster->pos_x, caster->pos_y, tx, ty) > sd.range) {
+        world.push_message(client_id, 0, "Objetivo fuera de alcance para " + sd.name + ".");
+        return;
+    }
+
+    // Recién acá se confirma el hechizo: salir de meditación y consumir maná
+    caster->meditating = false;
+    if (!caster->cheat_infinite_mp)
+        caster->mp -= sd.mana_cost;
+
+    // Avisar a los demás clientes del hechizo (el propio caster ya lo vio
+    // localmente al clickear/seleccionar el hechizo).
+    world.push_spell_event(client_id, spell_id, tx, ty, /*is_magic_projectile*/ true);
+
+    uint16_t base_dmg = weapon_base_damage(*caster);
+    uint16_t damage = Equations::calc_spell_damage(base_dmg, sd.dmg_multiplier, sd.flat_bonus,
+                                                   caster->intelligence);
+
+    world.push_message(
+            client_id, 1,
+            "Lanzaste " + sd.name + " e hiciste " + std::to_string(damage) + " de daño.");
+
+    if (target_p) {
+        if (target_p->cheat_infinite_hp) {
+            // Vida infinita: no recibe daño ni muere.
+        } else if (target_p->hp <= damage) {
+            target_p->hp = 0;
+            target_p->is_ghost = true;
+            target_p->meditating = false;
+            world.update_occupied({target_p->pos_x, target_p->pos_y}, false);
+            world.drop_player_loot(*target_p);
+            world.push_message(target_id, 1, "¡Moriste por " + sd.name + "!");
+
+            caster->exp += Equations::exp_on_kill(target_p->max_hp, caster->level, target_p->level);
+        } else {
+            target_p->hp -= damage;
+        }
+        caster->exp += Equations::exp_per_damage(damage, caster->level, target_p->level);
+        world.check_level_up(*caster);
+    } else if (target_n) {
+        if (target_n->hp <= damage) {
+            const NpcTemplate& tpl = Npcs::tpl(target_n->type);
+            caster->exp +=
+                    Equations::exp_on_kill(target_n->max_hp, caster->level, 1) + tpl.exp_reward;
+            world.check_level_up(*caster);
+
+            uint32_t gold = Equations::gold_drop_npc(target_n->max_hp);
+            caster->gold += gold;
+
+            world.update_occupied({target_n->pos_x, target_n->pos_y}, false);
+            target_n->hp = 0;
+            world.push_message(
+                    client_id, 1,
+                    "¡Mataste al objetivo con " + sd.name + "! +" + std::to_string(gold) + " oro.");
+        } else {
+            target_n->hp -= damage;
+            caster->exp += Equations::exp_per_damage(damage, caster->level, 1);
+            world.check_level_up(*caster);
+        }
+    }
+
+    caster->attack_cooldown = GameConfig::get().formulas().attack_cooldown_spell;
+}

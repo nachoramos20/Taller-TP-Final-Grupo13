@@ -1,0 +1,106 @@
+# ============================================================
+# npc_visuals.toml — Datos visuales y de sonido de NPCs (solo cliente)
+#
+# Complementa a config/npcs.toml (catálogo de gameplay compartido con el
+# servidor) con la info de spritesheet que sólo le importa al cliente.
+#
+# select_mode:
+#   "entity_id"   -> la variante a dibujar/sonar se elige con entity_id % N
+#                    (da variedad estable entre enemigos del mismo tipo).
+#   "position_y"  -> se elige con pos_y > position_y_threshold (NPCs de
+#                    servicio: variante 0 = ciudad, variante 1 = pueblo).
+#
+# Cada variante: sheet, cols/rows/frame_w/frame_h (layout del spritesheet),
+# draw_offset_y (corrimiento vertical al dibujar), name_label_offset_y
+# (offset del cartel de nombre, sólo relevante en NPCs de servicio) y
+# death_sound (clave dentro de audio_config.toml [creature_sounds]).
+# ============================================================
+
+# ── Enemigos ─────────────────────────────────────────────────
+[npc_visual.1]   # GOBLIN
+is_service  = false
+scale       = 1.5
+select_mode = "entity_id"
+variants = [
+  { sheet = "assets/npcs/goblin/duende_ladron.png",      cols = 7, rows = 4, frame_w = 25, frame_h = 32, death_sound = "goblin" },
+  { sheet = "assets/npcs/goblin/duende_zombie_real.png", cols = 8, rows = 4, frame_w = 64, frame_h = 67, death_sound = "goblin" },
+]
+
+[npc_visual.2]   # SKELETON — npc_sheets: 0=magico, 1=muerte, 2=oscuro (magico/oscuro comparten sonido)
+is_service  = false
+scale       = 1.5
+select_mode = "entity_id"
+variants = [
+  { sheet = "assets/npcs/skeleton/esqueleto_magico.png", cols = 4, rows = 4, frame_w = 64, frame_h = 64, death_sound = "esqueleto_magico_oscuro" },
+  { sheet = "assets/npcs/skeleton/esqueleto_muerte.png", cols = 5, rows = 3, frame_w = 25, frame_h = 50, death_sound = "esqueleto_muerte" },
+  { sheet = "assets/npcs/skeleton/esqueleto_oscuro.png", cols = 7, rows = 3, frame_w = 24, frame_h = 32, death_sound = "esqueleto_magico_oscuro" },
+]
+
+[npc_visual.3]   # ZOMBIE
+is_service  = false
+scale       = 1.5
+select_mode = "entity_id"
+variants = [
+  { sheet = "assets/npcs/zombie/zombie_comun.png",   cols = 5, rows = 4, frame_w = 24, frame_h = 50,  death_sound = "zombie" },
+  { sheet = "assets/npcs/zombie/zombie_magico.png",  cols = 5, rows = 4, frame_w = 27, frame_h = 50,  death_sound = "zombie" },
+  { sheet = "assets/npcs/zombie/zombie_poseido.png", cols = 4, rows = 4, frame_w = 89, frame_h = 106, death_sound = "zombie" },
+]
+
+[npc_visual.4]   # SPIDER
+is_service  = false
+scale       = 1.5
+select_mode = "entity_id"
+variants = [
+  { sheet = "assets/npcs/spider/araña_comun.png",      cols = 8, rows = 4, frame_w = 64,  frame_h = 64,  death_sound = "aranas" },
+  { sheet = "assets/npcs/spider/araña_endurecida.png", cols = 5, rows = 4, frame_w = 192, frame_h = 192, death_sound = "aranas" },
+]
+
+[npc_visual.5]   # ORC — npc_sheets: 0=errante, 1=fuego
+is_service  = false
+scale       = 1.5
+select_mode = "entity_id"
+variants = [
+  { sheet = "assets/npcs/orc/orco_errante.png", cols = 6, rows = 4, frame_w = 56, frame_h = 100, death_sound = "orco_errante" },
+  { sheet = "assets/npcs/orc/orco_fuego.png",   cols = 5, rows = 4, frame_w = 57, frame_h = 99,  death_sound = "orco_fuego" },
+]
+
+[npc_visual.6]   # GOLEM — npc_sheets: 0=moribundo, 1=reforzado, 2=tierra
+is_service  = false
+scale       = 1.5
+select_mode = "entity_id"
+variants = [
+  { sheet = "assets/npcs/golem/golem_moribundo.png", cols = 4, rows = 4, frame_w = 74,  frame_h = 50,  death_sound = "golem_moribundo" },
+  { sheet = "assets/npcs/golem/golem_reforzado.png", cols = 6, rows = 4, frame_w = 79,  frame_h = 128, death_sound = "golem_reforzado" },
+  { sheet = "assets/npcs/golem/golem_tierra.png",    cols = 6, rows = 4, frame_w = 140, frame_h = 180, death_sound = "golem_tierra" },
+]
+
+# ── NPCs de servicio (variante 0 = ciudad, variante 1 = pueblo) ──
+[npc_visual.7]   # MERCHANT
+is_service            = true
+scale                 = 1.0
+select_mode           = "position_y"
+position_y_threshold  = 50
+variants = [
+  { sheet = "assets/npcs/comerciante/comerciante_ciudad.png", cols = 1, rows = 1, frame_w = 31, frame_h = 42, draw_offset_y = 14, name_label_offset_y = 2 },
+  { sheet = "assets/npcs/comerciante/comerciante_pueblo.png", cols = 1, rows = 1, frame_w = 23, frame_h = 45, draw_offset_y = 14, name_label_offset_y = 2 },
+]
+
+[npc_visual.8]   # BANKER
+is_service            = true
+scale                 = 1.0
+select_mode           = "position_y"
+position_y_threshold  = 50
+variants = [
+  { sheet = "assets/npcs/banquero/banquero_ciudad.png", cols = 1, rows = 1, frame_w = 23, frame_h = 56, draw_offset_y = 14, name_label_offset_y = 2 },
+  { sheet = "assets/npcs/banquero/banquero_pueblo.png", cols = 1, rows = 1, frame_w = 27, frame_h = 54, draw_offset_y = 14, name_label_offset_y = 2 },
+]
+
+[npc_visual.9]   # PRIEST
+is_service            = true
+scale                 = 1.0
+select_mode           = "position_y"
+position_y_threshold  = 50
+variants = [
+  { sheet = "assets/npcs/sacerdote/sacerdote_ciudad.png", cols = 1, rows = 1, frame_w = 25, frame_h = 55, draw_offset_y = 0,  name_label_offset_y = -10 },
+  { sheet = "assets/npcs/sacerdote/sacerdote_pueblo.png", cols = 1, rows = 1, frame_w = 27, frame_h = 54, draw_offset_y = 18, name_label_offset_y = 2   },
+]

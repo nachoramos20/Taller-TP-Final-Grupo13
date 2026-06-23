@@ -1,8 +1,25 @@
 target_sources(argentum_grupo13_common
     PRIVATE
-    # .cpp files
-    foo.cpp
+    socket.cpp
+    resolver.cpp
+    liberror.cpp
+    resolvererror.cpp
+    protocol/Protocol.cpp
     PUBLIC
-    # .h files
-    foo.h
-    )
+    socket.h
+    resolver.h
+    liberror.h
+    resolvererror.h
+    thread.h
+    queue.h
+    protocol/protocol.h
+    protocol/dtos.h
+    protocol/MapaDTO.h
+    protocol/WeaponRules.h
+    protocol/Protocol.h
+)
+
+target_include_directories(argentum_grupo13_common
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)

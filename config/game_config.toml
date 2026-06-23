@@ -1,0 +1,140 @@
+# ============================================================
+# game_config.toml — Configuración global de balance del juego
+# Todas las constantes de stats, fórmulas y combate se definen
+# aquí. El servidor las carga al arrancar via GameConfig.
+# ============================================================
+
+# ── Parámetros base de stats ─────────────────────────────────
+[base_stats]
+# HP/MP base antes de aplicar factores de raza y clase
+base_hp = 100
+base_mp = 100
+
+# ── Razas ────────────────────────────────────────────────────
+[race.1]   # HUMAN  = 1
+name       = "Humano"
+hp_factor  = 1.0
+mp_factor  = 1.0
+base_str   = 18
+base_agi   = 18
+base_int   = 18
+base_const = 18
+hp_regen_factor = 1.0
+mp_regen_factor = 1.0
+
+[race.2]   # ELF = 2
+name       = "Elfo"
+hp_factor  = 1.0
+mp_factor  = 1.4
+base_str   = 14
+base_agi   = 22
+base_int   = 22
+base_const = 18
+hp_regen_factor = 0.7  # elfos se recuperan más lento
+mp_regen_factor = 1.2
+
+[race.3]   # DWARF = 3
+name       = "Enano"
+hp_factor  = 1.4
+mp_factor  = 0.8
+base_str   = 22
+base_agi   = 14
+base_int   = 14
+base_const = 22
+hp_regen_factor = 1.3  # enanos se recuperan más rápido
+mp_regen_factor = 0.7
+
+[race.4]   # GNOME = 4
+name       = "Gnomo"
+hp_factor  = 0.8
+mp_factor  = 1.6
+base_str   = 14
+base_agi   = 18
+base_int   = 24
+base_const = 16
+hp_regen_factor = 0.9
+mp_regen_factor = 1.4
+
+# ── Clases ───────────────────────────────────────────────────
+[class.1]   # MAGE = 1
+name                 = "Mago"
+hp_factor            = 0.8
+mp_factor            = 1.8
+can_use_weapon_melee = false
+can_use_weapon_ranged= true
+can_use_armor_heavy  = false
+can_meditate         = true
+
+[class.2]   # CLERIC = 2
+name                 = "Clerigo"
+hp_factor            = 1.0
+mp_factor            = 1.4
+can_use_weapon_melee = true
+can_use_weapon_ranged= true
+can_use_armor_heavy  = false
+can_meditate         = true
+
+[class.3]   # PALADIN = 3
+name                 = "Paladin"
+hp_factor            = 1.2
+mp_factor            = 1.2
+can_use_weapon_melee = true
+can_use_weapon_ranged= true
+can_use_armor_heavy  = true
+can_meditate         = true
+
+[class.4]   # WARRIOR = 4
+name                 = "Guerrero"
+hp_factor            = 1.5
+mp_factor            = 0.6
+can_use_weapon_melee = true
+can_use_weapon_ranged= true
+can_use_armor_heavy  = true
+can_meditate         = false
+
+# ── Módulo Único de Ecuaciones y Balance ─────────────────────
+[formulas]
+# Tick del game loop del server
+tick_rate_hz           = 30
+
+# Progresión de nivel
+exp_base               = 1000.0
+exp_exponent           = 1.8
+
+# Reglas Fair-Play PvP
+pvp_min_level          = 12
+pvp_max_level_delta    = 10
+
+# Mecánicas de Combate
+crit_multiplier        = 2.0
+crit_chance            = 0.05
+
+# BUG FIX #3: dodge cap bajado de 0.30 a 0.15 (máximo 15% de esquive)
+# BUG FIX #3: dodge_per_agi bajado de 0.005 a 0.003
+# Con agilidad 18 (base): 18 * 0.003 = 5.4% → razonable
+# Con agilidad 22 (elfo): 22 * 0.003 = 6.6% → sigue siendo moderado
+dodge_cap              = 0.15
+dodge_per_agi          = 0.003
+
+attack_cooldown_melee  = 10
+attack_cooldown_spell  = 12
+
+# Sistema de Recompensas de EXP
+per_damage_base_factor = 10
+kill_exp_rand_max      = 0.1
+
+# Sistema de Drops de NPCs
+gold_drop_min_frac     = 0.01
+gold_drop_max_frac     = 0.20
+drop_chance_nothing    = 0.80
+drop_chance_gold       = 0.88
+drop_chance_potion     = 0.89
+drop_chance_item       = 0.90
+
+# Regeneración por Meditación (MP por tick)
+mp_regen_per_tick      = 2
+
+# Mecánica de Resurrección
+respawn_x              = 40
+respawn_y              = 25
+hp_fraction            = 0.25

@@ -2,7 +2,12 @@
     "configurations": [
         {
             "name": "Linux",
-            "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "includePath": [
+                "${workspaceFolder}/build/_deps/libsdl2pp-src",
+                "${workspaceFolder}/build/_deps/sdl2-src/include",
+                "${workspaceFolder}/build/_deps/sdl2-build/include"
+            ]
         }
     ],
     "version": 4

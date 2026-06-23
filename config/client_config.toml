@@ -1,0 +1,108 @@
+# ============================================================
+# client_config.toml — Configuración global del cliente
+# Define todas las constantes hardcodeadas del renderizado,
+# timing, tamaños y rutas de recursos
+# ============================================================
+
+# ── Directorios de Assets ────────────────────────────────────
+[assets_paths]
+fonts_dir        = "assets/fonts/"
+sounds_dir       = "assets/sounds/"
+sprites_dir      = "assets/sprites/"
+music_dir        = "assets/sounds/music/"
+effects_dir      = "assets/sounds/effects/"
+creatures_dir    = "assets/sounds/effects/creatures/"
+
+# ── Fuentes ──────────────────────────────────────────────────
+[fonts]
+default_path     = "assets/fonts/DejaVuSans.ttf"
+default_size     = 10
+chat_font_path   = "assets/fonts/DejaVuSans.ttf"
+chat_font_size   = 14
+title_font_size  = 22
+medium_font_size = 14
+small_font_size  = 11
+
+# ── Música ───────────────────────────────────────────────────
+[music]
+main_theme_path  = "assets/sounds/music/argentum_music.mp3"
+main_theme_volume = 20
+
+# ── Rendering - Tamaños y Distancias ──────────────────────────
+[rendering]
+tile_size                = 100
+map_size                 = 100
+obj_sup_tiles            = 6    # tiles para objetos superiores
+obj_sup_size             = 384  # 6 * 64
+projectile_duration_ticks = 8
+weapon_sprite_size       = 24
+obj_sup_ticks_per_frame  = 8    # Ticks entre frames de animación de objetos superiores
+spell_ticks_per_frame    = 4    # Ticks entre frames de animación de hechizos
+water_floor_id           = 44   # id de tile de piso "agua" (para sonido ambiente)
+water_search_radius_tiles = 18  # radio de búsqueda de agua cercana, en tiles
+grass_floor_id_min       = 2    # rango de ids de tile de piso "pasto" (para sonido de pasos)
+grass_floor_id_max       = 9
+city_stone_floor_id      = 1    # id de tile de piso "piedra" de la ciudad (para sonido de pasos)
+dirt_floor_id            = 10   # id de tile de piso "tierra" del pueblo (usa el mismo sonido que pasto)
+sand_floor_id            = 45   # id de tile de piso "arena" de la costa (usa el mismo sonido que pasto)
+# Zona del bosque (dos rectángulos en Y, mismo rango de X), para sonido ambiente de fauna
+forest_x_min             = 4
+forest_x_max             = 22
+forest_y1_min            = 5
+forest_y1_max            = 34
+forest_y2_min            = 55
+forest_y2_max            = 95
+# Zona del cementerio, para sonido ambiente de viento
+cemetery_x_min           = 55
+cemetery_x_max           = 66
+cemetery_y_min           = 55
+cemetery_y_max           = 66
+# Zonas seguras (ciudad principal y pueblo sur), espejadas de
+# ServerGameLoop.cpp: para no spawnear el VFX de hechizos/proyectiles cuando
+# el servidor va a rechazar la acción por estar en zona segura.
+safe_zone1_x_min         = 24
+safe_zone1_x_max         = 56
+safe_zone1_y_min         = 4
+safe_zone1_y_max         = 36
+safe_zone2_x_min         = 29
+safe_zone2_x_max         = 49
+safe_zone2_y_min         = 53
+safe_zone2_y_max         = 71
+
+# ── Efectos de Muerte ────────────────────────────────────────
+[death_effects]
+death_frames             = 5        # Número de frames de animación de muerte
+death_frame_ms           = 150      # Milisegundos por frame 1-4
+death_linger_ms          = 2500     # Milisegundos que dura el frame 5 (sangre)
+death_duration_ms        = 3100     # death_frame_ms * (DEATH_FRAMES - 1) + DEATH_LINGER_MS
+sprite_base_path         = "assets/sprites/stage/sangre_"  # sangre_{frame}.png
+
+# ── Interfaz de Usuario ──────────────────────────────────────
+[ui]
+window_title             = "Argentum Online - Grupo 13"
+window_width             = 900
+window_height            = 700
+window_resizable         = true
+window_min_height        = 700  # alto mínimo: que el StatsPanel (con 3 hechizos) no quede cortado
+
+# ── Cámara ───────────────────────────────────────────────────
+[camera]
+initial_x                = 0.0
+initial_y                = 0.0
+
+# ── Atajos de Teclado ─────────────────────────────────────────
+# Nombres reconocidos por SDL_GetKeyFromName/SDL_GetScancodeFromName
+# (p. ej. "A", "Up", "Escape", "Space").
+[keybindings]
+toggle_position_label    = "X"
+toggle_inventory         = "Tab"
+drop_item                = "Q"
+meditate                 = "M"
+resurrect                = "R"
+pick_item                = "E"
+quit                     = "Escape"
+help                     = "H"
+move_up                  = ["Up", "W"]
+move_down                = ["Down", "S"]
+move_left                = ["Left", "A"]
+move_right               = ["Right", "D"]
