@@ -13,6 +13,8 @@ target_sources(argentum_grupo13_client
     controllers/InputController.cpp
     controllers/PlayerActionController.cpp
     render/WorldRenderer.cpp
+    render/EntityRenderer.cpp
+    render/VFXRenderer.cpp
     render/Camera.cpp
     render/AssetManager.cpp
     render/AnimationSystem.cpp

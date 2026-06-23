@@ -5,8 +5,8 @@
 #include <SDL2/SDL_ttf.h>
 
 #include "AssetManager.h"
-#include "AnimationSystem.h"
-#include "render_types.h"
+#include "EntityRenderer.h"
+#include "VFXRenderer.h"
 #include "SpriteConfig.h"
 #include "ObjectSupConfig.h"
 #include "Camera.h"
@@ -16,13 +16,12 @@
 
 class InventoryPanel;
 
-// Dibuja todo lo que compone el mundo de juego: piso, objetos superiores,
-// entidades (jugadores/NPCs/ítems en el piso), barras de vida y nombres,
-// hechizos, proyectiles y efectos de muerte. Es dueño de los recursos de
-// rendering (AssetManager/AnimationSystem) y de los config de sprites
-// (SpriteConfig/TileConfig/ObjectSupConfig); resuelve los datos visuales de
-// ítems y NPCs vía ItemVisualConfig/NpcVisualConfig en lugar de tenerlos
-// hardcodeados.
+// Dibuja piso y objetos superiores, y orquesta a EntityRenderer (entidades,
+// barras de vida, nombres) y VFXRenderer (hechizos, proyectiles, efectos
+// de muerte) en el orden de capas correcto. Es dueño de los recursos de
+// rendering compartidos (AssetManager) y de los config de piso/objetos
+// (TileConfig/ObjectSupConfig); SpriteConfig/AnimationSystem ahora viven
+// en EntityRenderer, que es lo único que los necesita.
 class WorldRenderer {
 public:
     WorldRenderer(SDL2pp::Window& window, SDL2pp::Renderer& renderer, Camera& camera);
@@ -35,30 +34,15 @@ public:
 private:
     void render_floor(const WorldState& state);
     void render_obj_sup(const WorldState& state);
-    void render_entities(WorldState& state, const PlayerState& player);
-    void render_spells(WorldState& state);
-    void render_projectiles(WorldState& state);
-    void render_deaths(WorldState& state);
-
-    void render_floor_item(const EntityDTO& e, int screen_x, int screen_y);
-    void render_npc(const EntityDTO& e, const WorldState& state, int screen_x, int screen_y,
-                     Direction dir, bool moving);
-    void render_player_like(const EntityDTO& e, const WorldState& state, int screen_x, int screen_y,
-                             Direction dir, bool moving);
-    void render_entity_healthbar(const EntityDTO& entity, const SpriteBounds& bounds,
-                                  bool is_service_npc, int name_label_offset_y);
-
-    EquipVisual build_equip_visual(uint8_t item_weapon, uint8_t item_armor, uint8_t item_helmet,
-                                    uint8_t item_shield, uint8_t race_sprite_id) const;
 
     SDL2pp::Window&   _window;
     SDL2pp::Renderer& _renderer;
     Camera&           _camera;
 
     AssetManager     _assets;
-    AnimationSystem  _anim;
-    SpriteConfig     _sprite_config;
     TileConfig       _tile_config;
     ObjectSupConfig  _obj_sup_config;
-    TTF_Font*        _small_font = nullptr;  // nombres y barras de vida
+
+    EntityRenderer _entity_renderer;
+    VFXRenderer    _vfx_renderer;
 };
