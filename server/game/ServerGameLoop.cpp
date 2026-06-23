@@ -1,6 +1,8 @@
 #include "ServerGameLoop.h"
 #include "entities/PlayerData.h"
 #include "config/GameConfig.h"
+#include "config/GameConstants.h"
+#include "config/MapConstants.h"
 #include "world/WorldBuilder.h"
 
 #include <algorithm>
@@ -15,7 +17,7 @@ ServerGameLoop::ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_qu
     : command_queue(command_queue),
       queue_monitor(queue_monitor),
       save_queue(save_queue),
-      world(120, 100, std::move(collision_map), save_queue), tick(0),
+      world(MAP_WIDTH, MAP_HEIGHT, std::move(collision_map), save_queue), tick(0),
       regen_ticks(0) {
     int tick_rate_hz = GameConfig::get().formulas().tick_rate_hz;
     tick_ms = 1000 / tick_rate_hz;
@@ -36,7 +38,7 @@ void ServerGameLoop::run() {
         world.clear_spell_events();
 
         tick++;
-        if (tick % 60 == 0) save_players();
+        if (tick % GAME_AUTOSAVE_INTERVAL_TICKS == 0) save_players();
         next_tick += std::chrono::milliseconds(tick_ms);
         std::this_thread::sleep_until(next_tick);
     }

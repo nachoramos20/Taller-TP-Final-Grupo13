@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include "../constants.h"
 
 // DTOs del SNAPSHOT periódico (ver ServerProtocol::send_snapshot /
 // ClientProtocol::recv_snapshot), el mensaje que el server difunde a cada
@@ -68,7 +69,7 @@ struct SnapshotDTO {
     uint8_t  is_ghost;
     uint8_t  meditating;
 
-    static constexpr int INVENTORY_SIZE = 20;
+    static constexpr int INVENTORY_SIZE = PROTOCOL_INVENTORY_SIZE;
     uint8_t inventory[INVENTORY_SIZE];
     uint8_t equipped_weapon;
     uint8_t equipped_armor;

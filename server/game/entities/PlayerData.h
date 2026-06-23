@@ -8,6 +8,7 @@
 #include <array>
 #include <string>
 #include <string_view>
+#include "../../../common/constants.h"
 
 struct PlayerData {
     static constexpr std::size_t USERNAME_MAX_LENGTH = 32;
@@ -43,7 +44,7 @@ struct PlayerData {
     uint16_t intelligence= 18;
     uint16_t constitution= 18;
     
-    static constexpr int INVENTORY_SIZE = 20;
+    static constexpr int INVENTORY_SIZE = PROTOCOL_INVENTORY_SIZE;
     std::array<uint8_t, INVENTORY_SIZE> inventory{};
 
     static constexpr int BANK_SIZE = 32;

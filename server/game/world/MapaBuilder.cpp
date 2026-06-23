@@ -1,4 +1,5 @@
 #include "MapaBuilder.h"
+#include "../config/MapConstants.h"
 
 // floor_ids según tiles.toml
 static constexpr uint16_t F_NEGRO        = 0;
@@ -106,9 +107,9 @@ static constexpr uint16_t O_MAZMORRA_PARED_IZQ = 102;
 static constexpr uint16_t O_MAZMORRA_PARED_DER = 103;
 static constexpr uint16_t O_MAZMORRA_PARED_SUPERIOR = 104;
 
-// límites del mapa
-static constexpr int MAP_W = 120;
-static constexpr int MAP_H = 100;
+// límites del mapa (compartidos con World/ServerGameLoop, ver MapConstants.h)
+static constexpr int MAP_W = MAP_WIDTH;
+static constexpr int MAP_H = MAP_HEIGHT;
 
 // zona jugable
 static constexpr int ZJ_X1 = 6,  ZJ_X2 = 93;

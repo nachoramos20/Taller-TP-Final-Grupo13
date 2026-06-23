@@ -1,17 +1,8 @@
 #include "DungeonCommands.h"
+#include "../config/MapConstants.h"
 #include "../entities/PlayerData.h"
 #include <algorithm>
 #include <cstdlib>
-
-// Puerta del cementerio: ocupa dos tiles de ancho en X (60 y 61) a la
-// altura y=62. Es el único punto de entrada a la mazmorra (ver enter())
-// y lo que describe info().
-namespace {
-    constexpr uint16_t CEMENTERIO_PUERTA_X1 = 60;
-    constexpr uint16_t CEMENTERIO_PUERTA_X2 = 61;
-    constexpr uint16_t CEMENTERIO_PUERTA_Y  = 62;
-    constexpr uint16_t CEMENTERIO_PUERTA_RADIO = 2;
-}
 
 DungeonCommands::DungeonCommands(uint16_t client_id) : client_id_(client_id) {}
 
@@ -28,18 +19,15 @@ void DungeonCommands::enter(World& world) {
 
     int player_x = static_cast<int>(player->pos_x);
     int player_y = static_cast<int>(player->pos_y);
-    int dx = std::min(std::abs(player_x - static_cast<int>(CEMENTERIO_PUERTA_X1)),
-                      std::abs(player_x - static_cast<int>(CEMENTERIO_PUERTA_X2)));
-    int dy = std::abs(player_y - static_cast<int>(CEMENTERIO_PUERTA_Y));
-    if (dx > CEMENTERIO_PUERTA_RADIO || dy > CEMENTERIO_PUERTA_RADIO) {
+    int dx = std::min(std::abs(player_x - static_cast<int>(MAP_DUNGEON_DOOR_X1)),
+                      std::abs(player_x - static_cast<int>(MAP_DUNGEON_DOOR_X2)));
+    int dy = std::abs(player_y - static_cast<int>(MAP_DUNGEON_DOOR_Y));
+    if (dx > MAP_DUNGEON_DOOR_RADIUS || dy > MAP_DUNGEON_DOOR_RADIUS) {
         world.push_message(client_id_, 0, "Debes estar en la puerta del cementerio para entrar a la mazmorra.");
         return;
     }
 
-    uint16_t spawn_mazmorra_x = 114;
-    uint16_t spawn_mazmorra_y = 79;
-
-    Mazmorra* mazmorra = world.get_dungeon_at(spawn_mazmorra_x, spawn_mazmorra_y);
+    Mazmorra* mazmorra = world.get_dungeon_at(MAP_DUNGEON_SPAWN_X, MAP_DUNGEON_SPAWN_Y);
     if (!mazmorra) {
         world.push_message(client_id_, 0, "Mazmorra no encontrada");
         return;
@@ -51,7 +39,7 @@ void DungeonCommands::enter(World& world) {
 
     mazmorra->player_entered();
 
-    world.tp_player(client_id_, spawn_mazmorra_x, spawn_mazmorra_y);
+    world.tp_player(client_id_, MAP_DUNGEON_SPAWN_X, MAP_DUNGEON_SPAWN_Y);
     world.push_message(client_id_, 0, "Has entrado a la mazmorra.");
 }
 
@@ -67,9 +55,7 @@ void DungeonCommands::leave(World& world) {
 
     mazmorra->player_left();
 
-    uint16_t portal_spawn_x = CEMENTERIO_PUERTA_X1;
-    uint16_t portal_spawn_y = CEMENTERIO_PUERTA_Y;
-    world.tp_player(client_id_, portal_spawn_x, portal_spawn_y);
+    world.tp_player(client_id_, MAP_DUNGEON_DOOR_X1, MAP_DUNGEON_DOOR_Y);
 
     world.push_message(client_id_, 0, "Has salido de la mazmorra.");
 }
