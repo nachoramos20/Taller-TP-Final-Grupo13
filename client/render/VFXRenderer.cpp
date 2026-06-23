@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "../config/ClientConfig.h"
 #include "../config/SpellVfxConfig.h"
+#include "../config/UiConstants.h"
 
 VFXRenderer::VFXRenderer(SDL2pp::Renderer& renderer, Camera& camera, AssetManager& assets)
     : _renderer(renderer), _camera(camera), _assets(assets) {}
@@ -74,8 +75,8 @@ void VFXRenderer::render_projectiles(WorldState& state) {
         int sy = _camera.world_to_screen_y(world_y);
 
         SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
-        SDL_Color color = p.is_magic ? SDL_Color{120, 180, 255, 255}
-                                      : SDL_Color{230, 210, 120, 255};
+        SDL_Color color = p.is_magic ? UI_PROJECTILE_MAGIC_COLOR
+                                      : UI_PROJECTILE_PHYSICAL_COLOR;
         SDL_SetRenderDrawColor(_renderer.Get(), color.r, color.g, color.b, color.a);
         SDL_Rect dot{ sx - 3, sy - 3, 6, 6 };
         SDL_RenderFillRect(_renderer.Get(), &dot);

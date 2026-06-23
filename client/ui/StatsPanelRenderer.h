@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include "SpellSystem.h"
+#include "../config/UiConstants.h"
 
 // Regiones clickeables que el último render() calculó; StatsPanel las
 // guarda para resolver handle_event() en el frame siguiente (mismo
@@ -54,11 +55,7 @@ public:
 
     StatsLayout render(int screen_w, int screen_h, const StatsRenderInput& input);
 
-    // Mismo valor que StatsPanel::PANEL_W (ver comentario ahí): se
-    // duplica acá para no crear un include circular entre StatsPanel.h y
-    // este header. Centralizarlo de verdad es trabajo de Tarea 3
-    // (UiConstants.h), no de esta división por responsabilidad.
-    static constexpr int PANEL_W = 250;
+    static constexpr int PANEL_W = UI_STATS_PANEL_WIDTH;
 
 private:
     void draw_text(const std::string& text, int x, int y, SDL_Color color);

@@ -5,6 +5,7 @@
 #include "../audio/AudioManager.h"
 #include "../config/AudioConfig.h"
 #include "../config/ClientConfig.h"
+#include "../config/UiConstants.h"
 
 //  Razas/clases
 
@@ -327,7 +328,7 @@ void LoginScreen::draw_input(const SDL_Rect& r, const std::string& text,
     SDL_RenderDrawRect(_renderer.Get(), &r);
 
     if (text.empty() && !placeholder.empty()) {
-        draw_text(placeholder, r.x+8, r.y+(r.h-14)/2, SDL_Color{80,70,50,255}, _font_md);
+        draw_text(placeholder, r.x+8, r.y+(r.h-14)/2, UI_LOGIN_PLACEHOLDER_COLOR, _font_md);
     } else {
         std::string display = text;
         if (active && (SDL_GetTicks() / 500) % 2 == 0) display += "|";
@@ -517,7 +518,7 @@ void LoginScreen::render_splash() {
     draw_button(_btn_comenzar, "COMENZAR", in_rect(_hover_x,_hover_y,_btn_comenzar));
 
     draw_text_centered("ESC para salir", sw/2, sh-25,
-                       SDL_Color{80,70,50,255}, _font_sm);
+                       UI_LOGIN_PLACEHOLDER_COLOR, _font_sm);
 }
 
 // Pantalla principal
@@ -542,7 +543,7 @@ void LoginScreen::render_main() {
                 in_rect(_hover_x,_hover_y,_btn_register));
 
     draw_text_centered("ESC para salir", sw/2, sh-25,
-                       SDL_Color{80,70,50,255}, _font_sm);
+                       UI_LOGIN_PLACEHOLDER_COLOR, _font_sm);
 }
 
 // Login form
@@ -555,7 +556,7 @@ void LoginScreen::render_login_form() {
     SDL_Color title{200,175,100,255};
     draw_text_centered("Iniciar sesion", px+PW/2, py+18, title, _font_md);
 
-    draw_text("Nombre de usuario:", px+16, py+44, SDL_Color{160,145,100,255}, _font_sm);
+    draw_text("Nombre de usuario:", px+16, py+44, UI_LOGIN_FIELD_LABEL_COLOR, _font_sm);
     SDL_Rect input_r{px+16, py+60, PW-32, 30};
     draw_input(input_r, _username_input, _username_active, "Escribe tu usuario...");
 
@@ -646,7 +647,7 @@ void LoginScreen::render_register_form() {
                           "   Clase: " + class_info(_sel_class).name;
     draw_text_centered(summary, px+PW/2, py+38, SDL_Color{150,180,150,255}, _font_sm);
 
-    draw_text("Nombre de usuario:", px+16, py+58, SDL_Color{160,145,100,255}, _font_sm);
+    draw_text("Nombre de usuario:", px+16, py+58, UI_LOGIN_FIELD_LABEL_COLOR, _font_sm);
     SDL_Rect input_r{px+16, py+74, PW-32, 30};
     draw_input(input_r, _username_input, _username_active, "Elige un nombre...");
 

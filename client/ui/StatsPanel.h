@@ -9,6 +9,7 @@
 #include <vector>
 #include "SpellSystem.h"
 #include "StatsPanelRenderer.h"
+#include "../config/UiConstants.h"
 
 class GameAudioService;
 
@@ -59,7 +60,7 @@ public:
     void toggle_help() { _help_visible = !_help_visible; }
     void close_help() { _help_visible = false; }
 
-    static constexpr int PANEL_W = 250;
+    static constexpr int PANEL_W = UI_STATS_PANEL_WIDTH;
 
 private:
     SDL2pp::Renderer& _renderer;
