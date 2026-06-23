@@ -15,6 +15,9 @@ class WorldItems;
 class WorldChat;
 class WorldClans;
 
+// NPCs vivos en el mundo: spawn, IA por tick (movimiento/ataque), muerte
+// y limpieza. Depende de varios subsistemas porque atacar/morir un NPC
+// toca colisiones, items dropeados, clanes (notificar ataque) y chat.
 class WorldNpcs {
 private:
     std::vector<NpcData> npcs;

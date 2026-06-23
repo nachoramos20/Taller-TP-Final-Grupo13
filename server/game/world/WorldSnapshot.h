@@ -12,6 +12,8 @@ class WorldNpcs;
 class WorldItems;
 class WorldChat;
 
+// Construye el SnapshotDTO de cada cliente a partir de los demás
+// subsistemas (jugadores, NPCs, items, chat), sin poseer ese estado.
 class WorldSnapshot {
 private:
     const WorldPlayers& players;

@@ -9,6 +9,10 @@
 #include <unordered_map>
 #include <vector>
 
+// Una acción de un cliente pendiente de aplicar al mundo. Varios hilos
+// (uno por cliente) encolan comandos, pero ServerGameLoop es el único que
+// llama execute(), siempre desde su propio hilo: las subclases no
+// necesitan sincronizarse entre sí.
 class ServerCommand {
 public:
     virtual void execute(World& world) = 0;
@@ -141,9 +145,7 @@ private:
 // Solo conserva los comandos "core" que no encajan en ninguna de las
 // clases auxiliares (banco, comerciante, clan, mazmorra, cheats de chat):
 // mensajería privada, meditar/resucitar/curar (delegan en otros
-// ServerCommand o en el sacerdote) y tomar/tirar items. El resto vive en
-// BankCommands/MerchantCommands/ClanCommands/DungeonCommands/
-// ChatCheatCommands, usadas por composición desde el dispatch table.
+// ServerCommand o en el sacerdote) y tomar/tirar items.
 class ChatCommand : public ServerCommand {
 public:
     ChatCommand(uint16_t client_id, std::string cmd);
@@ -154,8 +156,7 @@ private:
 
     // Tabla de dispatch por texto de comando (Command pattern): cada entrada
     // envuelve un handle_* (o una clase auxiliar) en una firma uniforme.
-    // Construida una sola vez (static local en dispatch_table()), evita la
-    // cadena de if/else if.
+    // Construida una sola vez (static local en dispatch_table()).
     using DispatchTable = std::unordered_map<std::string,
         std::function<void(ChatCommand&, World&, const std::string&)>>;
     static const DispatchTable& dispatch_table();
@@ -164,8 +165,7 @@ private:
     void handle_resucitar(World& world);
     void handle_curar(World& world);
     // Banco y comerciante son dos respuestas distintas al mismo comando
-    // según qué NPC de servicio esté cerca; por eso el coordinador queda
-    // acá en vez de en BankCommands o MerchantCommands.
+    // según qué NPC de servicio esté cerca..
     void handle_listar(World& world);
     void handle_tomar(World& world);
     void handle_tirar(World& world, const std::string& args);
@@ -182,9 +182,8 @@ private:
     uint8_t  spell_id;
 };
 
-// Cheats disparados por combinación de teclas en el cliente (ver
-// InputController y protocol.h::CheatId). Pensados para facilitar pruebas
-// (ej. probar /resucitar sin esperar a que un NPC mate al jugador).
+// Cheats disparados por combinación de teclas en el cliente. 
+
 class CheatCommand : public ServerCommand {
 public:
     CheatCommand(uint16_t client_id, uint8_t cheat_id);

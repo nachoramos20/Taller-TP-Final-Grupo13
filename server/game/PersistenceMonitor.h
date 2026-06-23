@@ -10,10 +10,11 @@
 #include <string>
 #include <unordered_map>
 
+// Persiste y recupera PlayerData en dos archivos binarios: un índice
+// (username → offset) y los datos completos. Login/registro/guardado son
+// thread-safe (mtx) porque distintos ClientHandler corren en paralelo.
 class PersistenceMonitor {
 public:
-
-
     PersistenceMonitor(Queue<PlayerData>& save_queue);
 
     bool login(const std::string& target_username, PlayerData& player_data, uint16_t entity_id);

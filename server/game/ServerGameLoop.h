@@ -12,6 +12,9 @@
 #include <thread>
 #include <vector>
 
+// El tick del servidor: por cada vuelta procesa los comandos encolados,
+// actualiza el mundo (NPCs, regeneración, items) y difunde un snapshot a
+// cada cliente conectado. Dueño de la única instancia de World.
 class ServerGameLoop : public Thread {
 public:
     ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_queue,

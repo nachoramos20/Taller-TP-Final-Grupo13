@@ -14,6 +14,9 @@ enum class Direction : uint8_t {
     NONE  = 4
 };
 
+// Posición y dirección del propio jugador en el cliente, con interpolación
+// entre tile anterior y actual para que el movimiento se vea continuo
+// (ver move_progress/pixel_x/pixel_y) en vez de saltar de tile a tile.
 struct PlayerState {
     int tile_x = 50;
     int tile_y = 50;

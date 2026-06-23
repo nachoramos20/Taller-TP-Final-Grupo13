@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <cstdint>
 
-//  TileEntry ---------------------------------------------------------------------------
+// Sprite/recorte de un tile de piso, tal como vienen de tiles.toml.
 struct TileEntry {
     std::string path;
     int src_x    = 0;
@@ -19,6 +19,7 @@ struct TileEntry {
     bool is_large()     const { return tile_size > 1; }
 };
 
+// Tiles de piso definidos en tiles.toml, indexados por floor_id.
 class TileConfig {
 public:
     TileConfig(const std::string& toml_path, const std::string& section);
@@ -29,12 +30,13 @@ private:
     TileEntry _fallback;
 };
 
-//  SpriteEntry ------------------------------------------------------------------------
+// Rutas de body/head para un sprite_id (raza), tal como vienen de sprites.toml.
 struct SpriteEntry {
     std::string body_path;
     std::string head_path;
 };
 
+// Sprites de personaje definidos en sprites.toml, indexados por sprite_id.
 class SpriteConfig {
 public:
     explicit SpriteConfig(const std::string& toml_path);

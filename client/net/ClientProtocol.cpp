@@ -4,8 +4,6 @@
 
 ClientProtocol::ClientProtocol(Socket&& socket) : Protocol(std::move(socket)) {}
 
-// ---- Envío (cliente -> servidor) ----
-
 void ClientProtocol::send_login(const std::string& username) {
     send_uint8(static_cast<uint8_t>(MsgType::LOGIN));
     send_string(username);
@@ -91,8 +89,6 @@ void ClientProtocol::send_cheat(uint8_t cheat_id) {
     send_uint8(static_cast<uint8_t>(MsgType::CHEAT));
     send_uint8(cheat_id);
 }
-
-// ---- Recepción (servidor -> cliente) ----
 
 MsgType ClientProtocol::recv_opcode() {
     return static_cast<MsgType>(recv_uint8());

@@ -78,8 +78,6 @@ static void npc_drop(const NpcData& npc, const NpcTemplate& tpl, World& world) {
     }
 }
 
-// AttackCommand (PvP)
-
 AttackCommand::AttackCommand(uint16_t c, uint16_t t) : client_id(c), target_id(t) {}
 
 void AttackCommand::execute(World& world) {
@@ -107,10 +105,8 @@ void AttackCommand::execute(World& world) {
     WeaponInfo w = read_weapon(*attacker);
     int dist = Equations::manhattan_distance(attacker->pos_x, attacker->pos_y, target->pos_x, target->pos_y);
 
-    // La flauta élfica no ataca: lanza "curar" sobre el objetivo y le
-    // restaura vida (ver enunciado, item "Flauta élfica"). No es un ataque,
-    // así que se resuelve ANTES de fair-play/clan (sí podés curar a un
-    // compañero de clan o a alguien fuera de tu rango de nivel).
+    // La flauta élfica cura a otro jugador en vez de hacer daño, 
+    // así que se chequea primero.
     if (w.item_id == static_cast<uint8_t>(ItemId::ELVEN_FLUTE)) {
         if (!attacker->cheat_infinite_mp && attacker->mp < w.mana_cost) {
             world.push_message(client_id, 0, "No tenés maná suficiente para tocar la flauta.");
@@ -209,8 +205,6 @@ void AttackCommand::execute(World& world) {
     attacker->attack_cooldown = GameConfig::get().formulas().attack_cooldown_melee;
 }
 
-// AttackNpcCommand
-
 AttackNpcCommand::AttackNpcCommand(uint16_t c, uint16_t n) : client_id(c), npc_id(n) {}
 
 void AttackNpcCommand::execute(World& world) {
@@ -249,7 +243,7 @@ void AttackNpcCommand::execute(World& world) {
     }
 
     bool crit = Equations::is_critical();
-    // BUG FIX #3 (dodge de NPC): también con probabilidad fija y baja (5%)
+    // Los NPCs esquivan con una probabilidad fija y baja.
     if (!crit && Equations::try_dodge(10)) {
         world.push_message(client_id, 1, "¡El NPC esquivó tu ataque!");
         attacker->attack_cooldown = GameConfig::get().formulas().attack_cooldown_melee;

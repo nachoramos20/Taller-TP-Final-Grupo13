@@ -2,7 +2,6 @@
 #include <toml++/toml.h>
 #include <iostream>
 
-// Valores por defecto
 const SpellVfxConfig::SpellEffect SpellVfxConfig::DEFAULT_SPELL_EFFECT = {
     "", 0, 0, 0, {}, ""
 };
@@ -25,21 +24,19 @@ bool SpellVfxConfig::load(const std::string& config_path) {
     try {
         auto config = toml::parse_file(config_path);
 
-        // Cargar cada spell de spell_effect.X
+        // Recorre spell_effect.
         for (int i = 1; i <= 9; i++) {
             std::string idx_str = std::to_string(i);
 
             if (auto effect_table = config["spell_effect"][idx_str]; effect_table) {
                 SpellVFX vfx;
 
-                // Cargar effect
                 vfx.effect.path = effect_table["path"].value_or(std::string(""));
                 vfx.effect.sheet_cols = effect_table["sheet_cols"].value_or(4);
                 vfx.effect.frame_w = effect_table["frame_w"].value_or(32);
                 vfx.effect.frame_h = effect_table["frame_h"].value_or(32);
                 vfx.effect.sound_path = effect_table["sound"].value_or(std::string(""));
 
-                // Cargar frame_indices (array de TOML)
                 if (auto indices_array = effect_table["frame_indices"].as_array()) {
                     for (auto& elem : *indices_array) {
                         if (auto idx = elem.as_integer()) {
@@ -48,7 +45,6 @@ bool SpellVfxConfig::load(const std::string& config_path) {
                     }
                 }
 
-                // Cargar render
                 if (auto render_table = config["spell_render"][idx_str]; render_table) {
                     vfx.render.display_w = render_table["display_w"].value_or(64);
                     vfx.render.display_h = render_table["display_h"].value_or(64);

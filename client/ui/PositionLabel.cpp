@@ -53,13 +53,11 @@ void PositionLabel::render(int /*screen_w*/, int /*screen_h*/) {
     const int x = 8;       // misma posición X que el chat
     const int y = 8 + 210; // debajo del chat (chat ocupa ~200px aprox)
 
-    // Fondo rojo semitransparente
     SDL_SetRenderDrawBlendMode(_renderer.Get(), SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(_renderer.Get(), 180, 0, 0, 200);
     SDL_Rect bg{ x, y, box_w, box_h };
     SDL_RenderFillRect(_renderer.Get(), &bg);
 
-    // Texto blanco
     SDL_Color white{ 255, 255, 255, 255 };
     draw_text(text, x + padding, y + padding, white);
 }

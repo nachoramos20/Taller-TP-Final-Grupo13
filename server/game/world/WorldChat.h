@@ -14,6 +14,8 @@ struct PendingMessage {
     std::string text;
 };
 
+// Mensajes de chat/sistema y eventos de VFX pendientes de entregar en el
+// próximo snapshot de cada cliente.
 class WorldChat {
 private:
     std::vector<PendingMessage> pending;
@@ -28,11 +30,9 @@ public:
 
     void clear_broadcasts();
 
-    // Eventos de VFX (ataque/hechizo exitoso) de este tick. A diferencia de
-    // los mensajes de chat no existe variante "dirigida": todo evento es
-    // siempre para todos los clientes, así que no hace falta filtrar por
-    // client_id como en collect() — se buscan una sola vez por tick (igual
-    // que las entidades) y se comparten entre todos los snapshots de ese tick.
+    // Eventos de VFX (ataque/hechizo exitoso) de este tick. Todo evento es
+    // siempre para todos los clientes, se buscan una sola vez por tick y se 
+    //comparten entre todos los snapshots de ese tick.
     void push_spell_event(uint16_t caster_id, uint8_t spell_id,
                           uint16_t target_x, uint16_t target_y,
                           bool is_magic_projectile);

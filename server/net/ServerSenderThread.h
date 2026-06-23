@@ -6,6 +6,8 @@
 #include "../../common/protocol/dtos.h"
 #include "ServerProtocol.h"
 
+// Hilo dedicado a drenar la cola de snapshots de un cliente y mandarlos
+// por su socket, para que ServerGameLoop nunca bloquee escribiendo a red.
 class ServerSenderThread : public Thread {
 public:
     explicit ServerSenderThread(ServerProtocol& protocol);

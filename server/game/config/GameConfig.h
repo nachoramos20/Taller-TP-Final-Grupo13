@@ -6,8 +6,6 @@
 #include <vector>
 #include "../../../common/protocol/protocol.h"
 
-//  Structs de configuración
-
 struct RaceConfig {
     std::string name;
     float    hp_factor  = 1.0f;
@@ -97,19 +95,16 @@ struct SpellConfig {
     int         sprite_h        = 96;
 };
 
-// Parámetros de combate y fórmulas centralizados
+// Parámetros de balance leídos de game_config.toml (fórmulas).
 struct CombatFormulas {
-    // Stats base
     uint16_t base_hp = 100;
     uint16_t base_mp = 100;
 
-    // Nivel
     double   exp_base         = 1000.0;
     double   exp_exponent     = 1.8;
     uint8_t  pvp_min_level    = 12;
     uint8_t  pvp_max_level_delta = 10;
 
-    // Combate
     double   crit_multiplier  = 2.0;
     double   crit_chance      = 0.05;
     double   dodge_cap        = 0.30;
@@ -117,11 +112,11 @@ struct CombatFormulas {
     int      attack_cooldown_melee = 10;
     int      attack_cooldown_spell = 12;
 
-    // EXP
     int      per_damage_base_factor = 10;
     double   kill_exp_rand_max      = 0.1;
 
-    // Drops de NPCs
+    // Umbrales acumulados de un solo roll [0,1), no probabilidades
+    // independientes: drop_chance_gold=0.88 da un 8% de oro (0.80 a 0.88).
     double   drop_chance_nothing = 0.80;
     double   drop_chance_gold    = 0.88;
     double   drop_chance_potion  = 0.89;
@@ -129,20 +124,17 @@ struct CombatFormulas {
     double   gold_drop_min_frac  = 0.01;
     double   gold_drop_max_frac  = 0.20;
 
-    // Meditación
     uint16_t mp_regen_per_tick   = 2;
 
-    // Resurrección
     uint16_t respawn_x           = 40;
     uint16_t respawn_y           = 25;
     double   hp_fraction         = 0.25;
 
-    // Tick del game loop del server
     int      tick_rate_hz        = 30;
 };
 
-//  GameConfig — singleton que carga todos los TOML al iniciar el servidor
-
+// Singleton que carga razas/clases/items/NPCs/hechizos/fórmulas desde los
+// .toml de config/ al iniciar el servidor y los expone de solo lectura.
 class GameConfig {
 public:
     // Acceso al singleton. Llama a load() antes de get() la primera vez.
@@ -152,26 +144,21 @@ public:
     // Lanza std::runtime_error si algún archivo no existe o tiene errores.
     void load(const std::string& config_dir = "config");
 
-    // Razas y Clases
     const RaceConfig&  race(uint8_t race_id) const;
     const ClassConfig& cls(uint8_t class_id) const;
 
-    // Items
     const ItemConfig&  item(ItemId id) const;
     bool               item_exists(ItemId id) const;
     EquipSlot          equip_slot_for(ItemKind kind) const;
 
-    // NPCs
     const NpcConfig&   npc(NpcId id) const;
     const std::vector<NpcId>& all_npc_ids() const;
 
-    // Hechizos
     const SpellConfig& spell(uint8_t spell_id) const;
 
-    // Fórmulas de combate
     const CombatFormulas& formulas() const;
 
-    // Helpers de stats (equivalentes a los viejos Stats::)
+    // Reemplazan a la vieja clase Stats::, ahora derivados de raza+clase.
     uint16_t initial_max_hp(uint8_t race_id, uint8_t class_id) const;
     uint16_t initial_max_mp(uint8_t race_id, uint8_t class_id) const;
 
@@ -195,7 +182,8 @@ private:
 
     bool _loaded = false;
 
-    // fallbacks
+    // Devueltos por referencia cuando el id pedido no existe, para que los
+    // getters de arriba nunca tengan que devolver una referencia colgante.
     RaceConfig   _fallback_race;
     ClassConfig  _fallback_class;
     ItemConfig   _fallback_item;

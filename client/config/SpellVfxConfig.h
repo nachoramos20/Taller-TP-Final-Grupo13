@@ -6,9 +6,10 @@
 #include <vector>
 #include <cstdint>
 
+// Animación y sonido del efecto visual de cada hechizo, cargados desde
+// spells_vfx.toml — usado por VFXRenderer y GameAudioService.
 class SpellVfxConfig {
 public:
-    // Estructura para información del efecto de un spell
     struct SpellEffect {
         std::string path;
         int sheet_cols;
@@ -18,7 +19,6 @@ public:
         std::string sound_path;  // sonido al impactar el hechizo (vacío = sin sonido)
     };
 
-    // Estructura para información de render de un spell
     struct SpellRender {
         int display_w;
         int display_h;
@@ -27,19 +27,15 @@ public:
         float animation_speed;
     };
 
-    // Estructura combinada
     struct SpellVFX {
         SpellEffect effect;
         SpellRender render;
     };
 
-    // Singleton
     static SpellVfxConfig& instance();
 
-    // Cargar configuración desde TOML
     bool load(const std::string& config_path);
 
-    // Getters
     const SpellVFX& get_spell_vfx(uint8_t spell_id) const;
     const SpellEffect& get_effect_info(uint8_t spell_id) const;
     const SpellRender& get_render_info(uint8_t spell_id) const;
@@ -48,7 +44,6 @@ public:
 private:
     std::unordered_map<uint8_t, SpellVFX> spells;
 
-    // Valores por defecto
     static const SpellVFX DEFAULT_SPELL_VFX;
     static const SpellEffect DEFAULT_SPELL_EFFECT;
     static const SpellRender DEFAULT_SPELL_RENDER;
@@ -56,7 +51,6 @@ private:
     SpellVfxConfig() = default;
     ~SpellVfxConfig() = default;
 
-    // Prevenir copia
     SpellVfxConfig(const SpellVfxConfig&) = delete;
     SpellVfxConfig& operator=(const SpellVfxConfig&) = delete;
 };

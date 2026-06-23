@@ -28,6 +28,9 @@ struct NpcLayout {
     }
 };
 
+// Dibuja jugadores y NPCs animados (frame por tick, recorte del
+// spritesheet correcto según dirección) y, para jugadores, el equipo
+// visible superpuesto en el orden de capas correcto.
 class AnimationSystem {
 public:
     static constexpr int TICKS_PER_FRAME = 8;

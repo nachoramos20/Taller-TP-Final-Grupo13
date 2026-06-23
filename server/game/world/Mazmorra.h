@@ -18,6 +18,9 @@ struct GoldSpawnPoint {
     uint32_t amount;
 };
 
+// Una instancia de mazmorra: su rectángulo, los puntos de spawn de NPCs y
+// oro que se repueblan cuando el último jugador la abandona, y el
+// conteo de jugadores adentro (ver player_entered/player_left).
 class Mazmorra {
 public:
     Mazmorra(WorldNpcs& npcs, WorldItems& items,

@@ -8,6 +8,7 @@
 #include "../entities/PlayerData.h"
 #include "IdAllocator.h"
 
+// Items tirados en el piso (drops, loot, manchas de sangre).
 class WorldItems {
 private:
     std::vector<FloorItem> items;

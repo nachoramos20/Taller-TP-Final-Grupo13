@@ -126,12 +126,10 @@ void WorldNpcs::tick(uint32_t ct) {
 
         if (!nearest || best_dist > 15) continue;
 
-        // ── ATTACK ──
         if (npc.attack_timer == 0 && best_dist <= (int)tpl.attack_range + 1) {
-            // BUG FIX #3 y #4: dodge simplificado con probabilidad baja y fija
-            // La lógica anterior con pow(rand, agility) era incorrecta y daba
-            // chances de dodge casi imposibles de calcular.
-            // Ahora: probabilidad fija y baja de esquivar (5%)
+            // Probabilidad fija de esquivar (5%), no en función de la
+            // agilidad: una fórmula basada en agilidad daba chances casi
+            // imposibles de esquivar en la práctica.
             double dodge_roll = std::uniform_real_distribution<double>(0.0, 1.0)(rng);
             bool dodged = dodge_roll < 0.05;
 
@@ -140,9 +138,8 @@ void WorldNpcs::tick(uint32_t ct) {
             } else {
                 int dmg = rand_range(tpl.dmg_min, tpl.dmg_max);
 
-                // BUG FIX #4: eliminada la reducción extra por agilidad del jugador
-                // (nearest->agility / 4) que restaba demasiado daño.
-                // Solo se aplica reducción de armadura equipada.
+                // Solo la armadura equipada reduce el daño (la agilidad no
+                // resta daño de NPCs, a diferencia del esquive).
                 int armor_def = 0;
                 auto add_armor = [&](uint8_t eq){
                     if (eq != 0 && Items::exists(static_cast<ItemId>(eq))) {
@@ -158,7 +155,6 @@ void WorldNpcs::tick(uint32_t ct) {
                 chat.push_message(nearest->entity_id, 1,
                     "Recibiste " + std::to_string(dmg) + " de daño del " + tpl.name);
 
-                // BUG FIX #3: sacar de meditación cuando el NPC golpea al jugador
                 nearest->meditating = false;
 
                 if (nearest->cheat_infinite_hp) {
@@ -183,7 +179,7 @@ void WorldNpcs::tick(uint32_t ct) {
             npc.attack_timer--;
         }
 
-        // CHASE (respeta safe zones)
+        // No persigue dentro de una zona segura.
         if (npc.move_timer == 0 && best_dist > 1) {
             int dx = (int)nearest->pos_x - (int)npc.pos_x;
             int dy = (int)nearest->pos_y - (int)npc.pos_y;

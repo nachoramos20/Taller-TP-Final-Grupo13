@@ -26,7 +26,6 @@ bool AudioConfig::load(const std::string& config_path) {
     try {
         auto config = toml::parse_file(config_path);
 
-        // Cargar mixer
         if (auto mixer_table = config["mixer"]) {
             mixer.frequency = mixer_table["frequency"].value_or(22050);
             mixer.channels = mixer_table["channels"].value_or(2);
@@ -34,7 +33,6 @@ bool AudioConfig::load(const std::string& config_path) {
             mixer.default_music_volume = mixer_table["default_music_volume"].value_or(80);
         }
 
-        // Cargar effect_volumes
         if (auto effects_table = config["effect_volumes"]) {
             effect_volumes.max_audible_tiles = effects_table["max_audible_tiles"].value_or(15);
             effect_volumes.min_effect_volume = effects_table["min_effect_volume"].value_or(20);
@@ -42,37 +40,19 @@ bool AudioConfig::load(const std::string& config_path) {
             effect_volumes.effect_cooldown_ms = effects_table["effect_cooldown_ms"].value_or(200);
         }
 
-        // Cargar combat_sounds.melee
         load_sound_table(config["combat_sounds"]["melee"], combat_melee_sounds);
-
-        // Cargar combat_sounds.ranged
         load_sound_table(config["combat_sounds"]["ranged"], combat_ranged_sounds);
-
-        // Cargar magic_sounds.spells
         load_sound_table(config["magic_sounds"]["spells"], magic_sounds);
-
-        // Cargar death_sounds
         load_sound_table(config["death_sounds"], death_sounds);
-
-        // Cargar creature_sounds
         load_sound_table(config["creature_sounds"], creature_sounds);
-
-        // Cargar npc_sounds.merchant/banker/priest
         load_sound_table(config["npc_sounds"]["merchant"], npc_merchant_sounds);
         load_sound_table(config["npc_sounds"]["banker"], npc_banker_sounds);
         load_sound_table(config["npc_sounds"]["priest"], npc_priest_sounds);
-
-        // Cargar economy_sounds y ui_sounds
         load_sound_table(config["economy_sounds"], economy_sounds);
         load_sound_table(config["ui_sounds"], ui_sounds);
-
-        // Cargar ambient_sounds
         load_sound_table(config["ambient_sounds"], ambient_sounds);
-
-        // Cargar movement_sounds
         load_sound_table(config["movement_sounds"], movement_sounds);
 
-        // Cargar interaction
         if (auto interaction_table = config["npc_interaction"]) {
             interaction.shop_range_tiles = interaction_table["shop_range_tiles"].value_or(3.0f);
             interaction.bank_range_tiles = interaction_table["bank_range_tiles"].value_or(3.0f);

@@ -28,7 +28,6 @@ bool ClientConfig::load(const std::string& config_path) {
     try {
         auto config = toml::parse_file(config_path);
 
-        // Cargar assets_paths
         if (auto assets_table = config["assets_paths"]) {
             assets.fonts_dir = assets_table["fonts_dir"].value_or(std::string("assets/fonts"));
             assets.sounds_dir = assets_table["sounds_dir"].value_or(std::string("assets/sounds"));
@@ -38,7 +37,6 @@ bool ClientConfig::load(const std::string& config_path) {
             assets.creatures_dir = assets_table["creatures_dir"].value_or(std::string("assets/creatures"));
         }
 
-        // Cargar fonts
         if (auto fonts_table = config["fonts"]) {
             fonts.default_path = fonts_table["default_path"].value_or(std::string(""));
             fonts.default_size = fonts_table["default_size"].value_or(12);
@@ -49,13 +47,11 @@ bool ClientConfig::load(const std::string& config_path) {
             fonts.small_font_size = fonts_table["small_font_size"].value_or(11);
         }
 
-        // Cargar music
         if (auto music_table = config["music"]) {
             music.main_theme_path = music_table["main_theme_path"].value_or(std::string(""));
             music.main_theme_volume = music_table["main_theme_volume"].value_or(0.8f);
         }
 
-        // Cargar rendering
         if (auto rendering_table = config["rendering"]) {
             rendering.tile_size = rendering_table["tile_size"].value_or(32);
             rendering.map_size = rendering_table["map_size"].value_or(100);
@@ -90,7 +86,6 @@ bool ClientConfig::load(const std::string& config_path) {
             rendering.safe_zone2_y_max = rendering_table["safe_zone2_y_max"].value_or(71);
         }
 
-        // Cargar UI
         if (auto ui_table = config["ui"]) {
             ui.window_title = ui_table["window_title"].value_or(std::string("Argentum Online"));
             ui.window_width = ui_table["window_width"].value_or(1024);
@@ -99,7 +94,6 @@ bool ClientConfig::load(const std::string& config_path) {
             ui.window_min_height = ui_table["window_min_height"].value_or(ui.window_height);
         }
 
-        // Cargar death_effects
         if (auto death_table = config["death_effects"]) {
             death_effects.death_frames = death_table["death_frames"].value_or(6);
             death_effects.death_frame_ms = death_table["death_frame_ms"].value_or(150);
@@ -109,18 +103,15 @@ bool ClientConfig::load(const std::string& config_path) {
                 .value_or(std::string("assets/sprites/stage/sangre_"));
         }
 
-        // Cargar camera
         if (auto camera_table = config["camera"]) {
             camera.initial_x = camera_table["initial_x"].value_or(0);
             camera.initial_y = camera_table["initial_y"].value_or(0);
         }
 
-        // Cargar projectiles
         if (auto rendering_table = config["rendering"]) {
             projectiles.duration_ticks = rendering_table["projectile_duration_ticks"].value_or(30);
         }
 
-        // Cargar keybindings
         if (auto kb_table = config["keybindings"]) {
             keybindings.toggle_position_label = parse_key(kb_table["toggle_position_label"], "X");
             keybindings.toggle_inventory      = parse_key(kb_table["toggle_inventory"], "Tab");

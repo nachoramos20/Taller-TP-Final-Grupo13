@@ -8,6 +8,8 @@
 #include "ClientProtocol.h"
 #include "Command.h"
 
+// Hilo dedicado a drenar la cola de Command's del jugador y mandarlos por
+// el socket, para que la UI nunca bloquee escribiendo a red.
 class SenderThread : public Thread {
 public:
     SenderThread(ClientProtocol& protocol, Queue<Command>& queue);
@@ -18,8 +20,7 @@ public:
 private:
     void send_command(const Command& cmd);
 
-    // Factory + tabla de dispatch por MsgType (en vez del switch de 17
-    // casos): cada entrada llama al send_* de ClientProtocol que
+    // Cada entrada llama al send_* de ClientProtocol que
     // corresponde a ese tipo de comando.
     using SendAction = std::function<void(SenderThread&, const Command&)>;
     static const std::unordered_map<MsgType, SendAction>& dispatch_table();

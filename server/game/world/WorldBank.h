@@ -7,6 +7,7 @@
 class WorldPlayers;
 class WorldChat;
 
+// Operaciones de banco (depósito/retiro de items y oro) sobre PlayerData.
 class WorldBank {
 private:
     WorldPlayers& players;

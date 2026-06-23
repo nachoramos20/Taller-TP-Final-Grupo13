@@ -5,8 +5,6 @@
 #include "../Items.h"
 #include <algorithm>
 
-// MeditateCommand y ResurrectCommand se mantienen estructuralmente similares pero limpios de lógica local
-
 MeditateCommand::MeditateCommand(uint16_t c) : client_id(c) {}
 
 void MeditateCommand::execute(World& world) {
@@ -30,9 +28,8 @@ void ResurrectCommand::execute(World& world) {
     if (!p || !p->is_ghost) return;
 
     // Hay un sacerdote por ciudad/pueblo: hay que resucitar junto al que el
-    // jugador tiene cerca, no siempre en el mismo punto fijo (antes ahí
-    // siempre era la ciudad principal, sin importar de qué sacerdote se
-    // tratara). Vale tanto para la tecla R como para /resucitar.
+    // jugador tiene cerca, no siempre en el mismo punto fijo. 
+    // Vale tanto para la tecla R como para /resucitar.
     uint16_t priest_x, priest_y;
     if (!world.find_nearby_priest_pos(client_id, priest_x, priest_y)) {
         world.push_message(client_id, 0,
@@ -55,7 +52,7 @@ void ResurrectCommand::execute(World& world) {
 }
 
 static uint16_t weapon_base_damage(const PlayerData& p) {
-    WeaponBounds bounds = {1, 3};
+    WeaponBounds bounds = {1, 3};  // sin arma equipada: golpe a mano
     if (p.equipped_weapon != 0xFF && p.equipped_weapon < PlayerData::INVENTORY_SIZE) {
         uint8_t item_id = p.inventory[p.equipped_weapon];
         if (item_id != 0 && Items::exists(static_cast<ItemId>(item_id))) {
@@ -65,8 +62,6 @@ static uint16_t weapon_base_damage(const PlayerData& p) {
     }
     return Equations::calc_weapon_damage(p.strength, bounds);
 }
-
-// CastSpellCommand
 
 CastSpellCommand::CastSpellCommand(uint16_t c, uint16_t t, uint8_t s)
     : client_id(c), target_id(t), spell_id(s) {}
@@ -103,8 +98,8 @@ void CastSpellCommand::execute(World& world) {
         return;
     }
 
-    // BUG FIX #1: verificar maná ANTES de hacer cualquier cosa
-    // (antes esto ya estaba, pero se deja explícito con mensaje claro)
+    // El maná se verifica antes de resolver el target: si no alcanza, no
+    // tiene sentido buscar a quién le pega.
     if (!caster->cheat_infinite_mp && caster->mp < sd.mana_cost) {
         world.push_message(client_id, 0, "Maná insuficiente para " + sd.name + ".");
         return;
@@ -134,7 +129,8 @@ void CastSpellCommand::execute(World& world) {
         }
     }
 
-    // BUG FIX #1 (cont.): verificar rango ANTES de consumir maná/disparar animación
+    // El rango se verifica antes de consumir maná/confirmar el hechizo:
+    // si está fuera de rango no debe costar nada intentarlo.
     if (Equations::manhattan_distance(caster->pos_x, caster->pos_y, tx, ty) > sd.range) {
         world.push_message(client_id, 0, "Objetivo fuera de alcance para " + sd.name + ".");
         return;
@@ -164,17 +160,14 @@ void CastSpellCommand::execute(World& world) {
             world.drop_player_loot(*target_p);
             world.push_message(target_id, 1, "¡Moriste por " + sd.name + "!");
 
-            // EXP por matar jugador con hechizo
             caster->exp += Equations::exp_on_kill(target_p->max_hp, caster->level, target_p->level);
         } else {
             target_p->hp -= damage;
         }
-        // EXP por daño a jugador
         caster->exp += Equations::exp_per_damage(damage, caster->level, target_p->level);
         world.check_level_up(*caster);
     } else if (target_n) {
         if (target_n->hp <= damage) {
-            // BUG FIX #2: otorgar EXP al matar NPC con hechizo
             const NpcTemplate& tpl = Npcs::tpl(target_n->type);
             caster->exp += Equations::exp_on_kill(target_n->max_hp, caster->level, 1) + tpl.exp_reward;
             world.check_level_up(*caster);
@@ -187,7 +180,6 @@ void CastSpellCommand::execute(World& world) {
             world.push_message(client_id, 1, "¡Mataste al objetivo con " + sd.name + "! +" + std::to_string(gold) + " oro.");
         } else {
             target_n->hp -= damage;
-            // EXP por daño a NPC
             caster->exp += Equations::exp_per_damage(damage, caster->level, 1);
             world.check_level_up(*caster);
         }

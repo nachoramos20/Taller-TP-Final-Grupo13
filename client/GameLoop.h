@@ -21,8 +21,13 @@
 #include "controllers/InputController.h"
 #include "controllers/PlayerActionController.h"
 
+// El bucle principal del juego ya autenticado: por cada vuelta procesa
+// input, aplica los snapshots/mapas que llegaron del servidor, actualiza
+// el estado local (cámara, animaciones, sonido ambiente) y renderiza.
 class GameLoop {
 public:
+    // Sin sesión de red (colas y audio en null): construcción mínima para
+    // los casos en que no hace falta procesar mensajes del servidor.
     GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer);
 
     GameLoop(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
