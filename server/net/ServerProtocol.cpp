@@ -36,8 +36,9 @@ std::shared_ptr<ServerCommand> ServerProtocol::receive_command(uint16_t client_i
     int n = _socket.recvall(&code, 1);
     if (n == 0) return nullptr;
 
-    const auto& table = dispatch_table();
-    auto it = table.find(static_cast<MsgType>(code));
+    const std::unordered_map<MsgType, CommandFactory>& table = dispatch_table();
+    std::unordered_map<MsgType, CommandFactory>::const_iterator it =
+        table.find(static_cast<MsgType>(code));
     if (it == table.end()) return nullptr;
     return it->second(*this, client_id);
 }

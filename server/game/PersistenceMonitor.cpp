@@ -61,9 +61,9 @@ static void give_item(PlayerData& p, uint8_t item_id,
 
 static void apply_initial_equipment(PlayerData& p) {
     using I = ItemId;
-    const auto cls = static_cast<Class>(p.cls);
+    Class cls = static_cast<Class>(p.cls);
 
-    auto it = initial_loadouts().find(cls);
+    std::unordered_map<Class, InitialLoadout>::const_iterator it = initial_loadouts().find(cls);
     if (it != initial_loadouts().end()) {
         const InitialLoadout& loadout = it->second;
         give_item(p, static_cast<uint8_t>(loadout.weapon), p.equipped_weapon, true);
@@ -104,7 +104,7 @@ make_initial_player(const std::string& username, uint8_t race, uint8_t cls) {
     data.meditating = false;
 
     // Stats según raza y clase
-    auto rf = GameConfig::get().race(race);
+    RaceConfig rf = GameConfig::get().race(race);
 
     data.strength     = rf.base_str;
     data.agility      = rf.base_agi;
@@ -136,7 +136,7 @@ bool PersistenceMonitor::login(const std::string& target_username,
     if (target_username.size() > PlayerData::USERNAME_MAX_LENGTH)
         return false;
 
-    auto it = player_offsets_map.find(target_username);
+    std::unordered_map<std::string, uint64_t>::iterator it = player_offsets_map.find(target_username);
     if (it == player_offsets_map.end())
         return false;
 
@@ -201,7 +201,8 @@ bool PersistenceMonitor::register_user(const std::string& new_username,
 void PersistenceMonitor::save_player(const PlayerData& player_data_to_save) {
     std::lock_guard<std::mutex> lock(mtx);
 
-    auto it = player_offsets_map.find(std::string(player_data_to_save.username));
+    std::unordered_map<std::string, uint64_t>::iterator it =
+        player_offsets_map.find(std::string(player_data_to_save.username));
     if (it == player_offsets_map.end())
         return;
 

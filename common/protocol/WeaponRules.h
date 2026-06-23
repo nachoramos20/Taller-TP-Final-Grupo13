@@ -51,7 +51,8 @@ inline const std::unordered_map<uint8_t, WeaponClientRules>& weapon_client_rules
 // Rango de ataque del arma en tiles (client-side, espejado de items.toml).
 // Usado para validación visual antes de spawnear proyectiles/hechizos.
 inline int weapon_client_range(uint8_t item_id) {
-    auto it = weapon_client_rules_table().find(item_id);
+    std::unordered_map<uint8_t, WeaponClientRules>::const_iterator it =
+        weapon_client_rules_table().find(item_id);
     return it != weapon_client_rules_table().end() ? it->second.range : 1;
 }
 
@@ -60,6 +61,7 @@ inline int weapon_client_range(uint8_t item_id) {
 // maná suficiente: antes solo se chequeaba "mp > 0", lo que dejaba disparar
 // con menos maná del que la propia arma cuesta.
 inline uint16_t weapon_client_mana_cost(uint8_t item_id) {
-    auto it = weapon_client_rules_table().find(item_id);
+    std::unordered_map<uint8_t, WeaponClientRules>::const_iterator it =
+        weapon_client_rules_table().find(item_id);
     return it != weapon_client_rules_table().end() ? it->second.mana_cost : 0;
 }

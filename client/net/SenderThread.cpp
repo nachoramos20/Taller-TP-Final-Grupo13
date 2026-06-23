@@ -47,7 +47,7 @@ const std::unordered_map<MsgType, SenderThread::SendAction>& SenderThread::dispa
 }
 
 void SenderThread::send_command(const Command& cmd) {
-    const auto& table = dispatch_table();
-    auto it = table.find(cmd.type);
+    const std::unordered_map<MsgType, SendAction>& table = dispatch_table();
+    std::unordered_map<MsgType, SendAction>::const_iterator it = table.find(cmd.type);
     if (it != table.end()) it->second(*this, cmd);
 }
