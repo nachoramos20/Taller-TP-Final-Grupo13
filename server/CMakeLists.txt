@@ -14,8 +14,11 @@ target_sources(argentum_grupo13_server
     game/commands/MagicCommands.cpp
     game/commands/NpcCommands.cpp
     game/commands/ChatCommands.cpp
-    game/commands/ChatCommand_Bank.cpp
-    game/commands/ChatCommand_Clan.cpp
+    game/commands/BankCommands.cpp
+    game/commands/MerchantCommands.cpp
+    game/commands/ClanCommands.cpp
+    game/commands/DungeonCommands.cpp
+    game/commands/ChatCheatCommands.cpp
     game/commands/CheatCommands.cpp
     game/PersistenceMonitor.cpp
     game/world/World.cpp

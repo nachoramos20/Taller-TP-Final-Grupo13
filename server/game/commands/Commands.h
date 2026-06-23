@@ -9,13 +9,6 @@
 #include <unordered_map>
 #include <vector>
 
-// Catálogo de items que vende el comerciante de una zona (0=Ciudad,
-// 1=Pueblo, cualquier otro valor = catálogo básico). Compartida por
-// ChatCommand::handle_comprar (ChatCommands.cpp) y
-// ChatCommand::handle_listar_comerciante (ChatCommand_Bank.cpp) — antes
-// cada una tenía su propio switch con el mismo catálogo hardcodeado.
-std::vector<ItemId> merchant_catalog_for_zone(uint8_t zone_id);
-
 class ServerCommand {
 public:
     virtual void execute(World& world) = 0;
@@ -145,6 +138,12 @@ private:
     uint16_t client_id, npc_id;
 };
 
+// Solo conserva los comandos "core" que no encajan en ninguna de las
+// clases auxiliares (banco, comerciante, clan, mazmorra, cheats de chat):
+// mensajería privada, meditar/resucitar/curar (delegan en otros
+// ServerCommand o en el sacerdote) y tomar/tirar items. El resto vive en
+// BankCommands/MerchantCommands/ClanCommands/DungeonCommands/
+// ChatCheatCommands, usadas por composición desde el dispatch table.
 class ChatCommand : public ServerCommand {
 public:
     ChatCommand(uint16_t client_id, std::string cmd);
@@ -154,47 +153,23 @@ private:
     std::string cmd;
 
     // Tabla de dispatch por texto de comando (Command pattern): cada entrada
-    // envuelve un handle_* en una firma uniforme. Construida una sola vez
-    // (static local en dispatch_table()), evita la cadena de if/else if.
+    // envuelve un handle_* (o una clase auxiliar) en una firma uniforme.
+    // Construida una sola vez (static local en dispatch_table()), evita la
+    // cadena de if/else if.
     using DispatchTable = std::unordered_map<std::string,
         std::function<void(ChatCommand&, World&, const std::string&)>>;
     static const DispatchTable& dispatch_table();
 
     void handle_meditar(World& world);
     void handle_resucitar(World& world);
-    void handle_curar(World& world);           
-    void handle_depositar(World& world, const std::string& args);
-    void handle_retirar(World& world, const std::string& args);
+    void handle_curar(World& world);
+    // Banco y comerciante son dos respuestas distintas al mismo comando
+    // según qué NPC de servicio esté cerca; por eso el coordinador queda
+    // acá en vez de en BankCommands o MerchantCommands.
     void handle_listar(World& world);
-    void handle_comprar(World& world, const std::string& item_name);
-    void handle_vender(World& world, const std::string& item_name);
     void handle_tomar(World& world);
     void handle_tirar(World& world, const std::string& args);
-    void handle_private_msg(World& world, const std::string& args); 
-    void handle_fundar_clan(World& world, const std::string& clan_name);
-    void handle_unirse(World& world, const std::string& clan_name);
-    void handle_revisar_clan(World& world);
-    void handle_clan_aceptar(World& world, const std::string& nick);
-    void handle_clan_rechazar(World& world, const std::string& nick);
-    void handle_clan_ban(World& world, const std::string& nick);
-    void handle_clan_kick(World& world, const std::string& nick);
-    void handle_dejar_clan(World& world);
-    void handle_listar_comerciante(World& world);
-    void handle_entrar_mazmorra(World& world);
-    void handle_salir_mazmorra(World& world);
-    void handle_info_mazmorra(World& world);
-
-    // -- Cheats --
-    void handle_set_nivel(World& world, const std::string& args);
-    void handle_set_vida(World& world, const std::string& args);
-    void handle_set_fuerza(World& world, const std::string& args);
-    void handle_set_agilidad(World& world, const std::string& args);
-    void handle_set_inteligencia(World& world, const std::string& args);
-    void handle_set_constitucion(World& world, const std::string& args);
-    void handle_morir_instantaneo(World& world);
-    void handle_revivir_instantaneo(World& world);
-    void handle_obtener_objeto(World& world, const std::string& args);
-    void handle_set_oro(World& world, const std::string& args);
+    void handle_private_msg(World& world, const std::string& args);
 };
 
 class CastSpellCommand : public ServerCommand {
