@@ -44,6 +44,10 @@ public:
     // Para que el shortcut de poción acceda al inventario
     void set_inventory_ref(const uint8_t* inv, int size);
 
+    bool help_visible() const { return _help_visible; }
+    void toggle_help() { _help_visible = !_help_visible; }
+    void close_help() { _help_visible = false; }
+
     static constexpr int PANEL_W = 250;
 
 private:
@@ -78,6 +82,9 @@ private:
 
     SDL_Rect _inv_btn_rect {};
     bool     _inv_clicked  = false;
+
+    SDL_Rect _help_btn_rect {};
+    bool     _help_visible = false;
 
     // Hechizos
     static constexpr int MAX_SPELL_BTNS = 3;

@@ -97,20 +97,47 @@ void StatsPanel::activate_spell_by_index(int index) {
 
 bool StatsPanel::handle_event(const SDL_Event& e) {
     _inv_clicked = false;
+
+    // Cerrar popup de ayuda
+    if (_help_visible &&
+        e.type == SDL_KEYDOWN &&
+        e.key.keysym.sym == SDLK_ESCAPE) {
+
+        _help_visible = false;
+        return true;
+    }
+
     if (e.type != SDL_MOUSEBUTTONDOWN || e.button.button != SDL_BUTTON_LEFT)
         return false;
 
     int mx = e.button.x, my = e.button.y;
+
     auto in = [&](const SDL_Rect& r) {
-        return r.w > 0 && mx >= r.x && mx < r.x + r.w && my >= r.y && my < r.y + r.h;
+        return r.w > 0 &&
+               mx >= r.x && mx < r.x + r.w &&
+               my >= r.y && my < r.y + r.h;
     };
 
-    if (in(_inv_btn_rect)) { _inv_clicked = true; return true; }
+    if (in(_inv_btn_rect)) {
+        _inv_clicked = true;
+        return true;
+    }
+
+    if (in(_help_btn_rect)) {
+        if (_audio)
+            _audio->click();
+
+        _help_visible = !_help_visible;
+        return true;
+    }
 
     for (int i = 0; i < _spell_btn_count; i++) {
         if (in(_spell_btn_rect[i])) {
             uint8_t id = _spell_btn_id[i];
-            if (_audio) _audio->click();
+
+            if (_audio)
+                _audio->click();
+
             if (_cast_mode && _selected_spell == id) {
                 _cast_mode = false;
                 _selected_spell = 0;
@@ -118,9 +145,11 @@ bool StatsPanel::handle_event(const SDL_Event& e) {
                 _cast_mode = true;
                 _selected_spell = id;
             }
+
             return true;
         }
     }
+
     return false;
 }
 
@@ -292,6 +321,25 @@ void StatsPanel::render(int screen_w, int screen_h) {
               {255, 240, 160, 255});
     cy += btn_h + 10;
 
+    _help_btn_rect = { px + pad, cy, btn_w, btn_h };
+
+    draw_rounded_rect(
+        px + pad,
+        cy,
+        btn_w,
+        btn_h,
+        {70, 70, 120, 240}
+    );
+
+    draw_text(
+        "Ayuda [H]",
+        px + pad + (btn_w - 90) / 2,
+        cy + (btn_h - _font_size) / 2,
+        {255,255,255,255}
+    );
+
+    cy += btn_h + 10;
+
     // ─── Sección Hechizos ───
     auto spells = spells_for_class(_cls);
     _spell_btn_count = 0;
@@ -305,34 +353,6 @@ void StatsPanel::render(int screen_w, int screen_h) {
     if (spells.empty()) {
         draw_text("Sin hechizos (Guerrero)", px + pad, cy, dim);
         cy += lh + 4;
-
-        // ─── Sección Atajos (guerrero) ───
-        SDL_SetRenderDrawColor(_renderer.Get(), 100, 80, 40, 120);
-        SDL_RenderDrawLine(_renderer.Get(), px + pad, cy, px + PW - pad, cy);
-        cy += 8;
-        draw_text("Atajos de teclado", px + pad, cy, {200, 170, 240, 255});
-        cy += lh + 4;
-
-        const char* shortcuts[][2] = {
-            { "Tab", "Inventario" },
-            { "M", "Meditar" },
-            { "R", "Resucitar" },
-            { "E", "Recoger item" },
-            { "Q", "Tirar item" },
-            { "P", "Usar poción" },
-        };
-        for (auto& sc : shortcuts) {
-            // Badge de tecla
-            std::string key_label = sc[0];
-            std::string action_label = sc[1];
-            int key_w = 0, key_h = 0;
-            TTF_SizeUTF8(_font, key_label.c_str(), &key_w, &key_h);
-            int badge_w = key_w + 8;
-            draw_rounded_rect(px + pad, cy, badge_w, lh, {80, 60, 30, 220});
-            draw_text(key_label, px + pad + 4, cy + 1, {255, 240, 160, 255});
-            draw_text(action_label, px + pad + badge_w + 6, cy + 1, dim);
-            cy += lh + 3;
-        }
         return;
     }
 
@@ -388,30 +408,142 @@ void StatsPanel::render(int screen_w, int screen_h) {
         cy += 4;
     }
 
-    // ─── Sección Atajos generales ───
-    SDL_SetRenderDrawColor(_renderer.Get(), 100, 80, 40, 120);
-    SDL_RenderDrawLine(_renderer.Get(), px + pad, cy, px + PW - pad, cy);
-    cy += 8;
-    draw_text("Atajos de teclado", px + pad, cy, {200, 170, 240, 255});
-    cy += lh + 4;
+    if (_help_visible) {
+        SDL_SetRenderDrawBlendMode(
+            _renderer.Get(),
+            SDL_BLENDMODE_BLEND
+        );
 
-    const char* shortcuts[][2] = {
-        { "Tab", "Inventario" },
-        { "M", "Meditar" },
-        { "R", "Resucitar" },
-        { "E", "Recoger item" },
-        { "Q", "Tirar item" },
-        { "P", "Usar poción" },
-    };
-    for (auto& sc : shortcuts) {
-        std::string key_label = sc[0];
-        std::string action_label = sc[1];
-        int key_w = 0, key_h = 0;
-        TTF_SizeUTF8(_font, key_label.c_str(), &key_w, &key_h);
-        int badge_w = key_w + 8;
-        draw_rounded_rect(px + pad, cy, badge_w, lh, {80, 60, 30, 220});
-        draw_text(key_label, px + pad + 4, cy + 1, {255, 240, 160, 255});
-        draw_text(action_label, px + pad + badge_w + 6, cy + 1, dim);
-        cy += lh + 3;
+        SDL_SetRenderDrawColor(
+            _renderer.Get(),
+            0,0,0,180
+        );
+
+        SDL_Rect overlay {
+            0,
+            0,
+            screen_w,
+            screen_h
+        };
+
+        SDL_RenderFillRect(
+            _renderer.Get(),
+            &overlay
+        );
+
+        const int ww = 900;
+        const int wh = 650;
+
+        const int wx = (screen_w - ww) / 2;
+        const int wy = (screen_h - wh) / 2;
+
+        draw_rounded_rect(
+            wx,
+            wy,
+            ww,
+            wh,
+            {25, 25, 35, 245}
+        );
+
+        SDL_SetRenderDrawColor(
+            _renderer.Get(),
+            255, 215, 100, 255
+        );
+
+        SDL_Rect border {
+            wx,
+            wy,
+            ww,
+            wh
+        };
+
+        SDL_RenderDrawRect(
+            _renderer.Get(),
+            &border
+        );
+
+        draw_text(
+            "AYUDA",
+            wx + 20,
+            wy + 20,
+            {255,220,120,255}
+        );
+
+        SDL_Color gold{255,200,100,255};
+
+        int left_x  = wx + 25;
+        int right_x = wx + ww / 2 + 15;
+
+        int left_y  = wy + 65;
+        int right_y = wy + 65;
+
+        // IZQUIERDA
+
+        draw_text("COMANDOS", left_x, left_y, gold);
+        left_y += 30;
+
+        draw_text("/meditar", left_x, left_y, white); left_y += 22;
+        draw_text("/resucitar", left_x, left_y, white); left_y += 22;
+        draw_text("/curar", left_x, left_y, white); left_y += 40;
+
+        draw_text("BANCO", left_x, left_y, gold);
+        left_y += 30;
+
+        draw_text("/listar", left_x, left_y, white); left_y += 22;
+        draw_text("/depositar oro <cantidad>", left_x, left_y, white); left_y += 22;
+        draw_text("/retirar oro <cantidad>", left_x, left_y, white); left_y += 22;
+        draw_text("/depositar <objeto>", left_x, left_y, white); left_y += 22;
+        draw_text("/retirar <objeto>", left_x, left_y, white); left_y += 40;
+
+        draw_text("COMERCIO", left_x, left_y, gold);
+        left_y += 30;
+
+        draw_text("/listar", left_x, left_y, white); left_y += 22;
+        draw_text("/comprar <nombre>", left_x, left_y, white); left_y += 22;
+        draw_text("/vender <nombre>", left_x, left_y, white); left_y += 40;
+
+        draw_text("CHAT PRIVADO", left_x, left_y, gold);
+        left_y += 30;
+
+        draw_text("@Jugador mensaje", left_x, left_y, white); left_y += 40;
+
+        draw_text("ESC para cerrar", left_x, wh + wy - 40,
+                {150,255,150,255});
+
+        // DERECHA
+
+        draw_text("CLANES", right_x, right_y, gold);
+        right_y += 30;
+
+        draw_text("/fundar-clan <nombre>", right_x, right_y, white); right_y += 22;
+        draw_text("/unirse <clan>", right_x, right_y, white); right_y += 22;
+        draw_text("/revisar-clan", right_x, right_y, white); right_y += 22;
+        draw_text("/clan-aceptar <jugador>", right_x, right_y, white); right_y += 22;
+        draw_text("/clan-rechazar <jugador>", right_x, right_y, white); right_y += 22;
+        draw_text("/clan-ban <jugador>", right_x, right_y, white); right_y += 22;
+        draw_text("/clan-kick <jugador>", right_x, right_y, white); right_y += 22;
+        draw_text("/dejar-clan", right_x, right_y, white); right_y += 40;
+
+        draw_text("ATAJOS", right_x, right_y, gold);
+        right_y += 30;
+
+        draw_text("TAB -> Inventario", right_x, right_y, white); right_y += 22;
+        draw_text("H   -> Ayuda", right_x, right_y, white); right_y += 22;
+        draw_text("M   -> Meditar", right_x, right_y, white); right_y += 22;
+        draw_text("R   -> Resucitar", right_x, right_y, white); right_y += 22;
+        draw_text("E   -> Recoger item", right_x, right_y, white); right_y += 22;
+        draw_text("Q   -> Tirar item", right_x, right_y, white); right_y += 22;
+        draw_text("P   -> Usar pocion", right_x, right_y, white); right_y += 22;
+        draw_text("1-2-3 -> Hechizos", right_x, right_y, white); right_y += 40;
+
+        draw_text("CHEATS (Ctrl+Shift)", right_x, right_y,
+                {255,120,120,255});
+        right_y += 30;
+
+        draw_text("H -> Vida infinita", right_x, right_y, white); right_y += 22;
+        draw_text("N -> Mana infinito", right_x, right_y, white); right_y += 22;
+        draw_text("K -> Muerte instantanea", right_x, right_y, white); right_y += 22;
+        draw_text("R -> Revivir instantaneamente", right_x, right_y, white);
     }
 }
+

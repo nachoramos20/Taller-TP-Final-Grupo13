@@ -128,6 +128,7 @@ bool ClientConfig::load(const std::string& config_path) {
             keybindings.resurrect             = parse_key(kb_table["resurrect"], "R");
             keybindings.pick_item             = parse_key(kb_table["pick_item"], "E");
             keybindings.quit                  = parse_key(kb_table["quit"], "Escape");
+            keybindings.help                  = parse_key(kb_table["help"], "H");
 
             keybindings.move_up    = parse_scancodes(kb_table["move_up"]);
             keybindings.move_down  = parse_scancodes(kb_table["move_down"]);

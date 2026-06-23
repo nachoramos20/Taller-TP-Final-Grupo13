@@ -84,6 +84,7 @@ public:
         SDL_Keycode resurrect              = SDLK_UNKNOWN;
         SDL_Keycode pick_item              = SDLK_UNKNOWN;
         SDL_Keycode quit                   = SDLK_UNKNOWN;
+        SDL_Keycode help                   = SDLK_UNKNOWN;
 
         std::vector<SDL_Scancode> move_up;
         std::vector<SDL_Scancode> move_down;

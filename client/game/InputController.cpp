@@ -18,6 +18,7 @@ InputController::InputController(Camera& camera, PlayerState& player, Queue<Comm
     _key_actions[kb.resurrect]             = InputAction::Resurrect;
     _key_actions[kb.pick_item]             = InputAction::PickItem;
     _key_actions[kb.quit]                  = InputAction::Quit;
+    _key_actions[kb.help]                  = InputAction::Help;
     // Atajos de hechizo: 1, 2, 3
     _key_actions[SDLK_1] = InputAction::Spell1;
     _key_actions[SDLK_2] = InputAction::Spell2;
@@ -128,6 +129,12 @@ void InputController::handle_keydown(const SDL_Event& event, bool& running) {
             if (!inventory_open && !chat_active && _on_use_potion)
                 _on_use_potion();
             break;
+        // ─── Atajo de ayuda ───
+        case InputAction::Help:
+            if (!inventory_open && !chat_active && _stats)
+                _stats->toggle_help();
+            break;
+        default: break;
     }
 }
 

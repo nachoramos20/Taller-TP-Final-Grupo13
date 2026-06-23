@@ -100,6 +100,7 @@ meditate                 = "M"
 resurrect                = "R"
 pick_item                = "E"
 quit                     = "Escape"
+help                     = "H"
 move_up                  = ["Up", "W"]
 move_down                = ["Down", "S"]
 move_left                = ["Left", "A"]

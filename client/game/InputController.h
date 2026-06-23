@@ -28,6 +28,7 @@ enum class InputAction {
     Spell3,
     UsePotion,
     Quit,
+    Help,
 };
 
 // Bucle de eventos SDL + polling de movimiento continuo.
