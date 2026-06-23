@@ -1,6 +1,7 @@
 #ifndef CLAN_H
 #define CLAN_H
 
+#include <algorithm>
 #include <cstdint>
 #include <string>
 #include <unordered_set>
@@ -17,17 +18,13 @@ struct Clan {
     static constexpr int MAX_MEMBERS = 16;
 
     bool is_member(uint16_t id) const {
-        for (auto m: members)
-            if (m == id)
-                return true;
-        return false;
+        return std::find(members.begin(), members.end(), id) != members.end();
     }
+
     bool is_pending(uint16_t id) const {
-        for (auto p: pending)
-            if (p == id)
-                return true;
-        return false;
+        return std::find(pending.begin(), pending.end(), id) != pending.end();
     }
+
     bool is_banned(uint16_t id) const { return banned.count(id) > 0; }
     void remove_member(uint16_t id) {
         members.erase(std::remove(members.begin(), members.end(), id), members.end());
