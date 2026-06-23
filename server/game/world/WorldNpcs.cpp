@@ -12,6 +12,7 @@
 #include <climits>
 #include <cstdlib>
 #include <string>
+#include <utility>
 
 int WorldNpcs::rand_range(int lo, int hi) {
     if (lo >= hi) return lo;
@@ -34,6 +35,17 @@ void WorldNpcs::spawn_internal(NpcId type, uint16_t x, uint16_t y, uint8_t zone_
 
 void WorldNpcs::spawn(NpcId type, uint16_t x, uint16_t y) {
     spawn_internal(type, x, y, 255);
+}
+
+void WorldNpcs::kill_all_in_zone(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+    for (NpcData& n : npcs) {
+        if (n.hp == 0) continue;
+        if (n.pos_x >= x1 && n.pos_x <= x2 && n.pos_y >= y1 && n.pos_y <= y2) {
+            n.hp = 0;
+            collision.update(n.pos_x, n.pos_y, false);
+        }
+    }
+    std::erase_if(npcs, [](const NpcData& n){ return n.hp == 0; });
 }
 
 NpcData* WorldNpcs::find(uint16_t id) {

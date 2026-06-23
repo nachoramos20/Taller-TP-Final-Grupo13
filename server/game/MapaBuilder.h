@@ -32,6 +32,7 @@ private:
     void build_ciudad(MapaDTO& mapa);
     void build_pueblo(MapaDTO& mapa);
     void build_cementerio(MapaDTO& mapa);
+    void build_mazmorra(MapaDTO& mapa);
 
     size_t get_index(uint16_t x, uint16_t y) const;
 

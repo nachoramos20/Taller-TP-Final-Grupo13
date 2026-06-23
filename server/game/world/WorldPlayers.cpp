@@ -24,6 +24,21 @@ void WorldPlayers::set_direction_from_delta(PlayerData& player, int dx, int dy) 
     else if (dy == -1) player.direction = static_cast<uint8_t>(MoveDirection::NORTH);
 }
 
+void WorldPlayers::tp(uint16_t client_id, uint16_t new_x, uint16_t new_y) {
+    auto it = players_map.find(client_id);
+    if (it == players_map.end()) return;
+    PlayerData& player = it->second;
+
+    if (!collision.in_bounds(new_x, new_y)) return;
+
+    collision.update(player.pos_x, player.pos_y, false);
+    collision.update(new_x, new_y, true);
+
+    player.pos_x = new_x;
+    player.pos_y = new_y;
+    player.meditating = false;
+}
+
 void WorldPlayers::move(uint16_t client_id, uint16_t new_x, uint16_t new_y) {
     auto it = players_map.find(client_id);
     if (it == players_map.end()) return;

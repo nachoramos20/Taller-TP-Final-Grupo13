@@ -25,6 +25,7 @@
 #include "WorldNpcs.h"
 #include "WorldSpawner.h"
 #include "WorldSnapshot.h"
+#include "Mazmorra.h"
 
 // Façade del mundo. Mantiene la misma API pública que la versión monolítica
 // previa; internamente delega en subsistemas cohesivos.
@@ -42,6 +43,7 @@ private:
     WorldNpcs       npcs_;
     WorldSpawner    spawner_;
     WorldSnapshot   snapshot_;
+    std::vector<Mazmorra> mazmorras_;
 
     std::unordered_map<uint16_t, NpcId> selected_service_npc_;
 
@@ -52,6 +54,7 @@ public:
     void add_player(const PlayerData& player_data);
     void remove_player(uint16_t client_id);
     void move_player(uint16_t client_id, uint16_t new_x, uint16_t new_y);
+    void tp_player(uint16_t client_id, uint16_t new_x, uint16_t new_y);
 
     const std::unordered_map<uint16_t, PlayerData>& get_players() const;
     const PlayerData* find_player(uint16_t client_id) const;
@@ -118,6 +121,12 @@ public:
     // ---- Spawner / Safe Zones ----
     WorldSpawner& spawner();
     bool in_safe_zone(uint16_t x, uint16_t y) const;
+
+    // ---- Mazmorras ----
+    Mazmorra& add_dungeon(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+    Mazmorra* get_dungeon_at(uint16_t x, uint16_t y);
+    std::vector<Mazmorra>& dungeons() { return mazmorras_; }
+    const std::vector<Mazmorra>& dungeons() const { return mazmorras_; }
 
     // ---- NPC de servicio seleccionado ----
     void     set_selected_npc(uint16_t client_id, NpcId type);

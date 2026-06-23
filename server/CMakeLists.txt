@@ -28,6 +28,7 @@ target_sources(argentum_grupo13_server
     game/world/WorldNpcs.cpp
     game/world/WorldSpawner.cpp
     game/world/WorldSnapshot.cpp
+    game/world/Mazmorra.cpp
     game/QueueMonitor.cpp
     game/MapaBuilder.cpp
     game/Items.cpp

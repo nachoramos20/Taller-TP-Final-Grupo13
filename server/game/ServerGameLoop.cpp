@@ -14,7 +14,7 @@ ServerGameLoop::ServerGameLoop(Queue<std::shared_ptr<ServerCommand>>& command_qu
     : command_queue(command_queue),
       queue_monitor(queue_monitor),
       save_queue(save_queue),
-      world(100, 100, std::move(collision_map), save_queue), tick(0),
+       world(120, 100, std::move(collision_map), save_queue), tick(0),
       regen_ticks(0) {}
 
 void ServerGameLoop::run() {
@@ -66,6 +66,22 @@ void ServerGameLoop::run() {
     world.spawn_npc(NpcId::PRIEST,   41, 68);
     world.spawn_npc_in_zone(NpcId::MERCHANT, 47, 70, 1);  // zona 1 = Pueblo
     world.spawn_npc(NpcId::BANKER,   33, 70);
+
+    // mazmorra
+    Mazmorra& mazmorra = world.add_dungeon(109,30,119,80);
+    for (uint16_t base_y = 34; base_y + 2 <= 75; base_y += 8) {
+        for (uint16_t dx = 0; dx < 3; ++dx) {
+            mazmorra.add_spawn(110 + dx, base_y);
+        }
+    }
+    for (uint16_t base_y = 34; base_y + 2 <= 75; base_y += 8) {
+        for (uint16_t dx = 0; dx < 3; ++dx) {
+            mazmorra.add_spawn(116 + dx, base_y);
+        }
+    }
+    mazmorra.add_gold(114,31,2500);
+    mazmorra.add_gold(115,31,2500);
+
 
     while (should_keep_running()) {
         process_commands();

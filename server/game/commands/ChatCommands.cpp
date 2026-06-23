@@ -39,7 +39,8 @@ void ChatCommand::execute(World& world) {
     else if (token == "/clan-ban")      { handle_clan_ban(world, rest); }
     else if (token == "/clan-kick")     { handle_clan_kick(world, rest); }
     else if (token == "/dejar-clan")    { handle_dejar_clan(world); }
-    // -- Cheats --
+    else if (token == "/entrar-mazmorra") { handle_entrar_mazmorra(world); }
+    else if (token == "/salir-mazmorra")  { handle_salir_mazmorra(world); }
     else if (token == "/set-nivel")          { handle_set_nivel(world, rest); }
     else if (token == "/set-vida")           { handle_set_vida(world, rest); }
     else if (token == "/set-fuerza")         { handle_set_fuerza(world, rest); }
@@ -225,6 +226,55 @@ void ChatCommand::handle_private_msg(World& world, const std::string& full_cmd) 
 
     world.push_message(target_id, 2, "[" + sender_name + " → ti]: " + msg);
     world.push_message(client_id,  2, "[tú → " + target_nick + "]: " + msg);
+}
+
+void ChatCommand::handle_entrar_mazmorra(World& world) {
+    PlayerData* player = world.get_player_mutable(client_id);
+    if (!player) {
+        return;
+    }
+
+    if (player->is_ghost) {
+        world.push_message(client_id, 0, "No puedes entrar a la mazmorra estando muerto.");
+        return;
+    }
+
+    uint16_t spawn_mazmorra_x = 114;
+    uint16_t spawn_mazmorra_y = 79;
+    
+    Mazmorra* mazmorra = world.get_dungeon_at(spawn_mazmorra_x, spawn_mazmorra_y);
+    if (!mazmorra) {
+        world.push_message(client_id, 0, "Mazmorra no encontrada");
+        return;
+    }
+    if (mazmorra->in_mazmorra(player->pos_x, player->pos_y)) {
+        world.push_message(client_id, 0, "Ya estás dentro de la mazmorra.");
+        return;
+    }
+
+    mazmorra->player_entered();
+    
+    world.tp_player(client_id, spawn_mazmorra_x, spawn_mazmorra_y);
+    world.push_message(client_id, 0, "Has entrado a la mazmorra.");
+}
+
+void ChatCommand::handle_salir_mazmorra(World& world) {
+    PlayerData* player = world.get_player_mutable(client_id);
+    if (!player) return;
+
+    Mazmorra* mazmorra = world.get_dungeon_at(player->pos_x, player->pos_y);
+    if (!mazmorra) {
+        world.push_message(client_id, 0, "No estás dentro de una mazmorra.");
+        return;
+    }
+
+    mazmorra->player_left();
+
+    uint16_t portal_spawn_x = 60;
+    uint16_t portal_spawn_y = 62;
+    world.tp_player(client_id, portal_spawn_x, portal_spawn_y);
+
+    world.push_message(client_id, 0, "Has salido de la mazmorra.");
 }
 
 // ---- Cheats ----

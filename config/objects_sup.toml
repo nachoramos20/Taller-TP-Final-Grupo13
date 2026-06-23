@@ -271,3 +271,26 @@ frames = ["assets/sprites/objects_sup/cementerio/tumba_5.png"]
 size_tiles  = 8
 width_tiles = 7
 frames = ["assets/sprites/objects_sup/edificios/banco_pueblo.png"]
+
+# Mazmorra
+[object_sup.101]
+frames = ["assets/sprites/objects_sup/paredes/muro_abajo.png"]
+size_tiles = 8
+offset_y = 440
+
+[object_sup.102]
+frames = ["assets/sprites/objects_sup/paredes/muro_izquierda.png"]
+size_tiles = 8
+offset_x = -150
+offset_y = 100
+
+[object_sup.103]
+frames = ["assets/sprites/objects_sup/paredes/muro_derecha.png"]
+size_tiles = 8
+offset_x = 150
+offset_y = 100
+
+[object_sup.104]
+frames = ["assets/sprites/objects_sup/paredes/muro_arriba.png"]
+size_tiles = 8
+offset_y = 260

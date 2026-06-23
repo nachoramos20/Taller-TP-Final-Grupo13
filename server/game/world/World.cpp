@@ -26,6 +26,7 @@ void World::remove_player(uint16_t id) {
     players_.remove(id);
 }
 void World::move_player(uint16_t id, uint16_t x, uint16_t y) { players_.move(id, x, y); }
+void World::tp_player(uint16_t id, uint16_t x, uint16_t y) { players_.tp(id, x, y); }
 
 const std::unordered_map<uint16_t, PlayerData>& World::get_players() const { return players_.all(); }
 std::unordered_map<uint16_t, PlayerData>& World::get_players_mutable() { return players_.all_mutable(); }
@@ -112,6 +113,20 @@ const std::vector<NpcData>& World::get_npcs() const {
 // ---- Spawner / Safe Zones ----
 WorldSpawner& World::spawner() {
     return spawner_;
+}
+
+// ---- Mazmorras ----
+Mazmorra& World::add_dungeon(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+    mazmorras_.emplace_back(npcs_, items_, x1, y1, x2, y2);
+    return mazmorras_.back();
+}
+
+Mazmorra* World::get_dungeon_at(uint16_t x, uint16_t y) {
+    for (Mazmorra& mazmorra : mazmorras_) {
+        if (mazmorra.in_mazmorra(x,y))
+            return &mazmorra;
+    }
+    return nullptr;
 }
 
 bool World::in_safe_zone(uint16_t x, uint16_t y) const {
