@@ -8,6 +8,8 @@ target_sources(argentum_grupo13_client
     ui/ChatWidget.cpp
     ui/StatsPanel.cpp
     ui/InventoryPanel.cpp
+    ui/InventoryRenderer.cpp
+    ui/ItemLabels.cpp
     ui/PositionLabel.cpp
     processors/SnapshotProcessor.cpp
     controllers/InputController.cpp

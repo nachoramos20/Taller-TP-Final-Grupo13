@@ -5,14 +5,20 @@
 #include <SDL2/SDL_ttf.h>
 #include <string>
 #include <cstdint>
+#include <optional>
 #include <unordered_map>
 #include "../../common/protocol/dtos.h"
 #include "../../common/protocol/protocol.h"
 #include "../../common/queue.h"
 #include "../net/Command.h"
+#include "InventoryRenderer.h"
 
 class GameAudioService;
 
+// Dueño de los datos del inventario (qué item hay en cada slot, qué hay
+// equipado) y de la interacción de mouse (selección, drag&drop, botones).
+// El dibujado en sí y la metadata de items (nombre/abreviatura/categoría)
+// viven en InventoryRenderer, usada por composición — ver render().
 class InventoryPanel {
 public:
     InventoryPanel(SDL2pp::Renderer& renderer, const std::string& font_path,
@@ -34,19 +40,7 @@ public:
     void render(int screen_w, int screen_h);
 
 private:
-    static const char* item_name(uint8_t id);
-    static const char* item_abbr(uint8_t id);
-    static const char* item_kind(uint8_t id);
-
-    void draw_text_centered(const std::string& text, int cx, int cy,
-                            SDL_Color color, TTF_Font* font);
-    void draw_text(const std::string& text, int x, int y,
-                   SDL_Color color, TTF_Font* font = nullptr);
-    void draw_slot(int x, int y, int size, int idx);
-    void draw_equip_row(int x, int y, int w, int h,
-                        const char* label, uint8_t item_id);
-    void draw_panel_bg(int x, int y, int w, int h);
-    void draw_lock_icon(int cx, int cy, int size);
+    static constexpr int INV_SIZE = SnapshotDTO::INVENTORY_SIZE;
 
     SDL2pp::Renderer& _renderer;
     GameAudioService* _audio     = nullptr;
@@ -55,7 +49,9 @@ private:
     int               _font_size;
     bool              _visible   = false;
 
-    static constexpr int INV_SIZE = SnapshotDTO::INVENTORY_SIZE;
+    // Construido en el cuerpo del constructor (necesita _font/_font_sm ya
+    // abiertos), por eso es optional en vez de miembro directo.
+    std::optional<InventoryRenderer> _render_impl;
 
     uint8_t _inventory[INV_SIZE] {};
     uint8_t _eq_wpn  = 0;
@@ -66,15 +62,9 @@ private:
     int _selected_slot = -1;
     int _drag_from_slot = -1;
 
-    SDL_Rect _slot_rects[INV_SIZE] {};
-    SDL_Rect _close_btn   {};
-    SDL_Rect _equip_btn   {};
-    SDL_Rect _drop_btn    {};
-    SDL_Rect _panel_rect  {};
+    // Regiones clickeables calculadas por el último render(); handle_event()
+    // las usa para resolver clicks (ver InventoryRenderer.h).
+    InventoryLayout _layout;
 
     std::unordered_map<uint8_t, SDL_Texture*> _item_textures;
-
-    static constexpr int COLS     = 5;
-    static constexpr int SLOT_SZ  = 52;
-    static constexpr int SLOT_GAP = 4;
 };
