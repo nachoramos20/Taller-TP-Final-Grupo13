@@ -19,6 +19,11 @@ void ReceiverThread::run() {
         bool got_ok  = false;
         bool got_map = false;
 
+        // No se aplica tabla en este switch ni en el de game_loop_receive:
+        // son 2-3 casos fijos (el handshake y el game loop no agregan
+        // tipos de mensaje nuevos sin tocar también el protocolo), y cada
+        // rama tiene control de flujo propio (mueve banderas locales,
+        // hace return) que no encaja en una firma uniforme de tabla.
         while (should_keep_running() && !(got_ok && got_map)) {
             MsgType opcode = _protocol.recv_opcode();
             switch (opcode) {

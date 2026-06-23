@@ -7,6 +7,9 @@ void CheatCommand::execute(World& world) {
     PlayerData* p = world.get_player_mutable(client_id);
     if (!p) return;
 
+    // No se aplica tabla/Factory: son 4 cheats de debug fijos, cada uno con
+    // lógica propia (no es una simple asignación de datos), y no es un
+    // catálogo pensado para crecer dinámicamente.
     switch (static_cast<CheatId>(cheat_id)) {
         case CheatId::INFINITE_HP: {
             p->cheat_infinite_hp = !p->cheat_infinite_hp;

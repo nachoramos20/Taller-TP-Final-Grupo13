@@ -247,6 +247,9 @@ bool GameConfig::item_exists(ItemId id) const {
     return _items.count(static_cast<uint8_t>(id)) > 0;
 }
 
+// No se aplica tabla/Factory: ItemKind y EquipSlot son ambos enums
+// cerrados fijados por el diseño del juego (un arma siempre va al slot de
+// arma, etc.), no catálogos de datos que vayan a crecer independientes.
 EquipSlot GameConfig::equip_slot_for(ItemKind kind) const {
     switch (kind) {
         case ItemKind::WEAPON_MELEE:

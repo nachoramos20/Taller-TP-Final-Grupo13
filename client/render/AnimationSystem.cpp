@@ -24,6 +24,8 @@ int AnimationSystem::frame_for_tick(uint32_t tick, int n_frames) const {
     return (tick / TICKS_PER_FRAME) % n_frames;
 }
 
+// No se aplica tabla: Direction tiene exactamente las 4 direcciones
+// cardinales del juego, es un enum cerrado que no va a crecer.
 int AnimationSystem::direction_to_index(Direction dir) const {
     switch (dir) {
         case Direction::SOUTH: return DIR_SOUTH;

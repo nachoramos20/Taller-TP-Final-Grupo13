@@ -26,6 +26,10 @@ void EquipCommand::execute(World& world) {
 
     EquipSlot slot = Items::equip_slot_for(def.kind);
 
+    // No se aplica tabla/Factory en este switch ni en el de
+    // UnequipCommand::execute: EquipSlot es un conjunto cerrado de 4 slots
+    // de personaje (arma/armadura/casco/escudo) fijado por el diseño del
+    // juego, no un catálogo de datos que vaya a crecer.
     switch (slot) {
         case EquipSlot::WEAPON: p->equipped_weapon = inv_slot; break;
         case EquipSlot::ARMOR:  p->equipped_armor  = inv_slot; break;
