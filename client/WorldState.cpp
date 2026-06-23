@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 #include "config/ClientConfig.h"
 #include "config/SpellVfxConfig.h"

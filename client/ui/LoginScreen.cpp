@@ -216,8 +216,9 @@ void LoginScreen::handle_key(const SDL_KeyboardEvent& k) {
         if (_screen == Screen::SPLASH || _screen == Screen::MAIN) {
             _cancelled = true;
             _running = false;
-        } else
+        } else {
             _screen = Screen::MAIN;
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 #include "NetSession.h"
 
 #include <exception>
+#include <utility>
 
 NetSession::~NetSession() { shutdown(); }
 

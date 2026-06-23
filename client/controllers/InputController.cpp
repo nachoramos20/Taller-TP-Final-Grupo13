@@ -6,6 +6,8 @@
 // más de lo que simplifica.
 #include "InputController.h"
 
+#include <vector>
+
 #include "../config/ClientConfig.h"
 #include "../ui/ChatWidget.h"
 #include "../ui/InventoryPanel.h"

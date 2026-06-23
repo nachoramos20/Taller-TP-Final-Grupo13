@@ -1,5 +1,6 @@
 #include "StatsPanel.h"
 
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 

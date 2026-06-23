@@ -1,6 +1,7 @@
 #include "VFXRenderer.h"
 
 #include <algorithm>
+#include <string>
 
 #include "../config/ClientConfig.h"
 #include "../config/SpellVfxConfig.h"
