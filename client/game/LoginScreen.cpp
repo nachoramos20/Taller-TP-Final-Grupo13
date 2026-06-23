@@ -38,6 +38,7 @@ LoginScreen::~LoginScreen() {
     if (_font_md) TTF_CloseFont(_font_md);
     if (_font_sm) TTF_CloseFont(_font_sm);
     for (auto* t : _race_tex) if (t) SDL_DestroyTexture(t);
+    if (_logo_tex) SDL_DestroyTexture(_logo_tex);
 }
 
 void LoginScreen::set_error(const std::string& msg) { _error_msg = msg; }
@@ -110,6 +111,10 @@ void LoginScreen::handle_mouse_click(int mx, int my) {
     _error_msg.clear();
 
     switch (_screen) {
+    case Screen::SPLASH:
+        if (clicked(mx, my, _btn_comenzar)) { _screen = Screen::MAIN; }
+        break;
+
     case Screen::MAIN:
         if (clicked(mx, my, _btn_login)) {
             _screen = Screen::LOGIN_FORM;
@@ -190,7 +195,7 @@ void LoginScreen::handle_key(const SDL_KeyboardEvent& k) {
         handle_mouse_click(_btn_confirm.x + 1, _btn_confirm.y + 1);
     }
     if (k.keysym.sym == SDLK_ESCAPE) {
-        if (_screen == Screen::MAIN) { _cancelled = true; _running = false; }
+        if (_screen == Screen::SPLASH || _screen == Screen::MAIN) { _cancelled = true; _running = false; }
         else _screen = Screen::MAIN;
     }
 }
@@ -469,9 +474,10 @@ void LoginScreen::draw_class_card(int idx, int x, int y, int w, int h) {
 void LoginScreen::render() {
     _renderer.Clear();
     draw_bg();
-    draw_logo();
+    if (_screen != Screen::SPLASH) draw_logo();
 
     switch (_screen) {
+        case Screen::SPLASH:          render_splash();        break;
         case Screen::MAIN:            render_main();          break;
         case Screen::LOGIN_FORM:      render_login_form();    break;
         case Screen::REGISTER_RACE:   render_register_race(); break;
@@ -487,6 +493,31 @@ void LoginScreen::render() {
     }
 
     _renderer.Present();
+}
+
+// Pantalla de splash
+void LoginScreen::render_splash() {
+    int sw = _window.GetWidth(), sh = _window.GetHeight();
+
+    if (!_logo_tex) _logo_tex = load_texture("assets/sprites/presentation/argentum.png");
+
+    int content_bottom = 90;
+    if (_logo_tex) {
+        
+        SDL_Rect src{143, 0, 558, 295};
+        int logo_w = std::min(520, sw - 80);
+        int logo_h = static_cast<int>(logo_w * (295.0 / 558.0));
+        SDL_Rect dst{(sw - logo_w) / 2, 50, logo_w, logo_h};
+        SDL_RenderCopy(_renderer.Get(), _logo_tex, &src, &dst);
+        content_bottom = dst.y + dst.h;
+    }
+
+    const int BW = 240, BH = 50;
+    _btn_comenzar = {(sw-BW)/2, content_bottom + 40, BW, BH};
+    draw_button(_btn_comenzar, "COMENZAR", in_rect(_hover_x,_hover_y,_btn_comenzar));
+
+    draw_text_centered("ESC para salir", sw/2, sh-25,
+                       SDL_Color{80,70,50,255}, _font_sm);
 }
 
 // Pantalla principal
