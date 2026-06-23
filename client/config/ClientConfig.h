@@ -1,12 +1,13 @@
 #ifndef CLIENT_CONFIG_H
 #define CLIENT_CONFIG_H
 
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_scancode.h>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_scancode.h>
 
 // Configuración del cliente cargada desde client_config.toml: rutas de
 // assets, fuentes, ventana, atajos de teclado y los parámetros de
@@ -78,13 +79,13 @@ public:
     // resuelven una sola vez a códigos SDL.
     struct Keybindings {
         SDL_Keycode toggle_position_label = SDLK_UNKNOWN;
-        SDL_Keycode toggle_inventory       = SDLK_UNKNOWN;
-        SDL_Keycode drop_item              = SDLK_UNKNOWN;
-        SDL_Keycode meditate               = SDLK_UNKNOWN;
-        SDL_Keycode resurrect              = SDLK_UNKNOWN;
-        SDL_Keycode pick_item              = SDLK_UNKNOWN;
-        SDL_Keycode quit                   = SDLK_UNKNOWN;
-        SDL_Keycode help                   = SDLK_UNKNOWN;
+        SDL_Keycode toggle_inventory = SDLK_UNKNOWN;
+        SDL_Keycode drop_item = SDLK_UNKNOWN;
+        SDL_Keycode meditate = SDLK_UNKNOWN;
+        SDL_Keycode resurrect = SDLK_UNKNOWN;
+        SDL_Keycode pick_item = SDLK_UNKNOWN;
+        SDL_Keycode quit = SDLK_UNKNOWN;
+        SDL_Keycode help = SDLK_UNKNOWN;
 
         std::vector<SDL_Scancode> move_up;
         std::vector<SDL_Scancode> move_down;
@@ -143,4 +144,4 @@ private:
     ClientConfig& operator=(const ClientConfig&) = delete;
 };
 
-#endif // CLIENT_CONFIG_H
+#endif  // CLIENT_CONFIG_H

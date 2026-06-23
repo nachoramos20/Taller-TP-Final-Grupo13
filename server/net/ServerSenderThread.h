@@ -1,14 +1,15 @@
 #pragma once
 
-#include "../../common/thread.h"
+#include "../../common/protocol/dtos.h"
 #include "../../common/queue.h"
 #include "../../common/socket.h"
-#include "../../common/protocol/dtos.h"
+#include "../../common/thread.h"
+
 #include "ServerProtocol.h"
 
 // Hilo dedicado a drenar la cola de snapshots de un cliente y mandarlos
 // por su socket, para que ServerGameLoop nunca bloquee escribiendo a red.
-class ServerSenderThread : public Thread {
+class ServerSenderThread: public Thread {
 public:
     explicit ServerSenderThread(ServerProtocol& protocol);
 
@@ -18,6 +19,6 @@ public:
     void stop() override;
 
 private:
-    ServerProtocol&       server_protocol;
-    Queue<SnapshotDTO>   queue;
+    ServerProtocol& server_protocol;
+    Queue<SnapshotDTO> queue;
 };

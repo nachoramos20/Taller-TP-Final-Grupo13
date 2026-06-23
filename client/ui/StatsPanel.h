@@ -1,15 +1,18 @@
 #pragma once
 
-#include <SDL2pp/SDL2pp.hh>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <string>
 #include <cstdint>
 #include <optional>
+#include <string>
 #include <vector>
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2pp/SDL2pp.hh>
+
+#include "../config/UiConstants.h"
+
 #include "SpellSystem.h"
 #include "StatsPanelRenderer.h"
-#include "../config/UiConstants.h"
 
 class GameAudioService;
 
@@ -25,9 +28,9 @@ public:
 
     void set_username(const std::string& username) { _username = username; }
 
-    void update(uint16_t hp, uint16_t max_hp, uint16_t mp, uint16_t max_mp,
-                uint32_t gold, uint8_t level, uint32_t exp, bool meditating, bool is_ghost,
-                uint8_t cls, uint8_t equipped_weapon_item_id);
+    void update(uint16_t hp, uint16_t max_hp, uint16_t mp, uint16_t max_mp, uint32_t gold,
+                uint8_t level, uint32_t exp, bool meditating, bool is_ghost, uint8_t cls,
+                uint8_t equipped_weapon_item_id);
 
     bool handle_event(const SDL_Event& e);
     void render(int screen_w, int screen_h);
@@ -35,8 +38,8 @@ public:
     bool inventory_button_clicked() const { return _inv_clicked; }
 
     // Modo hechizo: si está activo, los clicks sobre enemigos lanzan _selected_spell.
-    bool    cast_mode_active() const { return _spell_system.cast_mode_active(); }
-    uint8_t selected_spell()  const { return _spell_system.selected_spell(); }
+    bool cast_mode_active() const { return _spell_system.cast_mode_active(); }
+    uint8_t selected_spell() const { return _spell_system.selected_spell(); }
 
     // Acceso al MP actual (para validación client-side antes de spawnear VFX)
     uint16_t current_mp() const { return _mp; }
@@ -46,12 +49,14 @@ public:
     uint8_t current_level() const { return _level; }
 
     // Costo de maná y rango del hechizo actualmente seleccionado (0 si ninguno)
-    uint16_t selected_spell_mana_cost() const { return _spell_system.selected_spell_mana_cost(_cls); }
-    int      selected_spell_range()     const { return _spell_system.selected_spell_range(_cls); }
+    uint16_t selected_spell_mana_cost() const {
+        return _spell_system.selected_spell_mana_cost(_cls);
+    }
+    int selected_spell_range() const { return _spell_system.selected_spell_range(_cls); }
 
     // Atajos de teclado: activa el hechizo por índice (0-based), o usa poción
     void activate_spell_by_index(int index);
-    void use_potion_shortcut();   // retorna true si había una poción en inventario
+    void use_potion_shortcut();  // retorna true si había una poción en inventario
 
     // Para que el shortcut de poción acceda al inventario
     void set_inventory_ref(const uint8_t* inv, int size);
@@ -64,9 +69,9 @@ public:
 
 private:
     SDL2pp::Renderer& _renderer;
-    GameAudioService* _audio     = nullptr;
-    TTF_Font*         _font      = nullptr;
-    int               _font_size;
+    GameAudioService* _audio = nullptr;
+    TTF_Font* _font = nullptr;
+    int _font_size;
 
     // Construido en el cuerpo del constructor (necesita _font ya
     // abierto), por eso es optional en vez de miembro directo.
@@ -79,18 +84,18 @@ private:
     uint16_t _mp = 0, _max_mp = 1;
     uint32_t _gold = 0;
     uint32_t _exp = 0;
-    uint8_t  _level = 1;
-    bool     _meditating = false;
-    bool     _is_ghost   = false;
-    uint8_t  _cls = 3;              // por defecto guerrero (sin hechizos)
-    uint8_t  _eq_weapon_item = 0;   // item_id del arma equipada
+    uint8_t _level = 1;
+    bool _meditating = false;
+    bool _is_ghost = false;
+    uint8_t _cls = 3;             // por defecto guerrero (sin hechizos)
+    uint8_t _eq_weapon_item = 0;  // item_id del arma equipada
 
     // Referencia al inventario (para usar poción con atajo)
-    const uint8_t* _inv_ref  = nullptr;
-    int            _inv_size = 0;
+    const uint8_t* _inv_ref = nullptr;
+    int _inv_size = 0;
 
-    bool     _inv_clicked  = false;
-    bool     _help_visible = false;
+    bool _inv_clicked = false;
+    bool _help_visible = false;
 
     // Regiones clickeables calculadas por el último render(); handle_event()
     // las usa para resolver clicks (ver StatsPanelRenderer.h).

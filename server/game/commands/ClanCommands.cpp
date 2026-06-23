@@ -1,6 +1,6 @@
 #include "ClanCommands.h"
 
-ClanCommands::ClanCommands(uint16_t client_id) : client_id_(client_id) {}
+ClanCommands::ClanCommands(uint16_t client_id): client_id_(client_id) {}
 
 void ClanCommands::found(World& world, const std::string& clan_name) {
     if (clan_name.empty()) {
@@ -31,14 +31,10 @@ void ClanCommands::reject(World& world, const std::string& nick) {
     world.clan_reject(client_id_, nick);
 }
 
-void ClanCommands::ban(World& world, const std::string& nick) {
-    world.clan_ban(client_id_, nick);
-}
+void ClanCommands::ban(World& world, const std::string& nick) { world.clan_ban(client_id_, nick); }
 
 void ClanCommands::kick(World& world, const std::string& nick) {
     world.clan_kick(client_id_, nick);
 }
 
-void ClanCommands::leave(World& world) {
-    world.clan_leave(client_id_);
-}
+void ClanCommands::leave(World& world) { world.clan_leave(client_id_); }

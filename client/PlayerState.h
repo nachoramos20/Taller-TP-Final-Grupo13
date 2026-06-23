@@ -2,17 +2,12 @@
 
 #include <cmath>
 #include <cstdint>
+
 #include "config/ClientConfig.h"
 
 static constexpr float MOVE_DURATION = 0.25f;
 
-enum class Direction : uint8_t {
-    NORTH = 0,
-    SOUTH = 1,
-    EAST  = 2,
-    WEST  = 3,
-    NONE  = 4
-};
+enum class Direction : uint8_t { NORTH = 0, SOUTH = 1, EAST = 2, WEST = 3, NONE = 4 };
 
 // Posición y dirección del propio jugador en el cliente, con interpolación
 // entre tile anterior y actual para que el movimiento se vea continuo
@@ -28,16 +23,16 @@ struct PlayerState {
     bool is_moving() const { return move_progress < 1.0f; }
 
     float pixel_x() const {
-        int   tile_size_px = ClientConfig::instance().tile_size();
+        int tile_size_px = ClientConfig::instance().tile_size();
         float from = static_cast<float>(prev_tile_x * tile_size_px);
-        float to   = static_cast<float>(tile_x * tile_size_px);
+        float to = static_cast<float>(tile_x * tile_size_px);
         return from + (to - from) * move_progress;
     }
 
     float pixel_y() const {
-        int   tile_size_px = ClientConfig::instance().tile_size();
+        int tile_size_px = ClientConfig::instance().tile_size();
         float from = static_cast<float>(prev_tile_y * tile_size_px);
-        float to   = static_cast<float>(tile_y * tile_size_px);
+        float to = static_cast<float>(tile_y * tile_size_px);
         return from + (to - from) * move_progress;
     }
 
@@ -61,11 +56,11 @@ struct PlayerState {
     }
 
     void move_to(int new_tile_x, int new_tile_y, Direction dir) {
-        prev_tile_x   = tile_x;
-        prev_tile_y   = tile_y;
-        tile_x        = new_tile_x;
-        tile_y        = new_tile_y;
-        direction     = dir;
+        prev_tile_x = tile_x;
+        prev_tile_y = tile_y;
+        tile_x = new_tile_x;
+        tile_y = new_tile_y;
+        direction = dir;
         move_progress = 0.0f;
     }
 

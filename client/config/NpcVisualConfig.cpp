@@ -1,6 +1,8 @@
 #include "NpcVisualConfig.h"
-#include <toml++/toml.h>
+
 #include <iostream>
+
+#include <toml++/toml.h>
 
 NpcVisualConfig& NpcVisualConfig::instance() {
     static NpcVisualConfig instance;
@@ -12,23 +14,25 @@ bool NpcVisualConfig::load(const std::string& toml_path) {
         auto config = toml::parse_file(toml_path);
 
         if (auto* npcs_tbl = config["npc_visual"].as_table()) {
-            for (auto& [key, val] : *npcs_tbl) {
+            for (auto& [key, val]: *npcs_tbl) {
                 uint8_t id = static_cast<uint8_t>(std::stoi(std::string(key)));
                 auto* entry_tbl = val.as_table();
-                if (!entry_tbl) continue;
+                if (!entry_tbl)
+                    continue;
 
                 NpcVisualEntry entry;
                 entry.is_service = (*entry_tbl)["is_service"].value_or(false);
                 entry.scale = (*entry_tbl)["scale"].value_or(1.5f);
                 std::string mode = (*entry_tbl)["select_mode"].value_or(std::string("entity_id"));
-                entry.select_mode = (mode == "position_y") ? NpcVariantSelect::ByPositionY
-                                                             : NpcVariantSelect::ByEntityId;
+                entry.select_mode = (mode == "position_y") ? NpcVariantSelect::ByPositionY :
+                                                             NpcVariantSelect::ByEntityId;
                 entry.position_y_threshold = (*entry_tbl)["position_y_threshold"].value_or(50);
 
                 if (auto* variants_arr = (*entry_tbl)["variants"].as_array()) {
-                    for (auto& v : *variants_arr) {
+                    for (auto& v: *variants_arr) {
                         auto* v_tbl = v.as_table();
-                        if (!v_tbl) continue;
+                        if (!v_tbl)
+                            continue;
 
                         NpcSheetVariant variant;
                         variant.sheet_path = (*v_tbl)["sheet"].value_or(std::string(""));
@@ -60,14 +64,16 @@ const NpcVisualEntry& NpcVisualConfig::get(uint8_t npc_sprite_id) const {
 }
 
 const NpcSheetVariant& NpcVisualConfig::select_variant(uint8_t npc_sprite_id, uint16_t entity_id,
-                                                        uint16_t pos_y) const {
+                                                       uint16_t pos_y) const {
     const NpcVisualEntry& entry = get(npc_sprite_id);
-    if (entry.variants.empty()) return _fallback_variant;
+    if (entry.variants.empty())
+        return _fallback_variant;
 
     size_t idx = 0;
     if (entry.select_mode == NpcVariantSelect::ByPositionY) {
         idx = (pos_y > static_cast<uint16_t>(entry.position_y_threshold)) ? 1 : 0;
-        if (idx >= entry.variants.size()) idx = entry.variants.size() - 1;
+        if (idx >= entry.variants.size())
+            idx = entry.variants.size() - 1;
     } else {
         idx = entity_id % entry.variants.size();
     }

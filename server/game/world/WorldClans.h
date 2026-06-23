@@ -13,13 +13,14 @@ class WorldChat;
 // Clanes, su membresía y los pedidos de ingreso pendientes.
 class WorldClans {
 private:
-    std::unordered_map<std::string, Clan>     clans_by_name;
+    std::unordered_map<std::string, Clan> clans_by_name;
     std::unordered_map<uint16_t, std::string> player_clan;
 
     WorldPlayers& players;
-    WorldChat&    chat;
+    WorldChat& chat;
+
 public:
-    WorldClans(WorldPlayers& p, WorldChat& c) : players(p), chat(c) {}
+    WorldClans(WorldPlayers& p, WorldChat& c): players(p), chat(c) {}
 
     bool found(uint16_t founder_id, const std::string& clan_name);
     bool join_request(uint16_t player_id, const std::string& clan_name);

@@ -1,18 +1,23 @@
 #include "AudioConfig.h"
-#include <toml++/toml.h>
+
 #include <iostream>
 
+#include <toml++/toml.h>
+
 static void load_sound_table(toml::node_view<toml::node> table_view,
-                              std::unordered_map<std::string, std::vector<std::string>>& target) {
+                             std::unordered_map<std::string, std::vector<std::string>>& target) {
     toml::table* table = table_view.as_table();
-    if (!table) return;
+    if (!table)
+        return;
     for (toml::table::iterator entry = table->begin(); entry != table->end(); ++entry) {
         toml::node& val = entry->second;
         toml::array* arr = val.as_array();
-        if (!arr) continue;
+        if (!arr)
+            continue;
         std::vector<std::string> sounds;
-        for (toml::node& elem : *arr) {
-            if (toml::value<std::string>* s = elem.as_string()) sounds.push_back(s->get());
+        for (toml::node& elem: *arr) {
+            if (toml::value<std::string>* s = elem.as_string())
+                sounds.push_back(s->get());
         }
         target[std::string(entry->first)] = std::move(sounds);
     }
@@ -75,25 +80,34 @@ const std::vector<std::string>& AudioConfig::lookup(
     return it != sounds.end() ? it->second : EMPTY;
 }
 
-const std::vector<std::string>& AudioConfig::get_combat_melee_sound(const std::string& weapon) const {
-    std::unordered_map<std::string, std::vector<std::string>>::const_iterator it = combat_melee_sounds.find(weapon);
-    if (it != combat_melee_sounds.end()) return it->second;
+const std::vector<std::string>& AudioConfig::get_combat_melee_sound(
+        const std::string& weapon) const {
+    std::unordered_map<std::string, std::vector<std::string>>::const_iterator it =
+            combat_melee_sounds.find(weapon);
+    if (it != combat_melee_sounds.end())
+        return it->second;
     return lookup(combat_melee_sounds, "generico");
 }
 
-const std::vector<std::string>& AudioConfig::get_combat_ranged_sound(const std::string& weapon) const {
-    std::unordered_map<std::string, std::vector<std::string>>::const_iterator it = combat_ranged_sounds.find(weapon);
-    if (it != combat_ranged_sounds.end()) return it->second;
+const std::vector<std::string>& AudioConfig::get_combat_ranged_sound(
+        const std::string& weapon) const {
+    std::unordered_map<std::string, std::vector<std::string>>::const_iterator it =
+            combat_ranged_sounds.find(weapon);
+    if (it != combat_ranged_sounds.end())
+        return it->second;
     return lookup(combat_ranged_sounds, "flecha");
 }
 
 const std::vector<std::string>& AudioConfig::get_magic_sound(const std::string& spell_name) const {
-    std::unordered_map<std::string, std::vector<std::string>>::const_iterator it = magic_sounds.find(spell_name);
-    if (it != magic_sounds.end()) return it->second;
+    std::unordered_map<std::string, std::vector<std::string>>::const_iterator it =
+            magic_sounds.find(spell_name);
+    if (it != magic_sounds.end())
+        return it->second;
     return lookup(magic_sounds, "hechizo_generico");
 }
 
-const std::vector<std::string>& AudioConfig::get_creature_sound(const std::string& creature_type) const {
+const std::vector<std::string>& AudioConfig::get_creature_sound(
+        const std::string& creature_type) const {
     return lookup(creature_sounds, creature_type);
 }
 

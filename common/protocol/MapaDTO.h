@@ -20,4 +20,4 @@ struct MapaDTO {
     std::vector<TileDTO> tiles;
 };
 
-#endif // MAPA_DTO_H
+#endif  // MAPA_DTO_H

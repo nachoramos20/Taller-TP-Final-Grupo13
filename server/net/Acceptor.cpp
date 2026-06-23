@@ -1,19 +1,19 @@
 #include "Acceptor.h"
-#include <sys/socket.h>
+
 #include <iostream>
 
-Acceptor::Acceptor(const std::string& port,
-                   Queue<std::shared_ptr<ServerCommand>>& command_queue,
-                   QueueMonitor& queue_monitor,
-                   PersistenceMonitor& persistence_monitor,
-                   MapaDTO& initial_map)
-    : _listener_socket(port.c_str()),
-      _command_queue(command_queue),
-      _queue_monitor(queue_monitor),
-      _persistence_monitor(persistence_monitor),
-      _running(false),
-      _next_client_id(1),
-      _initial_map(initial_map) {}
+#include <sys/socket.h>
+
+Acceptor::Acceptor(const std::string& port, Queue<std::shared_ptr<ServerCommand>>& command_queue,
+                   QueueMonitor& queue_monitor, PersistenceMonitor& persistence_monitor,
+                   MapaDTO& initial_map):
+        _listener_socket(port.c_str()),
+        _command_queue(command_queue),
+        _queue_monitor(queue_monitor),
+        _persistence_monitor(persistence_monitor),
+        _running(false),
+        _next_client_id(1),
+        _initial_map(initial_map) {}
 
 void Acceptor::run() {
     _running = true;
@@ -23,10 +23,9 @@ void Acceptor::run() {
             Socket client_socket = _listener_socket.accept();
 
             ++_next_client_id;
-            std::unique_ptr<ClientHandler> client_handler =
-                std::make_unique<ClientHandler>(_next_client_id, std::move(client_socket),
-                                                _command_queue, _queue_monitor,
-                                                _persistence_monitor, _initial_map);
+            std::unique_ptr<ClientHandler> client_handler = std::make_unique<ClientHandler>(
+                    _next_client_id, std::move(client_socket), _command_queue, _queue_monitor,
+                    _persistence_monitor, _initial_map);
 
             client_handler->start();
             _client_handlers.push_back(std::move(client_handler));
@@ -38,7 +37,6 @@ void Acceptor::run() {
                 std::cerr << "Acceptor error: " << e.what() << "\n";
         }
     }
-
 }
 
 void Acceptor::stop() {
@@ -48,10 +46,10 @@ void Acceptor::stop() {
 
     _listener_socket.shutdown(SHUT_RDWR);
     _listener_socket.close();
-    
+
     Thread::stop();
 
-    for (std::unique_ptr<ClientHandler>& handler : _client_handlers) {
+    for (std::unique_ptr<ClientHandler>& handler: _client_handlers) {
         handler->stop();
         handler->join();
     }

@@ -1,10 +1,10 @@
 #ifndef SPELL_VFX_CONFIG_H
 #define SPELL_VFX_CONFIG_H
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <cstdint>
 
 // Animación y sonido del efecto visual de cada hechizo, cargados desde
 // spells_vfx.toml — usado por VFXRenderer y GameAudioService.
@@ -55,4 +55,4 @@ private:
     SpellVfxConfig& operator=(const SpellVfxConfig&) = delete;
 };
 
-#endif // SPELL_VFX_CONFIG_H
+#endif  // SPELL_VFX_CONFIG_H

@@ -1,9 +1,9 @@
 #ifndef RACES_CLASSES_CONFIG_H
 #define RACES_CLASSES_CONFIG_H
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
-#include <cstdint>
 
 // Texto e ícono de cada raza/clase jugable y los mensajes de login,
 // cargados desde races_classes.toml — usado por LoginScreen.
@@ -56,4 +56,4 @@ private:
     RacesClassesConfig& operator=(const RacesClassesConfig&) = delete;
 };
 
-#endif // RACES_CLASSES_CONFIG_H
+#endif  // RACES_CLASSES_CONFIG_H

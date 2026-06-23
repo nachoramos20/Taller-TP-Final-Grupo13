@@ -1,20 +1,22 @@
-#include <SDL2pp/SDL2pp.hh>
+#include <atomic>
+#include <iostream>
+#include <memory>
+#include <string>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <iostream>
-#include <string>
-#include <atomic>
-#include <memory>
+#include <SDL2pp/SDL2pp.hh>
 
-#include "GameLoop.h"
+#include "../common/socket.h"
+#include "audio/AudioManager.h"
+#include "config/ClientConfig.h"
+#include "config/ConfigLoader.h"
+#include "config/RacesClassesConfig.h"
+#include "net/NetSession.h"
 #include "ui/LoginScreen.h"
 #include "ui/StatsPanel.h"
-#include "audio/AudioManager.h"
-#include "../common/socket.h"
-#include "config/ClientConfig.h"
-#include "config/RacesClassesConfig.h"
-#include "config/ConfigLoader.h"
-#include "net/NetSession.h"
+
+#include "GameLoop.h"
 
 int main(int argc, char* argv[]) try {
     if (argc != 3) {
@@ -27,8 +29,8 @@ int main(int argc, char* argv[]) try {
     try {
         Socket test_sock(host.c_str(), port.c_str());
     } catch (const std::exception& e) {
-        std::cerr << "No se pudo conectar al servidor en " << host << ":" << port
-                   << " (" << e.what() << ")\n";
+        std::cerr << "No se pudo conectar al servidor en " << host << ":" << port << " ("
+                  << e.what() << ")\n";
         return 1;
     }
 
@@ -51,18 +53,12 @@ int main(int argc, char* argv[]) try {
     AudioManager audio;
     audio.play_music_loop(client_config.music.main_theme_path);
 
-    SDL2pp::Window window(
-        client_config.ui.window_title,
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        client_config.ui.window_width, client_config.ui.window_height,
-        SDL_WINDOW_RESIZABLE
-    );
+    SDL2pp::Window window(client_config.ui.window_title, SDL_WINDOWPOS_CENTERED,
+                          SDL_WINDOWPOS_CENTERED, client_config.ui.window_width,
+                          client_config.ui.window_height, SDL_WINDOW_RESIZABLE);
     SDL_SetWindowMinimumSize(window.Get(), StatsPanel::PANEL_W * 2,
                              client_config.ui.window_min_height);
-    SDL2pp::Renderer renderer(
-        window, -1,
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
-    );
+    SDL2pp::Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     std::string pending_error;
 
@@ -74,14 +70,25 @@ int main(int argc, char* argv[]) try {
         }
         LoginResult result = login_screen.run();
 
-        if (result.cancelled) break;
+        if (result.cancelled)
+            break;
 
-        if (result.username.empty()) { pending_error = "Ingresa un nombre."; continue; }
-        if (result.username.size() > 20) { pending_error = "Nombre demasiado largo (max 20)."; continue; }
-        for (char c : result.username) {
-            if (c == ' ') { pending_error = "El nombre no puede tener espacios."; break; }
+        if (result.username.empty()) {
+            pending_error = "Ingresa un nombre.";
+            continue;
         }
-        if (!pending_error.empty()) continue;
+        if (result.username.size() > 20) {
+            pending_error = "Nombre demasiado largo (max 20).";
+            continue;
+        }
+        for (char c: result.username) {
+            if (c == ' ') {
+                pending_error = "El nombre no puede tener espacios.";
+                break;
+            }
+        }
+        if (!pending_error.empty())
+            continue;
 
         NetSession net_session;
         std::string connection_error;
@@ -91,17 +98,16 @@ int main(int argc, char* argv[]) try {
         }
 
         std::string handshake_error;
-        if (!net_session.authenticate(result.username, result.do_register,
-                                      result.race, result.cls, handshake_error)) {
-            pending_error = handshake_error.empty()
-                ? races_classes_config.get_login_messages().invalid_user
-                : handshake_error;
+        if (!net_session.authenticate(result.username, result.do_register, result.race, result.cls,
+                                      handshake_error)) {
+            pending_error = handshake_error.empty() ?
+                                    races_classes_config.get_login_messages().invalid_user :
+                                    handshake_error;
             continue;
         }
 
         try {
-            GameLoop game_loop(window, renderer,
-                               &net_session.commands(), &net_session.snapshots(),
+            GameLoop game_loop(window, renderer, &net_session.commands(), &net_session.snapshots(),
                                &net_session.maps(), &net_session.connection_state(), &audio,
                                result.username);
             game_loop.run();

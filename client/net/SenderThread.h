@@ -3,14 +3,15 @@
 #include <functional>
 #include <unordered_map>
 
-#include "../../common/thread.h"
 #include "../../common/queue.h"
+#include "../../common/thread.h"
+
 #include "ClientProtocol.h"
 #include "Command.h"
 
 // Hilo dedicado a drenar la cola de Command's del jugador y mandarlos por
 // el socket, para que la UI nunca bloquee escribiendo a red.
-class SenderThread : public Thread {
+class SenderThread: public Thread {
 public:
     SenderThread(ClientProtocol& protocol, Queue<Command>& queue);
 

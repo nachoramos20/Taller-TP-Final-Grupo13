@@ -4,16 +4,16 @@
 #include <memory>
 #include <string>
 
-#include "../../common/protocol/Protocol.h"
 #include "../../common/protocol/MapaDTO.h"
-#include "../../common/protocol/protocol.h"
+#include "../../common/protocol/Protocol.h"
 #include "../../common/protocol/dtos.h"
+#include "../../common/protocol/protocol.h"
 
 // Agrupa todo lo que el cliente manda al server
 // (login/registro, movimiento, comandos de inventario y chat, hechizos,
 // cheats) y lo que recibe de él (resultado de login, mapa, snapshots).
 // SenderThread y ReceiverThread usan una misma instancia compartida.
-class ClientProtocol : public Protocol {
+class ClientProtocol: public Protocol {
 public:
     explicit ClientProtocol(Socket&& socket);
 

@@ -1,13 +1,15 @@
 #pragma once
 
-#include <SDL2/SDL.h>
 #include <functional>
 #include <unordered_map>
+#include <utility>
 
-#include "../net/Command.h"
+#include <SDL2/SDL.h>
+
 #include "../../common/queue.h"
-#include "../render/Camera.h"
 #include "../PlayerState.h"
+#include "../net/Command.h"
+#include "../render/Camera.h"
 
 class ChatWidget;
 class StatsPanel;
@@ -35,13 +37,15 @@ enum class InputAction {
 class InputController {
 public:
     InputController(Camera& camera, PlayerState& player, Queue<Command>* command_queue,
-                     ChatWidget* chat, StatsPanel* stats, InventoryPanel* inventory,
-                     PositionLabel* pos_label);
+                    ChatWidget* chat, StatsPanel* stats, InventoryPanel* inventory,
+                    PositionLabel* pos_label);
 
     void handle_events(bool& running);
     void handle_movement();
 
-    void on_world_click(std::function<void(int tile_x, int tile_y)> cb) { _on_world_click = std::move(cb); }
+    void on_world_click(std::function<void(int tile_x, int tile_y)> cb) {
+        _on_world_click = std::move(cb);
+    }
     // Callback para "usar poción" desde atajo de teclado
     void on_use_potion(std::function<void()> cb) { _on_use_potion = std::move(cb); }
     // Callback para "resucitar" desde atajo de teclado (sonido del sacerdote)
@@ -56,21 +60,22 @@ private:
     // atajo ya resuelto por _key_actions. `inventory_open`/`chat_active` se
     // pasan calculados porque casi todas las acciones los usan para
     // bloquearse mientras el inventario o el chat están activos.
-    using ActionHandler = std::function<void(InputController&, bool inventory_open, bool chat_active, bool& running)>;
+    using ActionHandler = std::function<void(InputController&, bool inventory_open,
+                                             bool chat_active, bool& running)>;
     static const std::unordered_map<InputAction, ActionHandler>& action_table();
 
-    Camera&         _camera;
-    PlayerState&    _player;
+    Camera& _camera;
+    PlayerState& _player;
     Queue<Command>* _command_queue;
-    ChatWidget*     _chat;
-    StatsPanel*     _stats;
+    ChatWidget* _chat;
+    StatsPanel* _stats;
     InventoryPanel* _inventory;
-    PositionLabel*  _pos_label;
+    PositionLabel* _pos_label;
 
     std::unordered_map<SDL_Keycode, InputAction> _key_actions;
     Uint32 _last_move_tick = 0;
 
     std::function<void(int, int)> _on_world_click;
-    std::function<void()>         _on_use_potion;
-    std::function<void()>         _on_resurrect;
+    std::function<void()> _on_use_potion;
+    std::function<void()> _on_resurrect;
 };

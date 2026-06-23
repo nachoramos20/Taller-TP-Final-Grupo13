@@ -1,8 +1,9 @@
 #pragma once
 
-#include <SDL2pp/SDL2pp.hh>
 #include <string>
 #include <unordered_map>
+
+#include <SDL2pp/SDL2pp.hh>
 
 // Cachea texturas cargadas desde disco por path, para no recargar el
 // mismo archivo cada vez que algo necesita dibujarlo.

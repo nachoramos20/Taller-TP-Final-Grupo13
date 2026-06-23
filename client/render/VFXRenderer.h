@@ -1,11 +1,12 @@
 #pragma once
 
-#include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL.h>
+#include <SDL2pp/SDL2pp.hh>
+
+#include "../WorldState.h"
 
 #include "AssetManager.h"
 #include "Camera.h"
-#include "../WorldState.h"
 
 // Dibuja efectos visuales transitorios (hechizos, proyectiles, muertes),
 // cada uno con el mismo patrón de "expirar los vencidos, dibujar el resto
@@ -22,6 +23,6 @@ public:
 
 private:
     SDL2pp::Renderer& _renderer;
-    Camera&           _camera;
-    AssetManager&     _assets;
+    Camera& _camera;
+    AssetManager& _assets;
 };

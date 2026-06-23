@@ -67,8 +67,8 @@ public:
 
 private:
     static const std::vector<std::string>& lookup(
-        const std::unordered_map<std::string, std::vector<std::string>>& sounds,
-        const std::string& key);
+            const std::unordered_map<std::string, std::vector<std::string>>& sounds,
+            const std::string& key);
 
     AudioConfig() = default;
     ~AudioConfig() = default;
@@ -77,4 +77,4 @@ private:
     AudioConfig& operator=(const AudioConfig&) = delete;
 };
 
-#endif // AUDIO_CONFIG_H
+#endif  // AUDIO_CONFIG_H

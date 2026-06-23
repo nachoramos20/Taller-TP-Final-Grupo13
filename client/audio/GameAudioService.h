@@ -22,8 +22,8 @@ public:
     // Cuando un enemigo (NPC u otro jugador) golpea al personaje propio.
     void damage_received(float dist_tiles);
     void spell_cast(uint8_t spell_id, float dist_tiles);
-    void npc_death(uint8_t npc_sprite_id, uint16_t entity_id, uint16_t pos_y,
-                   float dist_tiles, uint8_t own_weapon_item);
+    void npc_death(uint8_t npc_sprite_id, uint16_t entity_id, uint16_t pos_y, float dist_tiles,
+                   uint8_t own_weapon_item);
     void player_death(float dist_tiles);
 
     void level_up();
@@ -70,10 +70,14 @@ public:
     void priest_resurrect(float dist_tiles);
 
 private:
-    void play_random(const std::vector<std::string>& paths, float dist_tiles, float volume_scale = 1.0f);
-    void play_sequential(const std::vector<std::string>& paths, float dist_tiles, size_t& index, float volume_scale = 1.0f);
-    void speak_sequence(const std::vector<std::string>& lines, float dist_tiles, uint32_t gap_ms = 200);
-    void speak_random(const std::vector<std::string>& lines, float dist_tiles, uint32_t gap_ms = 200);
+    void play_random(const std::vector<std::string>& paths, float dist_tiles,
+                     float volume_scale = 1.0f);
+    void play_sequential(const std::vector<std::string>& paths, float dist_tiles, size_t& index,
+                         float volume_scale = 1.0f);
+    void speak_sequence(const std::vector<std::string>& lines, float dist_tiles,
+                        uint32_t gap_ms = 200);
+    void speak_random(const std::vector<std::string>& lines, float dist_tiles,
+                      uint32_t gap_ms = 200);
 
     AudioManager* _audio;
     size_t _footstep_grass_index = 0;

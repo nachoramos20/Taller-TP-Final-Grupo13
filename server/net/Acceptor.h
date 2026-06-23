@@ -1,26 +1,25 @@
 #pragma once
 
-#include "../../common/socket.h"
-#include "../../common/thread.h"
-#include "../../common/queue.h"
-#include "../game/QueueMonitor.h"
-#include "../game/PersistenceMonitor.h"
-#include "../../common/protocol/MapaDTO.h"
-#include "ClientHandler.h"
-
-#include <list>
-#include <string>
 #include <atomic>
 #include <cstdint>
+#include <list>
+#include <string>
+
+#include "../../common/protocol/MapaDTO.h"
+#include "../../common/queue.h"
+#include "../../common/socket.h"
+#include "../../common/thread.h"
+#include "../game/PersistenceMonitor.h"
+#include "../game/QueueMonitor.h"
+
+#include "ClientHandler.h"
 
 // Escucha conexiones entrantes y crea un ClientHandler por cada una, en
 // su propio hilo. También da de baja a los handlers cuyo hilo ya terminó.
-class Acceptor : public Thread {
+class Acceptor: public Thread {
 public:
-    Acceptor(const std::string& port,
-             Queue<std::shared_ptr<ServerCommand>>& command_queue,
-             QueueMonitor& queue_monitor,
-             PersistenceMonitor& persistence_monitor,
+    Acceptor(const std::string& port, Queue<std::shared_ptr<ServerCommand>>& command_queue,
+             QueueMonitor& queue_monitor, PersistenceMonitor& persistence_monitor,
              MapaDTO& initial_map);
 
     void run() override;

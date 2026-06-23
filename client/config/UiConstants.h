@@ -16,11 +16,11 @@ constexpr int UI_STATS_PANEL_WIDTH = 250;
 
 // Proyectiles (client/render/VFXRenderer.cpp): color distinto para
 // distinguir flecha de hechizo a simple vista.
-constexpr SDL_Color UI_PROJECTILE_MAGIC_COLOR    { 120, 180, 255, 255 };
-constexpr SDL_Color UI_PROJECTILE_PHYSICAL_COLOR { 230, 210, 120, 255 };
+constexpr SDL_Color UI_PROJECTILE_MAGIC_COLOR{120, 180, 255, 255};
+constexpr SDL_Color UI_PROJECTILE_PHYSICAL_COLOR{230, 210, 120, 255};
 
 // LoginScreen (client/ui/LoginScreen.cpp): texto de placeholder en campos
 // vacíos (3 usos) y label de "Nombre de usuario:" en login/registro
 // (2 usos) — antes cada aparición repetía el literal por separado.
-constexpr SDL_Color UI_LOGIN_PLACEHOLDER_COLOR  { 80, 70, 50, 255 };
-constexpr SDL_Color UI_LOGIN_FIELD_LABEL_COLOR  { 160, 145, 100, 255 };
+constexpr SDL_Color UI_LOGIN_PLACEHOLDER_COLOR{80, 70, 50, 255};
+constexpr SDL_Color UI_LOGIN_FIELD_LABEL_COLOR{160, 145, 100, 255};

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+
 #include "../socket.h"
 
 // Primitivas de framing del protocolo (wire format big-endian) sobre un
@@ -25,7 +26,7 @@ public:
 protected:
     explicit Protocol(Socket&& socket);
 
-    uint8_t  recv_uint8();
+    uint8_t recv_uint8();
     uint16_t recv_uint16();
     uint32_t recv_uint32();
 

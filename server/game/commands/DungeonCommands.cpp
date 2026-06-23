@@ -1,10 +1,12 @@
 #include "DungeonCommands.h"
-#include "../config/MapConstants.h"
-#include "../entities/PlayerData.h"
+
 #include <algorithm>
 #include <cstdlib>
 
-DungeonCommands::DungeonCommands(uint16_t client_id) : client_id_(client_id) {}
+#include "../config/MapConstants.h"
+#include "../entities/PlayerData.h"
+
+DungeonCommands::DungeonCommands(uint16_t client_id): client_id_(client_id) {}
 
 void DungeonCommands::enter(World& world) {
     PlayerData* player = world.get_player_mutable(client_id_);
@@ -23,7 +25,8 @@ void DungeonCommands::enter(World& world) {
                       std::abs(player_x - static_cast<int>(MAP_DUNGEON_DOOR_X2)));
     int dy = std::abs(player_y - static_cast<int>(MAP_DUNGEON_DOOR_Y));
     if (dx > MAP_DUNGEON_DOOR_RADIUS || dy > MAP_DUNGEON_DOOR_RADIUS) {
-        world.push_message(client_id_, 0, "Debes estar en la puerta del cementerio para entrar a la mazmorra.");
+        world.push_message(client_id_, 0,
+                           "Debes estar en la puerta del cementerio para entrar a la mazmorra.");
         return;
     }
 
@@ -45,7 +48,8 @@ void DungeonCommands::enter(World& world) {
 
 void DungeonCommands::leave(World& world) {
     PlayerData* player = world.get_player_mutable(client_id_);
-    if (!player) return;
+    if (!player)
+        return;
 
     Mazmorra* mazmorra = world.get_dungeon_at(player->pos_x, player->pos_y);
     if (!mazmorra) {
@@ -62,5 +66,6 @@ void DungeonCommands::leave(World& world) {
 
 void DungeonCommands::info(World& world) {
     world.push_message(client_id_, 0,
-        "La entrada a la mazmorra esta en la puerta de la casa del cementerio. Parate ahi y usa /entrar-mazmorra.");
+                       "La entrada a la mazmorra esta en la puerta de la casa del cementerio. "
+                       "Parate ahi y usa /entrar-mazmorra.");
 }

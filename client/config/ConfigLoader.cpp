@@ -2,10 +2,10 @@
 
 #include "AudioConfig.h"
 #include "ClientConfig.h"
-#include "SpellVfxConfig.h"
-#include "RacesClassesConfig.h"
 #include "ItemVisualConfig.h"
 #include "NpcVisualConfig.h"
+#include "RacesClassesConfig.h"
+#include "SpellVfxConfig.h"
 
 namespace {
 
@@ -18,7 +18,7 @@ bool load_config_file(bool load_ok, const char* path, std::string& error_message
     return false;
 }
 
-}
+}  // namespace
 
 bool ConfigLoader::load_all(std::string& error_message) {
     error_message.clear();

@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "../world/World.h"
 #include "../../../common/protocol/protocol.h"
+#include "../world/World.h"
 
 // Operaciones de comerciante (comprar/vender/listar catálogo) para un
 // cliente. Extraída de ChatCommand: antes "comprar"/"vender" vivían en

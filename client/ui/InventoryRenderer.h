@@ -1,9 +1,11 @@
 #pragma once
 
-#include <SDL2pp/SDL2pp.hh>
+#include <unordered_map>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <unordered_map>
+#include <SDL2pp/SDL2pp.hh>
+
 #include "../../common/protocol/dtos.h"
 
 // Resultado del render: las regiones clickeables que InventoryPanel
@@ -14,11 +16,11 @@
 // interacción, no de dibujado.
 struct InventoryLayout {
     static constexpr int INV_SIZE = SnapshotDTO::INVENTORY_SIZE;
-    SDL_Rect slot_rects[INV_SIZE] {};
-    SDL_Rect close_btn  {};
-    SDL_Rect equip_btn  {};
-    SDL_Rect drop_btn   {};
-    SDL_Rect panel_rect {};
+    SDL_Rect slot_rects[INV_SIZE]{};
+    SDL_Rect close_btn{};
+    SDL_Rect equip_btn{};
+    SDL_Rect drop_btn{};
+    SDL_Rect panel_rect{};
 };
 
 // Qué dibujar: una copia liviana de los datos de InventoryPanel que el
@@ -54,10 +56,10 @@ public:
     InventoryLayout render(int screen_w, int screen_h, const InventoryRenderInput& input);
 
 private:
-    void draw_text_centered(const std::string& text, int cx, int cy,
-                            SDL_Color color, TTF_Font* font);
-    void draw_text(const std::string& text, int x, int y,
-                   SDL_Color color, TTF_Font* font = nullptr);
+    void draw_text_centered(const std::string& text, int cx, int cy, SDL_Color color,
+                            TTF_Font* font);
+    void draw_text(const std::string& text, int x, int y, SDL_Color color,
+                   TTF_Font* font = nullptr);
     void draw_slot(const InventoryRenderInput& input, int x, int y, int size, int idx,
                    SDL_Rect& out_slot_rect);
     void draw_equip_row(const InventoryRenderInput& input, int x, int y, int w, int h,
@@ -66,11 +68,11 @@ private:
     void draw_lock_icon(int cx, int cy, int size);
 
     SDL2pp::Renderer& _renderer;
-    TTF_Font*         _font;
-    TTF_Font*         _font_sm;
-    int               _font_size;
+    TTF_Font* _font;
+    TTF_Font* _font_sm;
+    int _font_size;
 
-    static constexpr int COLS     = 5;
-    static constexpr int SLOT_SZ  = 52;
+    static constexpr int COLS = 5;
+    static constexpr int SLOT_SZ = 52;
     static constexpr int SLOT_GAP = 4;
 };

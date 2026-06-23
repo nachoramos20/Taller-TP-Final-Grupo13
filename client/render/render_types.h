@@ -18,12 +18,12 @@ struct SpriteBounds {
 struct EquipVisual {
     std::string armor_path;
     std::string helmet_path;
-    int         helmet_src_x = 0;
-    int         helmet_src_y = 0;
-    int         helmet_src_w = 0;
-    int         helmet_src_h = 0;
-    int         helmet_offset_y[4] = {0, 0, 0, 0};
-    int         helmet_offset_x[4] = {0, 0, 0, 0};
+    int helmet_src_x = 0;
+    int helmet_src_y = 0;
+    int helmet_src_w = 0;
+    int helmet_src_h = 0;
+    int helmet_offset_y[4] = {0, 0, 0, 0};
+    int helmet_offset_x[4] = {0, 0, 0, 0};
     std::string weapon_path;
     std::string shield_path;
 };

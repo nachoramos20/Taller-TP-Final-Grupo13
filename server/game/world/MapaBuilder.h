@@ -1,10 +1,11 @@
 #ifndef MAPA_BUILDER_H
 #define MAPA_BUILDER_H
 
-#include "../../../common/protocol/MapaDTO.h"
 #include <cstdint>
 #include <cstdlib>
 #include <vector>
+
+#include "../../../common/protocol/MapaDTO.h"
 
 // Genera proceduralmente (con semilla fija) el mapa inicial del juego y
 // su mapa de colisiones asociado: ciudad, pueblo, bosque, cementerio,
@@ -15,15 +16,10 @@ private:
 
     TileDTO& get_tile(MapaDTO& mapa, uint16_t x, uint16_t y);
 
-    void fill_rect(MapaDTO& mapa,
-                   uint16_t x1, uint16_t y1,
-                   uint16_t x2, uint16_t y2,
-                   uint16_t floor_id,
-                   uint16_t obj_id = 0,
-                   uint16_t obj_sup_id = 0);
+    void fill_rect(MapaDTO& mapa, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,
+                   uint16_t floor_id, uint16_t obj_id = 0, uint16_t obj_sup_id = 0);
 
-    void place_object_sup(MapaDTO& mapa, uint16_t x, uint16_t y,
-                          uint16_t obj_sup_id);
+    void place_object_sup(MapaDTO& mapa, uint16_t x, uint16_t y, uint16_t obj_sup_id);
 
     void build_acantilados(MapaDTO& mapa);
     void build_pasto(MapaDTO& mapa);
@@ -39,8 +35,7 @@ private:
 
     size_t get_index(uint16_t x, uint16_t y) const;
 
-    void mark_collision_rect(uint16_t x1, uint16_t y1,
-                             uint16_t x2, uint16_t y2);
+    void mark_collision_rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
     uint16_t arbol_bosque_random();
     uint16_t flores_random();
 
@@ -54,4 +49,4 @@ public:
     std::vector<uint8_t> take_collision();
 };
 
-#endif // MAPA_BUILDER_H
+#endif  // MAPA_BUILDER_H

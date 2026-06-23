@@ -1,9 +1,10 @@
 #pragma once
 
-#include <SDL2pp/SDL2pp.hh>
+#include <string>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <string>
+#include <SDL2pp/SDL2pp.hh>
 
 // Muestra la posición (tile_x, tile_y) del jugador en pantalla; se puede
 // ocultar/mostrar con un atajo de teclado.
@@ -22,8 +23,8 @@ private:
     void draw_text(const std::string& text, int x, int y, SDL_Color color);
 
     SDL2pp::Renderer& _renderer;
-    TTF_Font*         _font      = nullptr;
-    int               _font_size;
+    TTF_Font* _font = nullptr;
+    int _font_size;
 
     int _tile_x = 0;
     int _tile_y = 0;

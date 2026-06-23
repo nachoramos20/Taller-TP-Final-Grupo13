@@ -1,22 +1,22 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
-#include <cstdint>
 
 // Sprite/recorte de un tile de piso, tal como vienen de tiles.toml.
 struct TileEntry {
     std::string path;
-    int src_x    = 0;
-    int src_y    = 0;
-    int src_w    = 0;  // 0 = usar imagen completa
-    int src_h    = 0;
-    int tile_size = 1; // cuántos tiles ocupa (1 = normal, 6 = acantilado)
+    int src_x = 0;
+    int src_y = 0;
+    int src_w = 0;  // 0 = usar imagen completa
+    int src_h = 0;
+    int tile_size = 1;  // cuántos tiles ocupa (1 = normal, 6 = acantilado)
     int offset_x = 0;
     int offset_y = 0;
 
     bool has_src_rect() const { return src_w > 0; }
-    bool is_large()     const { return tile_size > 1; }
+    bool is_large() const { return tile_size > 1; }
 };
 
 // Tiles de piso definidos en tiles.toml, indexados por floor_id.

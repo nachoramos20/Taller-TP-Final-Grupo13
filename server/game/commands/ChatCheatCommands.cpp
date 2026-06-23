@@ -1,14 +1,17 @@
 #include "ChatCheatCommands.h"
+
+#include <cstring>
+
 #include "../Items.h"
 #include "../config/GameConfig.h"
 #include "../entities/PlayerData.h"
-#include <cstring>
 
-ChatCheatCommands::ChatCheatCommands(uint16_t client_id) : client_id_(client_id) {}
+ChatCheatCommands::ChatCheatCommands(uint16_t client_id): client_id_(client_id) {}
 
 void ChatCheatCommands::set_nivel(World& world, const std::string& args) {
     PlayerData* p = world.get_player_mutable(client_id_);
-    if (!p) return;
+    if (!p)
+        return;
     try {
         int nivel = std::stoi(args);
         if (nivel < 1 || nivel > 100) {
@@ -31,7 +34,8 @@ void ChatCheatCommands::set_nivel(World& world, const std::string& args) {
 
 void ChatCheatCommands::set_vida(World& world, const std::string& args) {
     PlayerData* p = world.get_player_mutable(client_id_);
-    if (!p) return;
+    if (!p)
+        return;
     try {
         int valor = std::stoi(args);
         if (valor < 0) {
@@ -48,7 +52,8 @@ void ChatCheatCommands::set_vida(World& world, const std::string& args) {
 
 void ChatCheatCommands::set_fuerza(World& world, const std::string& args) {
     PlayerData* p = world.get_player_mutable(client_id_);
-    if (!p) return;
+    if (!p)
+        return;
     try {
         int valor = std::stoi(args);
         if (valor < 0 || valor > 100) {
@@ -64,7 +69,8 @@ void ChatCheatCommands::set_fuerza(World& world, const std::string& args) {
 
 void ChatCheatCommands::set_agilidad(World& world, const std::string& args) {
     PlayerData* p = world.get_player_mutable(client_id_);
-    if (!p) return;
+    if (!p)
+        return;
     try {
         int valor = std::stoi(args);
         if (valor < 0 || valor > 100) {
@@ -80,7 +86,8 @@ void ChatCheatCommands::set_agilidad(World& world, const std::string& args) {
 
 void ChatCheatCommands::set_inteligencia(World& world, const std::string& args) {
     PlayerData* p = world.get_player_mutable(client_id_);
-    if (!p) return;
+    if (!p)
+        return;
     try {
         int valor = std::stoi(args);
         if (valor < 0 || valor > 100) {
@@ -96,7 +103,8 @@ void ChatCheatCommands::set_inteligencia(World& world, const std::string& args) 
 
 void ChatCheatCommands::set_constitucion(World& world, const std::string& args) {
     PlayerData* p = world.get_player_mutable(client_id_);
-    if (!p) return;
+    if (!p)
+        return;
     try {
         int valor = std::stoi(args);
         if (valor < 0 || valor > 100) {
@@ -112,7 +120,8 @@ void ChatCheatCommands::set_constitucion(World& world, const std::string& args) 
 
 void ChatCheatCommands::morir_instantaneo(World& world) {
     PlayerData* p = world.get_player_mutable(client_id_);
-    if (!p) return;
+    if (!p)
+        return;
     if (p->is_ghost) {
         world.push_message(client_id_, 0, "Ya estás muerto.");
         return;
@@ -121,12 +130,14 @@ void ChatCheatCommands::morir_instantaneo(World& world) {
     p->is_ghost = true;
     p->meditating = false;
     world.drop_player_loot(*p);
-    world.push_message(client_id_, 0, "Has muerto instantáneamente. Tus pertenencias han caído al suelo.");
+    world.push_message(client_id_, 0,
+                       "Has muerto instantáneamente. Tus pertenencias han caído al suelo.");
 }
 
 void ChatCheatCommands::revivir_instantaneo(World& world) {
     PlayerData* p = world.get_player_mutable(client_id_);
-    if (!p) return;
+    if (!p)
+        return;
     if (!p->is_ghost) {
         world.push_message(client_id_, 0, "No estás muerto.");
         return;
@@ -143,7 +154,8 @@ void ChatCheatCommands::revivir_instantaneo(World& world) {
 
 void ChatCheatCommands::obtener_objeto(World& world, const std::string& args) {
     PlayerData* p = world.get_player_mutable(client_id_);
-    if (!p) return;
+    if (!p)
+        return;
     try {
         int id = std::stoi(args);
         if (id < 1 || id > 255) {
@@ -152,12 +164,16 @@ void ChatCheatCommands::obtener_objeto(World& world, const std::string& args) {
         }
         ItemId iid = static_cast<ItemId>(id);
         if (!Items::exists(iid)) {
-            world.push_message(client_id_, 0, "No existe un objeto con ID " + std::to_string(id) + ".");
+            world.push_message(client_id_, 0,
+                               "No existe un objeto con ID " + std::to_string(id) + ".");
             return;
         }
         int free_slot = -1;
         for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i) {
-            if (p->inventory[i] == 0) { free_slot = i; break; }
+            if (p->inventory[i] == 0) {
+                free_slot = i;
+                break;
+            }
         }
         if (free_slot == -1) {
             world.push_message(client_id_, 0, "Inventario lleno.");
@@ -165,7 +181,8 @@ void ChatCheatCommands::obtener_objeto(World& world, const std::string& args) {
         }
         p->inventory[free_slot] = static_cast<uint8_t>(id);
         const ItemDef& def = Items::get(iid);
-        world.push_message(client_id_, 0, "Has obtenido " + def.name + " (ID " + std::to_string(id) + ").");
+        world.push_message(client_id_, 0,
+                           "Has obtenido " + def.name + " (ID " + std::to_string(id) + ").");
     } catch (...) {
         world.push_message(client_id_, 0, "Uso: /obtener-objeto <id>");
     }
@@ -173,7 +190,8 @@ void ChatCheatCommands::obtener_objeto(World& world, const std::string& args) {
 
 void ChatCheatCommands::set_oro(World& world, const std::string& args) {
     PlayerData* p = world.get_player_mutable(client_id_);
-    if (!p) return;
+    if (!p)
+        return;
     try {
         int valor = std::stoi(args);
         if (valor < 0) {

@@ -3,9 +3,9 @@
 #include <memory>
 
 #include "ChatWidget.h"
-#include "StatsPanel.h"
 #include "InventoryPanel.h"
 #include "PositionLabel.h"
+#include "StatsPanel.h"
 
 class GameAudioService;
 
@@ -19,16 +19,16 @@ class HudManager {
 public:
     HudManager(SDL2pp::Renderer& renderer, GameAudioService* audio);
 
-    ChatWidget*     chat()           { return _chat.get(); }
-    StatsPanel*     stats()          { return _stats.get(); }
-    InventoryPanel* inventory()      { return _inventory.get(); }
-    PositionLabel*  position_label() { return _pos_label.get(); }
+    ChatWidget* chat() { return _chat.get(); }
+    StatsPanel* stats() { return _stats.get(); }
+    InventoryPanel* inventory() { return _inventory.get(); }
+    PositionLabel* position_label() { return _pos_label.get(); }
 
     void render(int screen_w, int screen_h);
 
 private:
-    std::unique_ptr<ChatWidget>     _chat;
-    std::unique_ptr<StatsPanel>     _stats;
+    std::unique_ptr<ChatWidget> _chat;
+    std::unique_ptr<StatsPanel> _stats;
     std::unique_ptr<InventoryPanel> _inventory;
-    std::unique_ptr<PositionLabel>  _pos_label;
+    std::unique_ptr<PositionLabel> _pos_label;
 };

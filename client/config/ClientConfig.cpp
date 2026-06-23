@@ -1,7 +1,9 @@
 #include "ClientConfig.h"
-#include <toml++/toml.hpp>
+
 #include <iostream>
+
 #include <SDL2/SDL_keyboard.h>
+#include <toml++/toml.hpp>
 
 static SDL_Keycode parse_key(toml::node_view<toml::node> node, const char* default_name) {
     std::string name = node.value_or(std::string(default_name));
@@ -11,7 +13,7 @@ static SDL_Keycode parse_key(toml::node_view<toml::node> node, const char* defau
 static std::vector<SDL_Scancode> parse_scancodes(toml::node_view<toml::node> node) {
     std::vector<SDL_Scancode> result;
     if (toml::array* arr = node.as_array()) {
-        for (toml::node& elem : *arr) {
+        for (toml::node& elem: *arr) {
             if (std::optional<std::string> name = elem.value<std::string>())
                 result.push_back(SDL_GetScancodeFromName(name->c_str()));
         }
@@ -31,10 +33,13 @@ bool ClientConfig::load(const std::string& config_path) {
         if (toml::node_view<toml::node> assets_table = config["assets_paths"]) {
             assets.fonts_dir = assets_table["fonts_dir"].value_or(std::string("assets/fonts"));
             assets.sounds_dir = assets_table["sounds_dir"].value_or(std::string("assets/sounds"));
-            assets.sprites_dir = assets_table["sprites_dir"].value_or(std::string("assets/sprites"));
+            assets.sprites_dir =
+                    assets_table["sprites_dir"].value_or(std::string("assets/sprites"));
             assets.music_dir = assets_table["music_dir"].value_or(std::string("assets/music"));
-            assets.effects_dir = assets_table["effects_dir"].value_or(std::string("assets/effects"));
-            assets.creatures_dir = assets_table["creatures_dir"].value_or(std::string("assets/creatures"));
+            assets.effects_dir =
+                    assets_table["effects_dir"].value_or(std::string("assets/effects"));
+            assets.creatures_dir =
+                    assets_table["creatures_dir"].value_or(std::string("assets/creatures"));
         }
 
         if (toml::node_view<toml::node> fonts_table = config["fonts"]) {
@@ -57,13 +62,18 @@ bool ClientConfig::load(const std::string& config_path) {
             rendering.map_size = rendering_table["map_size"].value_or(100);
             rendering.obj_sup_tiles = rendering_table["obj_sup_tiles"].value_or(10);
             rendering.obj_sup_size = rendering_table["obj_sup_size"].value_or(20);
-            rendering.obj_sup_ticks_per_frame = rendering_table["obj_sup_ticks_per_frame"].value_or(8);
+            rendering.obj_sup_ticks_per_frame =
+                    rendering_table["obj_sup_ticks_per_frame"].value_or(8);
             rendering.spell_ticks_per_frame = rendering_table["spell_ticks_per_frame"].value_or(4);
             rendering.water_floor_id = rendering_table["water_floor_id"].value_or<uint16_t>(44);
-            rendering.water_search_radius_tiles = rendering_table["water_search_radius_tiles"].value_or(18);
-            rendering.grass_floor_id_min = rendering_table["grass_floor_id_min"].value_or<uint16_t>(2);
-            rendering.grass_floor_id_max = rendering_table["grass_floor_id_max"].value_or<uint16_t>(9);
-            rendering.city_stone_floor_id = rendering_table["city_stone_floor_id"].value_or<uint16_t>(1);
+            rendering.water_search_radius_tiles =
+                    rendering_table["water_search_radius_tiles"].value_or(18);
+            rendering.grass_floor_id_min =
+                    rendering_table["grass_floor_id_min"].value_or<uint16_t>(2);
+            rendering.grass_floor_id_max =
+                    rendering_table["grass_floor_id_max"].value_or<uint16_t>(9);
+            rendering.city_stone_floor_id =
+                    rendering_table["city_stone_floor_id"].value_or<uint16_t>(1);
             rendering.dirt_floor_id = rendering_table["dirt_floor_id"].value_or<uint16_t>(10);
             rendering.sand_floor_id = rendering_table["sand_floor_id"].value_or<uint16_t>(45);
             rendering.forest_x_min = rendering_table["forest_x_min"].value_or(4);
@@ -99,8 +109,8 @@ bool ClientConfig::load(const std::string& config_path) {
             death_effects.death_frame_ms = death_table["death_frame_ms"].value_or(150);
             death_effects.death_linger_ms = death_table["death_linger_ms"].value_or(2000);
             death_effects.death_duration_ms = death_table["death_duration_ms"].value_or(2900);
-            death_effects.sprite_base_path = death_table["sprite_base_path"]
-                .value_or(std::string("assets/sprites/stage/sangre_"));
+            death_effects.sprite_base_path = death_table["sprite_base_path"].value_or(
+                    std::string("assets/sprites/stage/sangre_"));
         }
 
         if (toml::node_view<toml::node> camera_table = config["camera"]) {
@@ -114,17 +124,17 @@ bool ClientConfig::load(const std::string& config_path) {
 
         if (toml::node_view<toml::node> kb_table = config["keybindings"]) {
             keybindings.toggle_position_label = parse_key(kb_table["toggle_position_label"], "X");
-            keybindings.toggle_inventory      = parse_key(kb_table["toggle_inventory"], "Tab");
-            keybindings.drop_item             = parse_key(kb_table["drop_item"], "Q");
-            keybindings.meditate              = parse_key(kb_table["meditate"], "M");
-            keybindings.resurrect             = parse_key(kb_table["resurrect"], "R");
-            keybindings.pick_item             = parse_key(kb_table["pick_item"], "E");
-            keybindings.quit                  = parse_key(kb_table["quit"], "Escape");
-            keybindings.help                  = parse_key(kb_table["help"], "H");
+            keybindings.toggle_inventory = parse_key(kb_table["toggle_inventory"], "Tab");
+            keybindings.drop_item = parse_key(kb_table["drop_item"], "Q");
+            keybindings.meditate = parse_key(kb_table["meditate"], "M");
+            keybindings.resurrect = parse_key(kb_table["resurrect"], "R");
+            keybindings.pick_item = parse_key(kb_table["pick_item"], "E");
+            keybindings.quit = parse_key(kb_table["quit"], "Escape");
+            keybindings.help = parse_key(kb_table["help"], "H");
 
-            keybindings.move_up    = parse_scancodes(kb_table["move_up"]);
-            keybindings.move_down  = parse_scancodes(kb_table["move_down"]);
-            keybindings.move_left  = parse_scancodes(kb_table["move_left"]);
+            keybindings.move_up = parse_scancodes(kb_table["move_up"]);
+            keybindings.move_down = parse_scancodes(kb_table["move_down"]);
+            keybindings.move_left = parse_scancodes(kb_table["move_left"]);
             keybindings.move_right = parse_scancodes(kb_table["move_right"]);
         }
 

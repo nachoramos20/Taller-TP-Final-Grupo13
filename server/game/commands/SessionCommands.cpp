@@ -1,19 +1,15 @@
-#include "Commands.h"
-#include "../Items.h"
 #include <utility>
 
-LoginCommand::LoginCommand(PlayerData p) : player_data(std::move(p)) {}
+#include "../Items.h"
 
-void LoginCommand::execute(World& world) {
-    world.add_player(player_data);
-}
+#include "Commands.h"
 
-const char* LoginCommand::get_username() const {
-    return player_data.username;
-}
+LoginCommand::LoginCommand(PlayerData p): player_data(std::move(p)) {}
 
-LogoutCommand::LogoutCommand(uint16_t c) : client_id(c) {}
+void LoginCommand::execute(World& world) { world.add_player(player_data); }
 
-void LogoutCommand::execute(World& world) {
-    world.remove_player(client_id);
-}
+const char* LoginCommand::get_username() const { return player_data.username; }
+
+LogoutCommand::LogoutCommand(uint16_t c): client_id(c) {}
+
+void LogoutCommand::execute(World& world) { world.remove_player(client_id); }

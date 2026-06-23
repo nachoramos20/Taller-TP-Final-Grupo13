@@ -3,10 +3,10 @@
 #include <cstdint>
 #include <string>
 
-#include "../net/Command.h"
 #include "../../common/queue.h"
-#include "../WorldState.h"
 #include "../PlayerState.h"
+#include "../WorldState.h"
+#include "../net/Command.h"
 
 class ChatWidget;
 class StatsPanel;
@@ -21,7 +21,7 @@ class GameAudioService;
 class PlayerActionController {
 public:
     PlayerActionController(WorldState& state, PlayerState& player, Queue<Command>* command_queue,
-                            ChatWidget* chat, StatsPanel* stats, GameAudioService& audio);
+                           ChatWidget* chat, StatsPanel* stats, GameAudioService& audio);
 
     void handle_world_click(int tile_x, int tile_y);
     void handle_chat_command(const std::string& text);
@@ -33,10 +33,10 @@ public:
     void try_play_resurrect_sound();
 
 private:
-    WorldState&       _state;
-    PlayerState&      _player;
-    Queue<Command>*   _command_queue;
-    ChatWidget*       _chat;
-    StatsPanel*       _stats;
+    WorldState& _state;
+    PlayerState& _player;
+    Queue<Command>* _command_queue;
+    ChatWidget* _chat;
+    StatsPanel* _stats;
     GameAudioService& _audio;
 };

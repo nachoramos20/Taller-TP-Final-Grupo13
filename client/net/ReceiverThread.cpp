@@ -1,22 +1,22 @@
-#include <SDL2/SDL.h>
 #include "ReceiverThread.h"
+
 #include <iostream>
 #include <string>
 
-ReceiverThread::ReceiverThread(ClientProtocol& protocol,
-                               Queue<SnapshotDTO>& snapshot_queue,
-                               Queue<MapaDTO>& map_queue,
-                               std::atomic<bool>& connected)
-    : _protocol(protocol),
-      _snapshot_queue(snapshot_queue),
-      _map_queue(map_queue),
-      _connected(connected),
-      _my_entity_id(0) {}
+#include <SDL2/SDL.h>
+
+ReceiverThread::ReceiverThread(ClientProtocol& protocol, Queue<SnapshotDTO>& snapshot_queue,
+                               Queue<MapaDTO>& map_queue, std::atomic<bool>& connected):
+        _protocol(protocol),
+        _snapshot_queue(snapshot_queue),
+        _map_queue(map_queue),
+        _connected(connected),
+        _my_entity_id(0) {}
 
 void ReceiverThread::run() {
     try {
         // ── Fase 1: handshake (LOGIN_OK / LOGIN_ERROR / MAPA) ────────────────
-        bool got_ok  = false;
+        bool got_ok = false;
         bool got_map = false;
 
         // No se aplica tabla en este switch ni en el de game_loop_receive:
@@ -57,14 +57,16 @@ void ReceiverThread::run() {
             }
         }
 
-        if (!got_ok) { _connected = false; return; }
+        if (!got_ok) {
+            _connected = false;
+            return;
+        }
 
         // ── Fase 2: game loop ─────────────────────────────────────────────────
         game_loop_receive();
 
     } catch (const ClosedQueue&) {
-    } catch (const std::exception&) {
-    }
+    } catch (const std::exception&) {}
     _connected = false;
 }
 
@@ -88,8 +90,7 @@ void ReceiverThread::game_loop_receive() {
             }
         }
     } catch (const ClosedQueue&) {
-    } catch (const std::exception&) {
-    }
+    } catch (const std::exception&) {}
 }
 
 void ReceiverThread::stop() { Thread::stop(); }
@@ -103,7 +104,8 @@ HandshakeResult ReceiverThread::wait_handshake(std::string& error_msg) {
     // el servidor ya respondió error y el hilo terminó.
     for (int attempts = 0; attempts < 3000; attempts++) {
         std::string ok_msg;
-        if (_login_ok_queue.try_pop(ok_msg)) return HandshakeResult::OK;
+        if (_login_ok_queue.try_pop(ok_msg))
+            return HandshakeResult::OK;
 
         std::string err_msg;
         if (_login_error_queue.try_pop(err_msg)) {

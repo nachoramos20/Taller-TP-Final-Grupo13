@@ -1,24 +1,27 @@
 #pragma once
 
-#include <SDL2pp/SDL2pp.hh>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 #include <cstdint>
 #include <string>
 #include <vector>
-#include "SpellSystem.h"
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2pp/SDL2pp.hh>
+
 #include "../config/UiConstants.h"
+
+#include "SpellSystem.h"
 
 // Regiones clickeables que el último render() calculó; StatsPanel las
 // guarda para resolver handle_event() en el frame siguiente (mismo
 // patrón que InventoryLayout/InventoryRenderer).
 struct StatsLayout {
     static constexpr int MAX_SPELL_BTNS = 3;
-    SDL_Rect inv_btn_rect  {};
-    SDL_Rect help_btn_rect {};
-    SDL_Rect spell_btn_rect[MAX_SPELL_BTNS] {};
-    uint8_t  spell_btn_id [MAX_SPELL_BTNS] { 0, 0, 0 };
-    int      spell_btn_count = 0;
+    SDL_Rect inv_btn_rect{};
+    SDL_Rect help_btn_rect{};
+    SDL_Rect spell_btn_rect[MAX_SPELL_BTNS]{};
+    uint8_t spell_btn_id[MAX_SPELL_BTNS]{0, 0, 0};
+    int spell_btn_count = 0;
 };
 
 // Qué dibujar: copia liviana de los datos de StatsPanel y SpellSystem
@@ -27,12 +30,12 @@ struct StatsRenderInput {
     const std::string* username;
     uint16_t hp, max_hp, mp, max_mp;
     uint32_t gold, exp;
-    uint8_t  level;
-    bool     meditating, is_ghost;
-    uint8_t  cls, eq_weapon_item;
-    bool     help_visible;
-    bool     cast_mode;
-    uint8_t  selected_spell;
+    uint8_t level;
+    bool meditating, is_ghost;
+    uint8_t cls, eq_weapon_item;
+    bool help_visible;
+    bool cast_mode;
+    uint8_t selected_spell;
     const std::vector<SpellInfo>* spells;
 };
 
@@ -66,6 +69,6 @@ private:
     void render_help_overlay(int screen_w, int screen_h);
 
     SDL2pp::Renderer& _renderer;
-    TTF_Font*         _font;
-    int               _font_size;
+    TTF_Font* _font;
+    int _font_size;
 };

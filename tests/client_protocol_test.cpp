@@ -1,20 +1,20 @@
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
-
 #include <cstdint>
 #include <cstring>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <stdexcept>
-#include <unistd.h>
 #include <memory>
+#include <stdexcept>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
+
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #include "../client/net/ClientProtocol.h"
-#include "../common/protocol/protocol.h"
 #include "../common/protocol/dtos.h"
+#include "../common/protocol/protocol.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 using ::testing::_;
 using ::testing::NotNull;
@@ -66,9 +66,7 @@ std::vector<uint8_t> recv_bytes(int fd, size_t len) {
     return buf;
 }
 
-void send_uint8(int fd, uint8_t val) {
-    send_bytes(fd, &val, 1);
-}
+void send_uint8(int fd, uint8_t val) { send_bytes(fd, &val, 1); }
 
 void send_uint16(int fd, uint16_t val) {
     val = htons(val);
@@ -86,7 +84,7 @@ void send_string(int fd, const std::string& s) {
     send_bytes(fd, s.data(), s.size());
 }
 
-// Test de envio 
+// Test de envio
 
 TEST(ClientProtocolSendTest, SendLogin) {
     TestSockets sockets;
@@ -97,12 +95,14 @@ TEST(ClientProtocolSendTest, SendLogin) {
         protocolo_cliente.send_login(username);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint8_t) + username.size());
+    std::vector<uint8_t> buffer =
+            recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint8_t) + username.size());
 
     size_t pos = 0;
-    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::LOGIN)); pos += sizeof(uint8_t);
-    uint8_t len = buffer[pos]; pos += sizeof(uint8_t);
+    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::LOGIN));
+    pos += sizeof(uint8_t);
+    uint8_t len = buffer[pos];
+    pos += sizeof(uint8_t);
     EXPECT_EQ(len, username.size());
     std::string recibido(buffer.begin() + pos, buffer.begin() + pos + len);
     EXPECT_EQ(recibido, username);
@@ -119,16 +119,21 @@ TEST(ClientProtocolSendTest, SendRegister) {
         protocolo_cliente.send_register(username, Race::ELF, Class::MAGE);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint8_t) + username.size() + sizeof(uint8_t) + sizeof(uint8_t));
+    std::vector<uint8_t> buffer =
+            recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint8_t) + username.size() +
+                                                  sizeof(uint8_t) + sizeof(uint8_t));
 
     size_t pos = 0;
-    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::REGISTER)); pos += sizeof(uint8_t);
-    uint8_t len = buffer[pos]; pos += sizeof(uint8_t);
+    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::REGISTER));
+    pos += sizeof(uint8_t);
+    uint8_t len = buffer[pos];
+    pos += sizeof(uint8_t);
     EXPECT_EQ(len, username.size());
-    std::string recibido(buffer.begin() + pos, buffer.begin() + pos + len); pos += len;
+    std::string recibido(buffer.begin() + pos, buffer.begin() + pos + len);
+    pos += len;
     EXPECT_EQ(recibido, username);
-    EXPECT_EQ(buffer[pos], race_id); pos += sizeof(uint8_t);
+    EXPECT_EQ(buffer[pos], race_id);
+    pos += sizeof(uint8_t);
     EXPECT_EQ(buffer[pos], class_id);
 }
 
@@ -142,13 +147,15 @@ TEST(ClientProtocolSendTest, SendMove) {
         protocolo_cliente.send_move(x, y);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint16_t));
+    std::vector<uint8_t> buffer =
+            recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint16_t));
 
     size_t pos = 0;
-    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::MOVE)); pos += sizeof(uint8_t);
+    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::MOVE));
+    pos += sizeof(uint8_t);
     uint16_t x_recibida;
-    memcpy(&x_recibida, &buffer[pos], sizeof(uint16_t)); pos += sizeof(uint16_t);
+    memcpy(&x_recibida, &buffer[pos], sizeof(uint16_t));
+    pos += sizeof(uint16_t);
     EXPECT_EQ(ntohs(x_recibida), x);
     uint16_t y_recibida;
     memcpy(&y_recibida, &buffer[pos], sizeof(uint16_t));
@@ -164,8 +171,7 @@ TEST(ClientProtocolSendTest, SendAttack) {
         protocolo_cliente.send_attack(target_id);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint16_t));
+    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint16_t));
 
     EXPECT_EQ(buffer[0], static_cast<uint8_t>(MsgType::ATTACK));
     uint16_t target_recibida;
@@ -182,12 +188,14 @@ TEST(ClientProtocolSendTest, SendChatCommand) {
         protocolo_cliente.send_chat_command(text);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint8_t) + text.size());
+    std::vector<uint8_t> buffer =
+            recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint8_t) + text.size());
 
     size_t pos = 0;
-    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::CHAT_COMMAND)); pos += sizeof(uint8_t);
-    uint8_t len = buffer[pos]; pos += sizeof(uint8_t);
+    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::CHAT_COMMAND));
+    pos += sizeof(uint8_t);
+    uint8_t len = buffer[pos];
+    pos += sizeof(uint8_t);
     EXPECT_EQ(len, text.size());
     std::string recibido(buffer.begin() + pos, buffer.begin() + pos + len);
     EXPECT_EQ(recibido, text);
@@ -201,8 +209,7 @@ TEST(ClientProtocolSendTest, SendChatCommandEmpty) {
         protocolo_cliente.send_chat_command("");
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint8_t));
+    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint8_t));
 
     EXPECT_EQ(buffer[0], static_cast<uint8_t>(MsgType::CHAT_COMMAND));
     EXPECT_EQ(buffer[1], 0);
@@ -217,8 +224,7 @@ TEST(ClientProtocolSendTest, SendEquipItem) {
         protocolo_cliente.send_equip_item(slot);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint8_t));
+    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint8_t));
 
     EXPECT_EQ(buffer[0], static_cast<uint8_t>(MsgType::EQUIP_ITEM));
     EXPECT_EQ(buffer[1], slot);
@@ -233,8 +239,7 @@ TEST(ClientProtocolSendTest, SendUnequipItem) {
         protocolo_cliente.send_unequip_item(EquipSlot::HELMET);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint8_t));
+    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint8_t));
 
     EXPECT_EQ(buffer[0], static_cast<uint8_t>(MsgType::UNEQUIP_ITEM));
     EXPECT_EQ(buffer[1], slot);
@@ -250,12 +255,14 @@ TEST(ClientProtocolSendTest, SendMoveItem) {
         protocolo_cliente.send_move_item(from, to);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t));
+    std::vector<uint8_t> buffer =
+            recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t));
 
     size_t pos = 0;
-    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::MOVE_ITEM)); pos += sizeof(uint8_t);
-    EXPECT_EQ(buffer[pos], from); pos += sizeof(uint8_t);
+    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::MOVE_ITEM));
+    pos += sizeof(uint8_t);
+    EXPECT_EQ(buffer[pos], from);
+    pos += sizeof(uint8_t);
     EXPECT_EQ(buffer[pos], to);
 }
 
@@ -268,8 +275,7 @@ TEST(ClientProtocolSendTest, SendDropItem) {
         protocolo_cliente.send_drop_item(slot);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint8_t));
+    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint8_t));
 
     EXPECT_EQ(buffer[0], static_cast<uint8_t>(MsgType::DROP_ITEM));
     EXPECT_EQ(buffer[1], slot);
@@ -296,8 +302,7 @@ TEST(ClientProtocolSendTest, SendUseItem) {
         protocolo_cliente.send_use_item(slot);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint8_t));
+    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint8_t));
 
     EXPECT_EQ(buffer[0], static_cast<uint8_t>(MsgType::USE_ITEM));
     EXPECT_EQ(buffer[1], slot);
@@ -348,8 +353,7 @@ TEST(ClientProtocolSendTest, SendNpcInteract) {
         protocolo_cliente.send_npc_interact(npc_id);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint16_t));
+    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint16_t));
 
     EXPECT_EQ(buffer[0], static_cast<uint8_t>(MsgType::NPC_INTERACT));
     uint16_t npc_recibida;
@@ -367,13 +371,15 @@ TEST(ClientProtocolSendTest, SendCastSpell) {
         protocolo_cliente.send_cast_spell(target_id, spell_id);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint8_t));
+    std::vector<uint8_t> buffer =
+            recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint8_t));
 
     size_t pos = 0;
-    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::CAST_SPELL)); pos += sizeof(uint8_t);
+    EXPECT_EQ(buffer[pos], static_cast<uint8_t>(MsgType::CAST_SPELL));
+    pos += sizeof(uint8_t);
     uint16_t target_recibida;
-    memcpy(&target_recibida, &buffer[pos], sizeof(uint16_t)); pos += sizeof(uint16_t);
+    memcpy(&target_recibida, &buffer[pos], sizeof(uint16_t));
+    pos += sizeof(uint16_t);
     EXPECT_EQ(ntohs(target_recibida), target_id);
     EXPECT_EQ(buffer[pos], spell_id);
 }
@@ -387,8 +393,7 @@ TEST(ClientProtocolSendTest, SendCheat) {
         protocolo_cliente.send_cheat(cheat_id);
     }
 
-    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server,
-        sizeof(uint8_t) + sizeof(uint8_t));
+    std::vector<uint8_t> buffer = recv_bytes(sockets.fd_server, sizeof(uint8_t) + sizeof(uint8_t));
 
     EXPECT_EQ(buffer[0], static_cast<uint8_t>(MsgType::CHEAT));
     EXPECT_EQ(buffer[1], cheat_id);
@@ -457,10 +462,18 @@ TEST(ClientProtocolRecvTest, RecvMap) {
     send_bytes(sockets.fd_server, &width, sizeof(width));
     send_bytes(sockets.fd_server, &height, sizeof(height));
     send_bytes(sockets.fd_server, &num_tiles, sizeof(num_tiles));
-    send_bytes(sockets.fd_server, &floor1, sizeof(floor1)); send_bytes(sockets.fd_server, &obj1, sizeof(obj1)); send_bytes(sockets.fd_server, &obj_sup1, sizeof(obj_sup1));
-    send_bytes(sockets.fd_server, &floor2, sizeof(floor2)); send_bytes(sockets.fd_server, &obj2, sizeof(obj2)); send_bytes(sockets.fd_server, &obj_sup2, sizeof(obj_sup2));
-    send_bytes(sockets.fd_server, &floor3, sizeof(floor3)); send_bytes(sockets.fd_server, &obj3, sizeof(obj3)); send_bytes(sockets.fd_server, &obj_sup3, sizeof(obj_sup3));
-    send_bytes(sockets.fd_server, &floor4, sizeof(floor4)); send_bytes(sockets.fd_server, &obj4, sizeof(obj4)); send_bytes(sockets.fd_server, &obj_sup4, sizeof(obj_sup4));
+    send_bytes(sockets.fd_server, &floor1, sizeof(floor1));
+    send_bytes(sockets.fd_server, &obj1, sizeof(obj1));
+    send_bytes(sockets.fd_server, &obj_sup1, sizeof(obj_sup1));
+    send_bytes(sockets.fd_server, &floor2, sizeof(floor2));
+    send_bytes(sockets.fd_server, &obj2, sizeof(obj2));
+    send_bytes(sockets.fd_server, &obj_sup2, sizeof(obj_sup2));
+    send_bytes(sockets.fd_server, &floor3, sizeof(floor3));
+    send_bytes(sockets.fd_server, &obj3, sizeof(obj3));
+    send_bytes(sockets.fd_server, &obj_sup3, sizeof(obj_sup3));
+    send_bytes(sockets.fd_server, &floor4, sizeof(floor4));
+    send_bytes(sockets.fd_server, &obj4, sizeof(obj4));
+    send_bytes(sockets.fd_server, &obj_sup4, sizeof(obj_sup4));
 
     Socket client_socket = sockets.make_client_socket();
     ClientProtocol protocolo_cliente(std::move(client_socket));
@@ -480,23 +493,22 @@ TEST(ClientProtocolRecvTest, RecvSnapshot) {
     TestSockets sockets;
 
     // Enviar datos del snapshot manualmente
-    send_uint32(sockets.fd_server, 42);     // tick
-    send_uint16(sockets.fd_server, 1);      // self_entity_id
-    send_uint16(sockets.fd_server, 100);    // hp
-    send_uint16(sockets.fd_server, 200);    // max_hp
-    send_uint16(sockets.fd_server, 50);     // mp
-    send_uint16(sockets.fd_server, 150);    // max_mp
-    send_uint32(sockets.fd_server, 9999);   // exp
-    send_uint8(sockets.fd_server, 5);       // level
+    send_uint32(sockets.fd_server, 42);                                   // tick
+    send_uint16(sockets.fd_server, 1);                                    // self_entity_id
+    send_uint16(sockets.fd_server, 100);                                  // hp
+    send_uint16(sockets.fd_server, 200);                                  // max_hp
+    send_uint16(sockets.fd_server, 50);                                   // mp
+    send_uint16(sockets.fd_server, 150);                                  // max_mp
+    send_uint32(sockets.fd_server, 9999);                                 // exp
+    send_uint8(sockets.fd_server, 5);                                     // level
     send_uint8(sockets.fd_server, static_cast<uint8_t>(Class::WARRIOR));  // character_class
-    send_uint32(sockets.fd_server, 12345);  // gold
-    send_uint8(sockets.fd_server, 0);       // is_ghost
-    send_uint8(sockets.fd_server, 1);       // meditating
+    send_uint32(sockets.fd_server, 12345);                                // gold
+    send_uint8(sockets.fd_server, 0);                                     // is_ghost
+    send_uint8(sockets.fd_server, 1);                                     // meditating
 
     // Inventory
     send_uint8(sockets.fd_server, SnapshotDTO::INVENTORY_SIZE);
-    for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++)
-        send_uint8(sockets.fd_server, i + 1);
+    for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++) send_uint8(sockets.fd_server, i + 1);
     send_uint8(sockets.fd_server, 1);  // equipped_weapon
     send_uint8(sockets.fd_server, 2);  // equipped_armor
     send_uint8(sockets.fd_server, 3);  // equipped_helmet
@@ -504,33 +516,33 @@ TEST(ClientProtocolRecvTest, RecvSnapshot) {
 
     // Entities: 1 entity
     send_uint8(sockets.fd_server, 1);
-    send_uint16(sockets.fd_server, 10);       // entity_id
+    send_uint16(sockets.fd_server, 10);                                       // entity_id
     send_uint8(sockets.fd_server, static_cast<uint8_t>(EntityType::PLAYER));  // entity_type
     send_string(sockets.fd_server, "Player1");
-    send_uint16(sockets.fd_server, 5);         // pos_x
-    send_uint16(sockets.fd_server, 6);         // pos_y
-    send_uint8(sockets.fd_server, 1);          // direction
-    send_uint8(sockets.fd_server, 2);          // sprite_id
-    send_uint8(sockets.fd_server, 0);          // is_ghost
-    send_uint8(sockets.fd_server, 80);         // hp_pct
-    send_uint8(sockets.fd_server, 1);          // equipped_weapon
-    send_uint8(sockets.fd_server, 0);          // equipped_armor
-    send_uint8(sockets.fd_server, 0);          // equipped_helmet
-    send_uint8(sockets.fd_server, 0);          // equipped_shield
-    send_uint8(sockets.fd_server, 0);          // level
+    send_uint16(sockets.fd_server, 5);  // pos_x
+    send_uint16(sockets.fd_server, 6);  // pos_y
+    send_uint8(sockets.fd_server, 1);   // direction
+    send_uint8(sockets.fd_server, 2);   // sprite_id
+    send_uint8(sockets.fd_server, 0);   // is_ghost
+    send_uint8(sockets.fd_server, 80);  // hp_pct
+    send_uint8(sockets.fd_server, 1);   // equipped_weapon
+    send_uint8(sockets.fd_server, 0);   // equipped_armor
+    send_uint8(sockets.fd_server, 0);   // equipped_helmet
+    send_uint8(sockets.fd_server, 0);   // equipped_shield
+    send_uint8(sockets.fd_server, 0);   // level
 
     // Messages: 1 message
     send_uint8(sockets.fd_server, 1);
-    send_uint8(sockets.fd_server, 0);          // msg_type
+    send_uint8(sockets.fd_server, 0);  // msg_type
     send_string(sockets.fd_server, "Welcome!");
 
     // Spell events: 1 spell event
     send_uint8(sockets.fd_server, 1);
-    send_uint16(sockets.fd_server, 10);        // caster_id
-    send_uint8(sockets.fd_server, 5);          // spell_id
-    send_uint16(sockets.fd_server, 20);        // target_x
-    send_uint16(sockets.fd_server, 30);        // target_y
-    send_uint8(sockets.fd_server, 1);          // is_magic_projectile
+    send_uint16(sockets.fd_server, 10);  // caster_id
+    send_uint8(sockets.fd_server, 5);    // spell_id
+    send_uint16(sockets.fd_server, 20);  // target_x
+    send_uint16(sockets.fd_server, 30);  // target_y
+    send_uint8(sockets.fd_server, 1);    // is_magic_projectile
 
     Socket client_socket = sockets.make_client_socket();
     ClientProtocol protocolo_cliente(std::move(client_socket));
@@ -549,8 +561,7 @@ TEST(ClientProtocolRecvTest, RecvSnapshot) {
     EXPECT_EQ(snap.is_ghost, 0);
     EXPECT_EQ(snap.meditating, 1);
 
-    for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++)
-        EXPECT_EQ(snap.inventory[i], i + 1);
+    for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++) EXPECT_EQ(snap.inventory[i], i + 1);
     EXPECT_EQ(snap.equipped_weapon, 1);
     EXPECT_EQ(snap.equipped_armor, 2);
     EXPECT_EQ(snap.equipped_helmet, 3);
@@ -590,23 +601,22 @@ TEST(ClientProtocolRecvTest, RecvSnapshot) {
 TEST(ClientProtocolRecvTest, RecvSnapshotNoEntitiesNoMessages) {
     TestSockets sockets;
 
-    send_uint32(sockets.fd_server, 1);      // tick
-    send_uint16(sockets.fd_server, 42);     // self_entity_id
-    send_uint16(sockets.fd_server, 100);    // hp
-    send_uint16(sockets.fd_server, 100);    // max_hp
-    send_uint16(sockets.fd_server, 50);     // mp
-    send_uint16(sockets.fd_server, 50);     // max_mp
-    send_uint32(sockets.fd_server, 0);      // exp
-    send_uint8(sockets.fd_server, 1);       // level
+    send_uint32(sockets.fd_server, 1);                                 // tick
+    send_uint16(sockets.fd_server, 42);                                // self_entity_id
+    send_uint16(sockets.fd_server, 100);                               // hp
+    send_uint16(sockets.fd_server, 100);                               // max_hp
+    send_uint16(sockets.fd_server, 50);                                // mp
+    send_uint16(sockets.fd_server, 50);                                // max_mp
+    send_uint32(sockets.fd_server, 0);                                 // exp
+    send_uint8(sockets.fd_server, 1);                                  // level
     send_uint8(sockets.fd_server, static_cast<uint8_t>(Class::MAGE));  // character_class
-    send_uint32(sockets.fd_server, 0);      // gold
-    send_uint8(sockets.fd_server, 0);       // is_ghost
-    send_uint8(sockets.fd_server, 0);       // meditating
+    send_uint32(sockets.fd_server, 0);                                 // gold
+    send_uint8(sockets.fd_server, 0);                                  // is_ghost
+    send_uint8(sockets.fd_server, 0);                                  // meditating
 
     // Inventory
     send_uint8(sockets.fd_server, SnapshotDTO::INVENTORY_SIZE);
-    for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++)
-        send_uint8(sockets.fd_server, 0);
+    for (int i = 0; i < SnapshotDTO::INVENTORY_SIZE; i++) send_uint8(sockets.fd_server, 0);
     send_uint8(sockets.fd_server, 0);  // equipped_weapon
     send_uint8(sockets.fd_server, 0);  // equipped_armor
     send_uint8(sockets.fd_server, 0);  // equipped_helmet
@@ -636,4 +646,4 @@ TEST(ClientProtocolRecvTest, RecvSnapshotNoEntitiesNoMessages) {
     EXPECT_EQ(snap.spell_events->size(), 0);
 }
 
-} // anonymous namespace
+}  // anonymous namespace

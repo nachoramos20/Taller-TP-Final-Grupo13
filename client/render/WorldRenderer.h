@@ -1,18 +1,19 @@
 #pragma once
 
-#include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2pp/SDL2pp.hh>
+
+#include "../../common/protocol/protocol.h"
+#include "../PlayerState.h"
+#include "../WorldState.h"
 
 #include "AssetManager.h"
-#include "EntityRenderer.h"
-#include "VFXRenderer.h"
-#include "SpriteConfig.h"
-#include "ObjectSupConfig.h"
 #include "Camera.h"
-#include "../../common/protocol/protocol.h"
-#include "../WorldState.h"
-#include "../PlayerState.h"
+#include "EntityRenderer.h"
+#include "ObjectSupConfig.h"
+#include "SpriteConfig.h"
+#include "VFXRenderer.h"
 
 class InventoryPanel;
 
@@ -35,14 +36,14 @@ private:
     void render_floor(const WorldState& state);
     void render_obj_sup(const WorldState& state);
 
-    SDL2pp::Window&   _window;
+    SDL2pp::Window& _window;
     SDL2pp::Renderer& _renderer;
-    Camera&           _camera;
+    Camera& _camera;
 
-    AssetManager     _assets;
-    TileConfig       _tile_config;
-    ObjectSupConfig  _obj_sup_config;
+    AssetManager _assets;
+    TileConfig _tile_config;
+    ObjectSupConfig _obj_sup_config;
 
     EntityRenderer _entity_renderer;
-    VFXRenderer    _vfx_renderer;
+    VFXRenderer _vfx_renderer;
 };

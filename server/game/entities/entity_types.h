@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+
 #include "../../../common/protocol/protocol.h"
 
 // Plantilla de NPC (datos de balance cargados de npcs.toml vía GameConfig,
@@ -10,7 +11,7 @@
 // Npc.h; se usa desde varios comandos (CombatCommands, MagicCommands,
 // NpcCommands) y desde WorldNpcs, no solo desde Npc.cpp.
 struct NpcTemplate {
-    NpcId    id;
+    NpcId id;
     std::string name;
     uint16_t max_hp;
     uint16_t dmg_min;
@@ -30,13 +31,13 @@ struct NpcTemplate {
 // Instancia viva de un NPC en el mundo.
 struct NpcData {
     uint16_t entity_id;
-    NpcId    type;
+    NpcId type;
     uint16_t pos_x;
     uint16_t pos_y;
-    uint8_t  direction = 0;
+    uint8_t direction = 0;
     uint16_t hp;
     uint16_t max_hp;
     uint16_t move_timer = 0;
     uint16_t attack_timer = 0;
-    uint8_t  zone_id = 255;   // 255 = sin zona (spawn manual)
+    uint8_t zone_id = 255;  // 255 = sin zona (spawn manual)
 };

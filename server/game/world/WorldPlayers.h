@@ -5,8 +5,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "../entities/PlayerData.h"
 #include "../../../common/queue.h"
+#include "../entities/PlayerData.h"
 
 class WorldCollision;
 
@@ -18,8 +18,9 @@ private:
     Queue<PlayerData>& save_queue;
 
     void set_direction_from_delta(PlayerData& player, int dx, int dy);
+
 public:
-    explicit WorldPlayers(WorldCollision& c, Queue<PlayerData>& sq) : collision(c), save_queue(sq) {}
+    explicit WorldPlayers(WorldCollision& c, Queue<PlayerData>& sq): collision(c), save_queue(sq) {}
 
     void add(const PlayerData& player_data);
     void remove(uint16_t client_id);

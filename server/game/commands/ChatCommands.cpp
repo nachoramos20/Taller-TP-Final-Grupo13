@@ -1,11 +1,13 @@
-#include "Commands.h"
-#include "BankCommands.h"
-#include "MerchantCommands.h"
-#include "ClanCommands.h"
-#include "DungeonCommands.h"
-#include "ChatCheatCommands.h"
-#include "../Items.h"
 #include <sstream>
+
+#include "../Items.h"
+
+#include "BankCommands.h"
+#include "ChatCheatCommands.h"
+#include "ClanCommands.h"
+#include "Commands.h"
+#include "DungeonCommands.h"
+#include "MerchantCommands.h"
 
 // Patrón aplicado: Command + tabla de dispatch (en vez de la cadena de 31
 // if/else if que despachaba por texto de comando). Cada entrada de la
@@ -23,47 +25,95 @@
 // usada por composición (construida con el client_id dentro de la lambda
 // que la necesita). Lo que queda acá es lo que no encaja en ninguna de
 // esas clases: mensajería privada, meditar/resucitar/curar y tomar/tirar.
-ChatCommand::ChatCommand(uint16_t c, std::string cmd)
-    : client_id(c), cmd(std::move(cmd)) {}
+ChatCommand::ChatCommand(uint16_t c, std::string cmd): client_id(c), cmd(std::move(cmd)) {}
 
 const ChatCommand::DispatchTable& ChatCommand::dispatch_table() {
     static const DispatchTable table = {
-        {"/meditar",            [](ChatCommand& s, World& w, const std::string&)    { s.handle_meditar(w); }},
-        {"/resucitar",          [](ChatCommand& s, World& w, const std::string&)    { s.handle_resucitar(w); }},
-        {"/curar",              [](ChatCommand& s, World& w, const std::string&)    { s.handle_curar(w); }},
-        {"/listar",             [](ChatCommand& s, World& w, const std::string&)    { s.handle_listar(w); }},
-        {"/tomar",              [](ChatCommand& s, World& w, const std::string&)    { s.handle_tomar(w); }},
-        {"/tirar",              [](ChatCommand& s, World& w, const std::string& a)  { s.handle_tirar(w, a); }},
+            {"/meditar", [](ChatCommand& s, World& w, const std::string&) { s.handle_meditar(w); }},
+            {"/resucitar",
+             [](ChatCommand& s, World& w, const std::string&) { s.handle_resucitar(w); }},
+            {"/curar", [](ChatCommand& s, World& w, const std::string&) { s.handle_curar(w); }},
+            {"/listar", [](ChatCommand& s, World& w, const std::string&) { s.handle_listar(w); }},
+            {"/tomar", [](ChatCommand& s, World& w, const std::string&) { s.handle_tomar(w); }},
+            {"/tirar",
+             [](ChatCommand& s, World& w, const std::string& a) { s.handle_tirar(w, a); }},
 
-        {"/depositar",          [](ChatCommand& s, World& w, const std::string& a)  { BankCommands(s.client_id).deposit(w, a); }},
-        {"/retirar",            [](ChatCommand& s, World& w, const std::string& a)  { BankCommands(s.client_id).withdraw(w, a); }},
+            {"/depositar", [](ChatCommand& s, World& w,
+                              const std::string& a) { BankCommands(s.client_id).deposit(w, a); }},
+            {"/retirar", [](ChatCommand& s, World& w,
+                            const std::string& a) { BankCommands(s.client_id).withdraw(w, a); }},
 
-        {"/comprar",            [](ChatCommand& s, World& w, const std::string& a)  { MerchantCommands(s.client_id).buy(w, a); }},
-        {"/vender",             [](ChatCommand& s, World& w, const std::string& a)  { MerchantCommands(s.client_id).sell(w, a); }},
+            {"/comprar", [](ChatCommand& s, World& w,
+                            const std::string& a) { MerchantCommands(s.client_id).buy(w, a); }},
+            {"/vender", [](ChatCommand& s, World& w,
+                           const std::string& a) { MerchantCommands(s.client_id).sell(w, a); }},
 
-        {"/fundar-clan",        [](ChatCommand& s, World& w, const std::string& a)  { ClanCommands(s.client_id).found(w, a); }},
-        {"/unirse",             [](ChatCommand& s, World& w, const std::string& a)  { ClanCommands(s.client_id).join_request(w, a); }},
-        {"/revisar-clan",       [](ChatCommand& s, World& w, const std::string&)    { ClanCommands(s.client_id).review(w); }},
-        {"/clan-aceptar",       [](ChatCommand& s, World& w, const std::string& a)  { ClanCommands(s.client_id).accept(w, a); }},
-        {"/clan-rechazar",      [](ChatCommand& s, World& w, const std::string& a)  { ClanCommands(s.client_id).reject(w, a); }},
-        {"/clan-ban",           [](ChatCommand& s, World& w, const std::string& a)  { ClanCommands(s.client_id).ban(w, a); }},
-        {"/clan-kick",          [](ChatCommand& s, World& w, const std::string& a)  { ClanCommands(s.client_id).kick(w, a); }},
-        {"/dejar-clan",         [](ChatCommand& s, World& w, const std::string&)    { ClanCommands(s.client_id).leave(w); }},
+            {"/fundar-clan", [](ChatCommand& s, World& w,
+                                const std::string& a) { ClanCommands(s.client_id).found(w, a); }},
+            {"/unirse", [](ChatCommand& s, World& w,
+                           const std::string& a) { ClanCommands(s.client_id).join_request(w, a); }},
+            {"/revisar-clan", [](ChatCommand& s, World& w,
+                                 const std::string&) { ClanCommands(s.client_id).review(w); }},
+            {"/clan-aceptar", [](ChatCommand& s, World& w,
+                                 const std::string& a) { ClanCommands(s.client_id).accept(w, a); }},
+            {"/clan-rechazar",
+             [](ChatCommand& s, World& w, const std::string& a) {
+                 ClanCommands(s.client_id).reject(w, a);
+             }},
+            {"/clan-ban", [](ChatCommand& s, World& w,
+                             const std::string& a) { ClanCommands(s.client_id).ban(w, a); }},
+            {"/clan-kick", [](ChatCommand& s, World& w,
+                              const std::string& a) { ClanCommands(s.client_id).kick(w, a); }},
+            {"/dejar-clan", [](ChatCommand& s, World& w,
+                               const std::string&) { ClanCommands(s.client_id).leave(w); }},
 
-        {"/entrar-mazmorra",    [](ChatCommand& s, World& w, const std::string&)    { DungeonCommands(s.client_id).enter(w); }},
-        {"/salir-mazmorra",     [](ChatCommand& s, World& w, const std::string&)    { DungeonCommands(s.client_id).leave(w); }},
-        {"/info-mazmorra",      [](ChatCommand& s, World& w, const std::string&)    { DungeonCommands(s.client_id).info(w); }},
+            {"/entrar-mazmorra", [](ChatCommand& s, World& w,
+                                    const std::string&) { DungeonCommands(s.client_id).enter(w); }},
+            {"/salir-mazmorra", [](ChatCommand& s, World& w,
+                                   const std::string&) { DungeonCommands(s.client_id).leave(w); }},
+            {"/info-mazmorra", [](ChatCommand& s, World& w,
+                                  const std::string&) { DungeonCommands(s.client_id).info(w); }},
 
-        {"/set-nivel",          [](ChatCommand& s, World& w, const std::string& a)  { ChatCheatCommands(s.client_id).set_nivel(w, a); }},
-        {"/set-vida",           [](ChatCommand& s, World& w, const std::string& a)  { ChatCheatCommands(s.client_id).set_vida(w, a); }},
-        {"/set-fuerza",         [](ChatCommand& s, World& w, const std::string& a)  { ChatCheatCommands(s.client_id).set_fuerza(w, a); }},
-        {"/set-agilidad",       [](ChatCommand& s, World& w, const std::string& a)  { ChatCheatCommands(s.client_id).set_agilidad(w, a); }},
-        {"/set-inteligencia",   [](ChatCommand& s, World& w, const std::string& a)  { ChatCheatCommands(s.client_id).set_inteligencia(w, a); }},
-        {"/set-constitucion",   [](ChatCommand& s, World& w, const std::string& a)  { ChatCheatCommands(s.client_id).set_constitucion(w, a); }},
-        {"/morir-instantaneo",  [](ChatCommand& s, World& w, const std::string&)    { ChatCheatCommands(s.client_id).morir_instantaneo(w); }},
-        {"/revivir-instantaneo",[](ChatCommand& s, World& w, const std::string&)    { ChatCheatCommands(s.client_id).revivir_instantaneo(w); }},
-        {"/obtener-objeto",     [](ChatCommand& s, World& w, const std::string& a)  { ChatCheatCommands(s.client_id).obtener_objeto(w, a); }},
-        {"/set-oro",            [](ChatCommand& s, World& w, const std::string& a)  { ChatCheatCommands(s.client_id).set_oro(w, a); }},
+            {"/set-nivel",
+             [](ChatCommand& s, World& w, const std::string& a) {
+                 ChatCheatCommands(s.client_id).set_nivel(w, a);
+             }},
+            {"/set-vida",
+             [](ChatCommand& s, World& w, const std::string& a) {
+                 ChatCheatCommands(s.client_id).set_vida(w, a);
+             }},
+            {"/set-fuerza",
+             [](ChatCommand& s, World& w, const std::string& a) {
+                 ChatCheatCommands(s.client_id).set_fuerza(w, a);
+             }},
+            {"/set-agilidad",
+             [](ChatCommand& s, World& w, const std::string& a) {
+                 ChatCheatCommands(s.client_id).set_agilidad(w, a);
+             }},
+            {"/set-inteligencia",
+             [](ChatCommand& s, World& w, const std::string& a) {
+                 ChatCheatCommands(s.client_id).set_inteligencia(w, a);
+             }},
+            {"/set-constitucion",
+             [](ChatCommand& s, World& w, const std::string& a) {
+                 ChatCheatCommands(s.client_id).set_constitucion(w, a);
+             }},
+            {"/morir-instantaneo",
+             [](ChatCommand& s, World& w, const std::string&) {
+                 ChatCheatCommands(s.client_id).morir_instantaneo(w);
+             }},
+            {"/revivir-instantaneo",
+             [](ChatCommand& s, World& w, const std::string&) {
+                 ChatCheatCommands(s.client_id).revivir_instantaneo(w);
+             }},
+            {"/obtener-objeto",
+             [](ChatCommand& s, World& w, const std::string& a) {
+                 ChatCheatCommands(s.client_id).obtener_objeto(w, a);
+             }},
+            {"/set-oro",
+             [](ChatCommand& s, World& w, const std::string& a) {
+                 ChatCheatCommands(s.client_id).set_oro(w, a);
+             }},
     };
     return table;
 }
@@ -80,7 +130,8 @@ void ChatCommand::execute(World& world) {
 
     std::string rest;
     std::getline(ss, rest);
-    if (!rest.empty() && rest[0] == ' ') rest = rest.substr(1);
+    if (!rest.empty() && rest[0] == ' ')
+        rest = rest.substr(1);
 
     const auto& table = dispatch_table();
     auto it = table.find(token);
@@ -91,9 +142,7 @@ void ChatCommand::execute(World& world) {
     it->second(*this, world, rest);
 }
 
-void ChatCommand::handle_meditar(World& world) {
-    MeditateCommand(client_id).execute(world);
-}
+void ChatCommand::handle_meditar(World& world) { MeditateCommand(client_id).execute(world); }
 
 void ChatCommand::handle_resucitar(World& world) {
     // El chequeo de cercanía al sacerdote (y cuál de los dos) vive en
@@ -103,12 +152,13 @@ void ChatCommand::handle_resucitar(World& world) {
 
 void ChatCommand::handle_curar(World& world) {
     PlayerData* p = world.get_player_mutable(client_id);
-    if (!p) return;
+    if (!p)
+        return;
 
     if (!world.player_near_service_npc(client_id, NpcId::PRIEST)) {
         world.push_message(client_id, 0,
-            "Debes estar cerca del Sacerdote para ser curado.\n"
-            "Acércate y haz click en él primero.");
+                           "Debes estar cerca del Sacerdote para ser curado.\n"
+                           "Acércate y haz click en él primero.");
         return;
     }
     if (p->is_ghost) {
@@ -125,19 +175,20 @@ void ChatCommand::handle_curar(World& world) {
 // entre dos clases auxiliares, no lógica de ninguna de las dos por
 // separado, por eso queda en ChatCommand.
 void ChatCommand::handle_listar(World& world) {
-    if (BankCommands(client_id).try_list_account(world)) return;
-    if (MerchantCommands(client_id).try_list_catalog(world)) return;
+    if (BankCommands(client_id).try_list_account(world))
+        return;
+    if (MerchantCommands(client_id).try_list_catalog(world))
+        return;
     world.push_message(client_id, 0,
-        "Debes estar cerca del Banquero o Comerciante para usar este comando.");
+                       "Debes estar cerca del Banquero o Comerciante para usar este comando.");
 }
 
-void ChatCommand::handle_tomar(World& world) {
-    PickCommand(client_id).execute(world);
-}
+void ChatCommand::handle_tomar(World& world) { PickCommand(client_id).execute(world); }
 
 void ChatCommand::handle_tirar(World& world, const std::string& args) {
     PlayerData* p = world.get_player_mutable(client_id);
-    if (!p) return;
+    if (!p)
+        return;
 
     try {
         int slot = std::stoi(args);
@@ -148,9 +199,11 @@ void ChatCommand::handle_tirar(World& world, const std::string& args) {
     } catch (...) {}
 
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; ++i) {
-        if (p->inventory[i] == 0) continue;
+        if (p->inventory[i] == 0)
+            continue;
         if (Items::exists(static_cast<ItemId>(p->inventory[i]))) {
-            if (Items::name_equals_ci(Items::get(static_cast<ItemId>(p->inventory[i])).name, args)) {
+            if (Items::name_equals_ci(Items::get(static_cast<ItemId>(p->inventory[i])).name,
+                                      args)) {
                 DropCommand(client_id, static_cast<uint8_t>(i)).execute(world);
                 return;
             }
@@ -163,12 +216,14 @@ void ChatCommand::handle_private_msg(World& world, const std::string& full_cmd) 
     std::istringstream ss(full_cmd);
     std::string target_token;
     ss >> target_token;
-    if (target_token.size() < 2) return;
+    if (target_token.size() < 2)
+        return;
     std::string target_nick = target_token.substr(1);
 
     std::string msg;
     std::getline(ss, msg);
-    if (!msg.empty() && msg[0] == ' ') msg = msg.substr(1);
+    if (!msg.empty() && msg[0] == ' ')
+        msg = msg.substr(1);
 
     uint16_t target_id = world.find_player_by_name(target_nick);
     if (target_id == 0) {
@@ -177,8 +232,8 @@ void ChatCommand::handle_private_msg(World& world, const std::string& full_cmd) 
     }
 
     const PlayerData* sender = world.find_player(client_id);
-    std::string sender_name  = sender ? std::string(sender->username) : "?";
+    std::string sender_name = sender ? std::string(sender->username) : "?";
 
     world.push_message(target_id, 2, "[" + sender_name + " → ti]: " + msg);
-    world.push_message(client_id,  2, "[tú → " + target_nick + "]: " + msg);
+    world.push_message(client_id, 2, "[tú → " + target_nick + "]: " + msg);
 }

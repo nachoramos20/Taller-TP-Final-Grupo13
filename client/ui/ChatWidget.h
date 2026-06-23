@@ -1,15 +1,18 @@
 #pragma once
 
-#include <SDL2pp/SDL2pp.hh>
+#include <deque>
+#include <functional>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <deque>
-#include <string>
-#include <functional>
+#include <SDL2pp/SDL2pp.hh>
 
 struct ChatLine {
     std::string text;
-    Uint32      born_ms;
+    Uint32 born_ms;
 };
 
 // Caja de chat: muestra mensajes recientes con fade-out por tiempo y un
@@ -31,15 +34,15 @@ public:
     void on_submit(std::function<void(const std::string&)> cb) { _on_submit = std::move(cb); }
 
 private:
-    SDL2pp::Renderer&  _renderer;
-    TTF_Font*          _font = nullptr;
-    int                _font_size;
+    SDL2pp::Renderer& _renderer;
+    TTF_Font* _font = nullptr;
+    int _font_size;
 
     std::deque<ChatLine> _messages;
 
-    static constexpr Uint32 MSG_LIFETIME_MS = 12000; // 12 segundos por mensaje
-    std::string             _input_buffer;
-    bool                    _input_active = false;
+    static constexpr Uint32 MSG_LIFETIME_MS = 12000;  // 12 segundos por mensaje
+    std::string _input_buffer;
+    bool _input_active = false;
 
     std::function<void(const std::string&)> _on_submit;
 

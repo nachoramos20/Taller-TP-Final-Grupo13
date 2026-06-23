@@ -8,7 +8,7 @@
 // datos, no dibujado — antes vivía mezclada con los draw_* en la misma
 // clase (y antes de eso, en InventoryPanel).
 namespace ItemLabels {
-    const char* name(uint8_t id);
-    const char* abbr(uint8_t id);
-    const char* kind(uint8_t id);
-}
+const char* name(uint8_t id);
+const char* abbr(uint8_t id);
+const char* kind(uint8_t id);
+}  // namespace ItemLabels

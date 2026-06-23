@@ -3,35 +3,37 @@
 // apply_initial_equipment. Agregar una clase nueva es agregar una fila a
 // initial_loadouts(), no una rama más en cada uno de los 3 switches.
 #include "PersistenceMonitor.h"
-#include "Items.h"
-#include "config/GameConfig.h"
 
 #include <fstream>
 #include <unordered_map>
 
-namespace {
-    struct InitialLoadout {
-        ItemId weapon;
-        ItemId armor;
-        ItemId helmet;
-        bool   has_shield;
-    };
+#include "config/GameConfig.h"
 
-    const std::unordered_map<Class, InitialLoadout>& initial_loadouts() {
-        using I = ItemId;
-        // Arma inicial: siempre la de menor tier dentro de la categoría de
-        // la clase. Las versiones "épicas"/"legendarias" quedan como
-        // drops/compras, no como punto de partida. Escudo solo para
-        // Warrior/Paladin (las otras clases no pueden usarlo).
-        static const std::unordered_map<Class, InitialLoadout> table = {
-            {Class::WARRIOR, {I::SWORD,      I::WARRIOR_EPIC_ARMOR, I::IRON_HELMET, true}},
-            {Class::PALADIN, {I::SIMPLE_BOW, I::MAGE_ROYAL_ARMOR,   I::IRON_HELMET, true}},
-            {Class::CLERIC,  {I::ELVEN_FLUTE,I::CLERIC_BLACK_ARMOR, I::HOOD,        false}},
-            {Class::MAGE,    {I::ASH_STICK,  I::LEATHER_ARMOR,      I::MAGIC_HAT,   false}},
-        };
-        return table;
-    }
+#include "Items.h"
+
+namespace {
+struct InitialLoadout {
+    ItemId weapon;
+    ItemId armor;
+    ItemId helmet;
+    bool has_shield;
+};
+
+const std::unordered_map<Class, InitialLoadout>& initial_loadouts() {
+    using I = ItemId;
+    // Arma inicial: siempre la de menor tier dentro de la categoría de
+    // la clase. Las versiones "épicas"/"legendarias" quedan como
+    // drops/compras, no como punto de partida. Escudo solo para
+    // Warrior/Paladin (las otras clases no pueden usarlo).
+    static const std::unordered_map<Class, InitialLoadout> table = {
+            {Class::WARRIOR, {I::SWORD, I::WARRIOR_EPIC_ARMOR, I::IRON_HELMET, true}},
+            {Class::PALADIN, {I::SIMPLE_BOW, I::MAGE_ROYAL_ARMOR, I::IRON_HELMET, true}},
+            {Class::CLERIC, {I::ELVEN_FLUTE, I::CLERIC_BLACK_ARMOR, I::HOOD, false}},
+            {Class::MAGE, {I::ASH_STICK, I::LEATHER_ARMOR, I::MAGIC_HAT, false}},
+    };
+    return table;
 }
+}  // namespace
 
 PersistenceMonitor::PersistenceMonitor(Queue<PlayerData>& save_queue): save_queue(save_queue) {
     std::ifstream index_file(PLAYERS_INDEX_FILENAME, std::ios::in | std::ios::binary);
@@ -47,13 +49,13 @@ PersistenceMonitor::PersistenceMonitor(Queue<PlayerData>& save_queue): save_queu
     index_file.close();
 }
 
-static void give_item(PlayerData& p, uint8_t item_id,
-                      uint8_t& equip_slot_ref, bool equip) {
+static void give_item(PlayerData& p, uint8_t item_id, uint8_t& equip_slot_ref, bool equip) {
     // Buscar primer hueco libre en el inventario
     for (int i = 0; i < PlayerData::INVENTORY_SIZE; i++) {
         if (p.inventory[i] == 0) {
             p.inventory[i] = item_id;
-            if (equip) equip_slot_ref = i;
+            if (equip)
+                equip_slot_ref = i;
             return;
         }
     }
@@ -67,14 +69,15 @@ static void apply_initial_equipment(PlayerData& p) {
     if (it != initial_loadouts().end()) {
         const InitialLoadout& loadout = it->second;
         give_item(p, static_cast<uint8_t>(loadout.weapon), p.equipped_weapon, true);
-        give_item(p, static_cast<uint8_t>(loadout.armor),  p.equipped_armor,  true);
+        give_item(p, static_cast<uint8_t>(loadout.armor), p.equipped_armor, true);
         give_item(p, static_cast<uint8_t>(loadout.helmet), p.equipped_helmet, true);
         if (loadout.has_shield)
             give_item(p, static_cast<uint8_t>(I::IRON_SHIELD), p.equipped_shield, true);
     }
 
     // Pociones iniciales (una de vida para todos)
-    give_item(p, static_cast<uint8_t>(I::HEALTH_POTION), p.equipped_weapon /*dummy, no equip*/, false);
+    give_item(p, static_cast<uint8_t>(I::HEALTH_POTION), p.equipped_weapon /*dummy, no equip*/,
+              false);
     if (cls == Class::MAGE || cls == Class::CLERIC) {
         give_item(p, static_cast<uint8_t>(I::MANA_POTION), p.equipped_weapon /*dummy*/, false);
     }
@@ -83,44 +86,45 @@ static void apply_initial_equipment(PlayerData& p) {
     // atacar: sin un báculo de respaldo en el inventario no tendría forma
     // de hacer daño a distancia hasta comprar o encontrar otro.
     if (cls == Class::CLERIC) {
-        give_item(p, static_cast<uint8_t>(I::NUDOSO_STAFF), p.equipped_weapon /*dummy, no equip*/, false);
+        give_item(p, static_cast<uint8_t>(I::NUDOSO_STAFF), p.equipped_weapon /*dummy, no equip*/,
+                  false);
     }
 }
 
-PlayerData PersistenceMonitor::
-make_initial_player(const std::string& username, uint8_t race, uint8_t cls) {
+PlayerData PersistenceMonitor::make_initial_player(const std::string& username, uint8_t race,
+                                                   uint8_t cls) {
     PlayerData data{};
     PlayerData::copy_username(data.username, username);
     data.entity_id = 0;
     data.race = race;
-    data.cls  = cls;
+    data.cls = cls;
     data.pos_x = GameConfig::get().formulas().respawn_x;
     data.pos_y = GameConfig::get().formulas().respawn_y;
     data.direction = 0;
-    data.exp   = 0;
+    data.exp = 0;
     data.level = 1;
-    data.gold  = 0;
-    data.is_ghost   = false;
+    data.gold = 0;
+    data.is_ghost = false;
     data.meditating = false;
 
     // Stats según raza y clase
     RaceConfig rf = GameConfig::get().race(race);
 
-    data.strength     = rf.base_str;
-    data.agility      = rf.base_agi;
+    data.strength = rf.base_str;
+    data.agility = rf.base_agi;
     data.intelligence = rf.base_int;
     data.constitution = rf.base_const;
 
     data.max_hp = GameConfig::get().initial_max_hp(race, cls);
-    data.hp     = data.max_hp;
+    data.hp = data.max_hp;
 
     // Si la clase no puede meditar (Guerrero), no tiene maná
     if (!GameConfig::get().cls(cls).can_meditate) {
         data.max_mp = 0;
-        data.mp     = 0;
+        data.mp = 0;
     } else {
         data.max_mp = GameConfig::get().initial_max_mp(race, cls);
-        data.mp     = data.max_mp;
+        data.mp = data.max_mp;
     }
 
     // Inventario y equipo según clase
@@ -129,14 +133,15 @@ make_initial_player(const std::string& username, uint8_t race, uint8_t cls) {
     return data;
 }
 
-bool PersistenceMonitor::login(const std::string& target_username,
-                               PlayerData& player_data, uint16_t entity_id) {
+bool PersistenceMonitor::login(const std::string& target_username, PlayerData& player_data,
+                               uint16_t entity_id) {
     std::lock_guard<std::mutex> lock(mtx);
 
     if (target_username.size() > PlayerData::USERNAME_MAX_LENGTH)
         return false;
 
-    std::unordered_map<std::string, uint64_t>::iterator it = player_offsets_map.find(target_username);
+    std::unordered_map<std::string, uint64_t>::iterator it =
+            player_offsets_map.find(target_username);
     if (it == player_offsets_map.end())
         return false;
 
@@ -154,7 +159,7 @@ bool PersistenceMonitor::login(const std::string& target_username,
 
     // Garantizar invariante del guerrero en cuentas antiguas
     if (static_cast<Class>(player_data.cls) == Class::WARRIOR) {
-        player_data.mp     = 0;
+        player_data.mp = 0;
         player_data.max_mp = 0;
     }
 
@@ -162,8 +167,7 @@ bool PersistenceMonitor::login(const std::string& target_username,
     return true;
 }
 
-bool PersistenceMonitor::register_user(const std::string& new_username,
-                                       uint8_t race, uint8_t cls,
+bool PersistenceMonitor::register_user(const std::string& new_username, uint8_t race, uint8_t cls,
                                        PlayerData& player_data, uint16_t entity_id) {
     std::lock_guard<std::mutex> lock(mtx);
 
@@ -202,12 +206,11 @@ void PersistenceMonitor::save_player(const PlayerData& player_data_to_save) {
     std::lock_guard<std::mutex> lock(mtx);
 
     std::unordered_map<std::string, uint64_t>::iterator it =
-        player_offsets_map.find(std::string(player_data_to_save.username));
+            player_offsets_map.find(std::string(player_data_to_save.username));
     if (it == player_offsets_map.end())
         return;
 
-    std::fstream data_file(PLAYERS_DATA_FILENAME,
-                           std::ios::in | std::ios::out | std::ios::binary);
+    std::fstream data_file(PLAYERS_DATA_FILENAME, std::ios::in | std::ios::out | std::ios::binary);
     if (!data_file.is_open())
         return;
 
@@ -215,6 +218,5 @@ void PersistenceMonitor::save_player(const PlayerData& player_data_to_save) {
     if (!data_file.good())
         return;
 
-    data_file.write(reinterpret_cast<const char*>(&player_data_to_save),
-                    sizeof(PlayerData));
+    data_file.write(reinterpret_cast<const char*>(&player_data_to_save), sizeof(PlayerData));
 }

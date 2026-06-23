@@ -3,30 +3,32 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 // Un clan y su membresía. Vive en WorldClans, indexado por nombre.
 struct Clan {
     std::string name;
-    uint16_t    founder_id = 0;
-    std::vector<uint16_t>       members;    // incluye al fundador
-    std::vector<uint16_t>       pending;    // pedidos de ingreso sin resolver
+    uint16_t founder_id = 0;
+    std::vector<uint16_t> members;  // incluye al fundador
+    std::vector<uint16_t> pending;  // pedidos de ingreso sin resolver
     std::unordered_set<uint16_t> banned;
 
     static constexpr int MAX_MEMBERS = 16;
 
     bool is_member(uint16_t id) const {
-        for (auto m : members) if (m == id) return true;
+        for (auto m: members)
+            if (m == id)
+                return true;
         return false;
     }
     bool is_pending(uint16_t id) const {
-        for (auto p : pending) if (p == id) return true;
+        for (auto p: pending)
+            if (p == id)
+                return true;
         return false;
     }
-    bool is_banned(uint16_t id) const {
-        return banned.count(id) > 0;
-    }
+    bool is_banned(uint16_t id) const { return banned.count(id) > 0; }
     void remove_member(uint16_t id) {
         members.erase(std::remove(members.begin(), members.end(), id), members.end());
     }
@@ -35,4 +37,4 @@ struct Clan {
     }
 };
 
-#endif // CLAN_H
+#endif  // CLAN_H

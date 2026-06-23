@@ -17,8 +17,9 @@ struct HelmetVisual {
 };
 
 struct ItemVisualEntry {
-    std::string icon_path;    // ícono mostrado en el inventario
-    std::string equip_path;   // overlay dibujado sobre el personaje (vacío = no se equipa visualmente)
+    std::string icon_path;  // ícono mostrado en el inventario
+    std::string
+            equip_path;  // overlay dibujado sobre el personaje (vacío = no se equipa visualmente)
 
     // Sonido al atacar con este ítem (si es un arma). category indica en qué
     // tabla de AudioConfig buscar "key": "melee" | "ranged" | "magic".
@@ -45,7 +46,7 @@ public:
 
 private:
     std::unordered_map<uint8_t, ItemVisualEntry> _items;
-    std::unordered_map<uint8_t, HelmetVisual>    _helmets;
+    std::unordered_map<uint8_t, HelmetVisual> _helmets;
     std::unordered_map<uint16_t, std::vector<std::string>> _floor_variants;
 
     ItemVisualEntry _fallback;

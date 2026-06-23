@@ -1,24 +1,22 @@
 #include "ServerReceiverThread.h"
+
 #include <iostream>
 #include <memory>
 #include <string>
 
-ServerReceiverThread::ServerReceiverThread(uint16_t client_id,
-                                           Queue<std::shared_ptr<ServerCommand>>& command_queue,
-                                           QueueMonitor& queue_monitor,
-                                           Queue<SnapshotDTO>& sender_queue,
-                                           std::atomic<bool>& client_alive,
-                                           ServerProtocol& server_protocol,
-                                           PersistenceMonitor& persistence_monitor,
-                                           MapaDTO& initial_map)
-    : _client_id(client_id),
-      _server_protocol(server_protocol),
-      _command_queue(command_queue),
-      _queue_monitor(queue_monitor),
-      _sender_queue(sender_queue),
-      _client_alive(client_alive),
-      _persistence_monitor(persistence_monitor),
-      _initial_map(initial_map) {}
+ServerReceiverThread::ServerReceiverThread(
+        uint16_t client_id, Queue<std::shared_ptr<ServerCommand>>& command_queue,
+        QueueMonitor& queue_monitor, Queue<SnapshotDTO>& sender_queue,
+        std::atomic<bool>& client_alive, ServerProtocol& server_protocol,
+        PersistenceMonitor& persistence_monitor, MapaDTO& initial_map):
+        _client_id(client_id),
+        _server_protocol(server_protocol),
+        _command_queue(command_queue),
+        _queue_monitor(queue_monitor),
+        _sender_queue(sender_queue),
+        _client_alive(client_alive),
+        _persistence_monitor(persistence_monitor),
+        _initial_map(initial_map) {}
 
 void ServerReceiverThread::run() {
     try {
@@ -26,8 +24,10 @@ void ServerReceiverThread::run() {
         bool ok = false;
         while (!ok && should_keep_running()) {
             MsgType type = _server_protocol.receive_handshake();
-            if (type == MsgType::LOGIN)          ok = handshake_login(player_data);
-            else if (type == MsgType::REGISTER) ok = handshake_register(player_data);
+            if (type == MsgType::LOGIN)
+                ok = handshake_login(player_data);
+            else if (type == MsgType::REGISTER)
+                ok = handshake_register(player_data);
 
             if (!ok) {
                 _server_protocol.send_login_error("Usuario invalido o ya existente");
@@ -41,7 +41,10 @@ void ServerReceiverThread::run() {
 
         while (should_keep_running()) {
             std::shared_ptr<ServerCommand> command = _server_protocol.receive_command(_client_id);
-            if (!command) { _client_alive = false; break; }
+            if (!command) {
+                _client_alive = false;
+                break;
+            }
             _command_queue.push(command);
         }
         std::shared_ptr<LogoutCommand> logout = std::make_shared<LogoutCommand>(_client_id);

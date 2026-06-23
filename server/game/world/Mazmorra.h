@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <vector>
+
 #include "../Npc.h"
 
 class WorldNpcs;
@@ -23,8 +24,8 @@ struct GoldSpawnPoint {
 // conteo de jugadores adentro (ver player_entered/player_left).
 class Mazmorra {
 public:
-    Mazmorra(WorldNpcs& npcs, WorldItems& items,
-             uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+    Mazmorra(WorldNpcs& npcs, WorldItems& items, uint16_t x1, uint16_t y1, uint16_t x2,
+             uint16_t y2);
 
     // Registra un punto de spawn que, en cada respawn, instancia un NpcId
     // elegido al azar entre allowed_types (la elección se hace una sola vez,

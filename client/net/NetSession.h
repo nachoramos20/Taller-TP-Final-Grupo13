@@ -7,6 +7,7 @@
 #include "../../common/protocol/MapaDTO.h"
 #include "../../common/protocol/dtos.h"
 #include "../../common/queue.h"
+
 #include "ClientProtocol.h"
 #include "Command.h"
 #include "ReceiverThread.h"
@@ -23,8 +24,8 @@ public:
     ~NetSession();
 
     bool connect(const std::string& host, const std::string& port, std::string& error_message);
-    bool authenticate(const std::string& username, bool should_register,
-                      uint8_t race_id, uint8_t class_id, std::string& error_message);
+    bool authenticate(const std::string& username, bool should_register, uint8_t race_id,
+                      uint8_t class_id, std::string& error_message);
     void shutdown();
 
     Queue<Command>& commands() { return _command_queue; }

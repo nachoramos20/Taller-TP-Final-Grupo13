@@ -1,25 +1,26 @@
 #pragma once
 
-#include <SDL2pp/SDL2pp.hh>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL_image.h>
-#include <string>
 #include <array>
 #include <atomic>
+#include <string>
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2pp/SDL2pp.hh>
+#include <SDL_image.h>
 
 #include "../../common/queue.h"
-#include "../net/Command.h"
 #include "../config/RacesClassesConfig.h"
+#include "../net/Command.h"
 
 class AudioManager;
 
 struct LoginResult {
-    bool     cancelled = false;  // el usuario cerró la ventana
-    bool     do_register = false;
+    bool cancelled = false;  // el usuario cerró la ventana
+    bool do_register = false;
     std::string username;
-    uint8_t  race = 0;
-    uint8_t  cls  = 0;
+    uint8_t race = 0;
+    uint8_t cls = 0;
 };
 
 // Pantallas previas a entrar al juego: splash, menú, login y registro
@@ -27,8 +28,8 @@ struct LoginResult {
 // hasta que el usuario confirma o cierra la ventana (ver run()).
 class LoginScreen {
 public:
-    LoginScreen(SDL2pp::Window& window, SDL2pp::Renderer& renderer,
-                const std::string& font_path, AudioManager* audio = nullptr);
+    LoginScreen(SDL2pp::Window& window, SDL2pp::Renderer& renderer, const std::string& font_path,
+                AudioManager* audio = nullptr);
     ~LoginScreen();
 
     // Muestra un mensaje de error (llamar antes de run() para reintento)
@@ -57,36 +58,35 @@ private:
 
     void draw_bg();
     void draw_logo();
-    void draw_text(const std::string& t, int x, int y, SDL_Color c,
-                   TTF_Font* f = nullptr);
-    void draw_text_centered(const std::string& t, int cx, int cy,
-                            SDL_Color c, TTF_Font* f = nullptr);
-    void draw_button(const SDL_Rect& r, const std::string& label,
-                     bool hovered, bool selected = false);
-    void draw_input(const SDL_Rect& r, const std::string& text,
-                    bool active, const std::string& placeholder = "");
+    void draw_text(const std::string& t, int x, int y, SDL_Color c, TTF_Font* f = nullptr);
+    void draw_text_centered(const std::string& t, int cx, int cy, SDL_Color c,
+                            TTF_Font* f = nullptr);
+    void draw_button(const SDL_Rect& r, const std::string& label, bool hovered,
+                     bool selected = false);
+    void draw_input(const SDL_Rect& r, const std::string& text, bool active,
+                    const std::string& placeholder = "");
     void draw_race_card(int idx, int x, int y, int w, int h);
     void draw_class_card(int idx, int x, int y, int w, int h);
     void draw_panel(int x, int y, int w, int h);
     SDL_Texture* load_texture(const std::string& path);
 
-    SDL2pp::Window&   _window;
+    SDL2pp::Window& _window;
     SDL2pp::Renderer& _renderer;
-    AudioManager*     _audio = nullptr;
-    TTF_Font* _font_lg = nullptr;   // 20px
-    TTF_Font* _font_md = nullptr;   // 14px
-    TTF_Font* _font_sm = nullptr;   // 11px
+    AudioManager* _audio = nullptr;
+    TTF_Font* _font_lg = nullptr;  // 20px
+    TTF_Font* _font_md = nullptr;  // 14px
+    TTF_Font* _font_sm = nullptr;  // 11px
 
-    Screen      _screen  = Screen::SPLASH;
-    bool        _running = true;
-    bool        _cancelled = false;
+    Screen _screen = Screen::SPLASH;
+    bool _running = true;
+    bool _cancelled = false;
 
     std::string _username_input;
-    bool        _username_active = false;
-    uint8_t     _sel_race = 0;
-    uint8_t     _sel_class = 0;
-    bool        _race_chosen  = false;
-    bool        _class_chosen = false;
+    bool _username_active = false;
+    uint8_t _sel_race = 0;
+    uint8_t _sel_class = 0;
+    bool _race_chosen = false;
+    bool _class_chosen = false;
 
     // Mensaje de error a mostrar (p. ej. login rechazado por el server);
     // lo setea set_error() para el próximo run().
@@ -94,18 +94,18 @@ private:
 
     int _hover_x = 0, _hover_y = 0;
 
-    SDL_Texture* _race_tex[4] {};
+    SDL_Texture* _race_tex[4]{};
     SDL_Texture* _logo_tex = nullptr;
 
     // Rects de botones calculados en render, usados en handle_mouse_click
-    SDL_Rect _btn_comenzar {};
-    SDL_Rect _btn_login    {};
-    SDL_Rect _btn_register {};
-    SDL_Rect _btn_back     {};
-    SDL_Rect _btn_confirm  {};
+    SDL_Rect _btn_comenzar{};
+    SDL_Rect _btn_login{};
+    SDL_Rect _btn_register{};
+    SDL_Rect _btn_back{};
+    SDL_Rect _btn_confirm{};
     SDL_Rect _race_cards[4]{};
     SDL_Rect _class_cards[4]{};
 
-    static const RacesClassesConfig::Race&  race_info(uint8_t idx);
+    static const RacesClassesConfig::Race& race_info(uint8_t idx);
     static const RacesClassesConfig::Class& class_info(uint8_t idx);
 };

@@ -2,11 +2,10 @@
 
 #include <exception>
 
-NetSession::~NetSession() {
-    shutdown();
-}
+NetSession::~NetSession() { shutdown(); }
 
-bool NetSession::connect(const std::string& host, const std::string& port, std::string& error_message) {
+bool NetSession::connect(const std::string& host, const std::string& port,
+                         std::string& error_message) {
     error_message.clear();
 
     try {
@@ -22,8 +21,8 @@ bool NetSession::connect(const std::string& host, const std::string& port, std::
     return true;
 }
 
-bool NetSession::authenticate(const std::string& username, bool should_register,
-                              uint8_t race_id, uint8_t class_id, std::string& error_message) {
+bool NetSession::authenticate(const std::string& username, bool should_register, uint8_t race_id,
+                              uint8_t class_id, std::string& error_message) {
     if (!_sender_thread || !_receiver_thread) {
         error_message = "Sesion de red no inicializada.";
         return false;
@@ -47,9 +46,15 @@ bool NetSession::authenticate(const std::string& username, bool should_register,
 void NetSession::shutdown() {
     _connected = false;
 
-    try { _command_queue.close(); } catch (...) {}
-    try { _snapshot_queue.close(); } catch (...) {}
-    try { _map_queue.close(); } catch (...) {}
+    try {
+        _command_queue.close();
+    } catch (...) {}
+    try {
+        _snapshot_queue.close();
+    } catch (...) {}
+    try {
+        _map_queue.close();
+    } catch (...) {}
 
     if (_sender_thread) {
         _sender_thread->stop();
@@ -70,7 +75,8 @@ void NetSession::shutdown() {
 
 void NetSession::start_threads() {
     _sender_thread = std::make_unique<SenderThread>(*_protocol, _command_queue);
-    _receiver_thread = std::make_unique<ReceiverThread>(*_protocol, _snapshot_queue, _map_queue, _connected);
+    _receiver_thread =
+            std::make_unique<ReceiverThread>(*_protocol, _snapshot_queue, _map_queue, _connected);
     _sender_thread->start();
     _receiver_thread->start();
 }
