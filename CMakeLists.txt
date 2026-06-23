@@ -137,20 +137,11 @@ if(ARGENTUM_CLIENT)
 endif()
 
 if(ARGENTUM_SERVER)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(argentum_grupo13_server)
-
-    # Make them depend on argentum_grupo13_common lib
-    add_dependencies(argentum_grupo13_server argentum_grupo13_common)
-
     # Add source files and enable warnings
     # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(server)
 
     set_project_warnings(argentum_grupo13_server ${ARGENTUM_MAKE_WARNINGS_AS_ERRORS} FALSE)
-
-    # Link the argentum_grupo13_common lib target
-    target_link_libraries(argentum_grupo13_server argentum_grupo13_common)
 endif()
 
 if(ARGENTUM_EDITOR)
@@ -221,6 +212,7 @@ if(ARGENTUM_TESTS)
     # Change this if you have to.
     target_link_libraries(argentum_grupo13_tests
         argentum_grupo13_common
+        argentum_grupo13_server_lib
         GTest::gtest_main
     )
 endif()
