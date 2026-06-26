@@ -3,6 +3,7 @@
 set -e
 
 APP_NAME="argentum_grupo13"
+REPO_URL="https://github.com/nachoramos20/Taller-TP-Final-Grupo13"
 
 INSTALL_DIR="$HOME/.local/share/$APP_NAME"
 BIN_DIR="$HOME/.local/bin"
@@ -11,13 +12,34 @@ echo "======================================"
 echo " Argentum Online - Grupo 13 Installer "
 echo "======================================"
 
+# ── Detectar si estamos dentro del repo ──────────────────────────────────────
+REPO_DIR=""
+
+# Caso 1: el script se ejecuta desde dentro del repo (hay un Makefile y CMakeLists.txt)
+if [ -f "$(pwd)/Makefile" ] && [ -f "$(pwd)/CMakeLists.txt" ]; then
+    REPO_DIR="$(pwd)"
+    echo
+    echo "Repositorio detectado en: $REPO_DIR"
+    echo "Compilando desde el directorio actual..."
+else
+    # Caso 2: clonar el repo en un directorio temporal
+    TMP_DIR="$(mktemp -d)"
+    echo
+    echo "No se detectó el repositorio. Clonando desde GitHub..."
+    git clone "$REPO_URL" "$TMP_DIR"
+    REPO_DIR="$TMP_DIR"
+    echo "Repositorio clonado en: $REPO_DIR"
+fi
+
+cd "$REPO_DIR"
+
+# ── 1. Dependencias ───────────────────────────────────────────────────────────
 echo
 echo "[1/6] Actualizando repositorios..."
 sudo apt-get update
 
 echo
 echo "[2/6] Instalando dependencias..."
-
 sudo apt-get install -y \
     build-essential \
     cmake \
@@ -49,17 +71,18 @@ sudo apt-get install -y \
     libsdl2-mixer-dev \
     libsdl2-ttf-dev
 
+# ── 2. Compilar ───────────────────────────────────────────────────────────────
 echo
 echo "[3/6] Compilando proyecto..."
-
 make clean
 make compile-debug
 
+# ── 3. Tests ──────────────────────────────────────────────────────────────────
 echo
 echo "[4/6] Ejecutando tests..."
+"$REPO_DIR/build/argentum_grupo13_tests"
 
-./build/argentum_grupo13_tests
-
+# ── 4. Instalar ───────────────────────────────────────────────────────────────
 echo
 echo "[5/6] Instalando archivos..."
 
@@ -70,20 +93,21 @@ rm -rf "$INSTALL_DIR/assets"
 rm -rf "$INSTALL_DIR/config"
 rm -rf "$INSTALL_DIR/maps"
 
-cp -r assets "$INSTALL_DIR/"
-cp -r config "$INSTALL_DIR/"
+cp -r "$REPO_DIR/assets"  "$INSTALL_DIR/"
+cp -r "$REPO_DIR/config"  "$INSTALL_DIR/"
 
-if [ -d maps ]; then
-    cp -r maps "$INSTALL_DIR/"
+if [ -d "$REPO_DIR/maps" ]; then
+    cp -r "$REPO_DIR/maps" "$INSTALL_DIR/"
 fi
 
-cp build/argentum_grupo13_client "$INSTALL_DIR/"
-cp build/server/argentum_grupo13_server "$INSTALL_DIR/"
-cp build/argentum_grupo13_editor "$INSTALL_DIR/"
-cp build/argentum_grupo13_tests "$INSTALL_DIR/"
+cp "$REPO_DIR/build/argentum_grupo13_client"  "$INSTALL_DIR/"
+cp "$REPO_DIR/build/server/argentum_grupo13_server" "$INSTALL_DIR/"
+cp "$REPO_DIR/build/argentum_grupo13_editor"  "$INSTALL_DIR/"
+cp "$REPO_DIR/build/argentum_grupo13_tests"   "$INSTALL_DIR/"
 
 chmod +x "$INSTALL_DIR"/argentum_grupo13_*
 
+# ── 5. Lanzadores ─────────────────────────────────────────────────────────────
 echo
 echo "Creando lanzadores..."
 
@@ -109,9 +133,16 @@ chmod +x "$BIN_DIR/argentum_grupo13_client"
 chmod +x "$BIN_DIR/argentum_grupo13_server"
 chmod +x "$BIN_DIR/argentum_grupo13_editor"
 
+# ── 6. Limpiar temp si fue clonado ────────────────────────────────────────────
+if [ -n "${TMP_DIR:-}" ]; then
+    echo
+    echo "Limpiando directorio temporal..."
+    rm -rf "$TMP_DIR"
+fi
+
+# ── Fin ───────────────────────────────────────────────────────────────────────
 echo
 echo "[6/6] Instalación completada"
-
 echo
 echo "======================================"
 echo " INSTALACIÓN EXITOSA "
@@ -137,7 +168,7 @@ if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
     echo 'export PATH="$HOME/.local/bin:$PATH"'
     echo
     echo "Luego ejecutá:"
-    echo "source ~/.bashrc"
+    echo "  source ~/.bashrc"
     echo
 fi
 
