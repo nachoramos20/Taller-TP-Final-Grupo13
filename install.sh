@@ -78,7 +78,7 @@ if [ -d maps ]; then
 fi
 
 cp build/argentum_grupo13_client "$INSTALL_DIR/"
-cp build/argentum_grupo13_server "$INSTALL_DIR/"
+cp build/server/argentum_grupo13_server "$INSTALL_DIR/"
 cp build/argentum_grupo13_editor "$INSTALL_DIR/"
 cp build/argentum_grupo13_tests "$INSTALL_DIR/"
 
